@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css"/>
+		<style type="text/css">
+			.table{
+				table-layout: fixed;
+			}
+			.table td:not(".last-td"){
+				vertical-align: middle !important;
+				text-overflow: ellipsis;
+				overflow-x: hidden;
+				overflow-y: inherit;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container" id="menu" >
+			<ol class="breadcrumb">
+				<li><a href="#" v-on:click="pre()"><span>返回</span></a>| <a href="#" v-on:click="showChildren(first)">首页</a> </li>
+				<li v-for="item in stack"><a href="#" v-html="item.text"></a></li>
+			</ol>
+			<table class="table table-striped" >
+				<tr>
+					<th>序号</th><th>菜单名称</th><th>链接</th>
+					<th>鼠标提示</th><th>样式</th><th>图标</th>
+					<th>权重</th><th>操作</th>
+				</tr>
+				<tr v-for="item in rootMenu.children">
+					<td v-html="item.id"></td>
+					<td v-on:dblclick="edit(item,'text',$event)">
+						<span><a href="#" v-on:click="showChildren(item)" v-html="item.text"></a></span>
+						<input class="form-control hidden" v-model="item.text" 
+							v-on:focusout="editfinish(item,'text',$event)" 
+							v-on:change="save(item,property,$event)" />
+					</td>
+					<td v-for="property in properties" v-on:dblclick="edit(item,property,$event)" v-bind:title="item[property]">
+						<span v-html="item[property]"></span> 
+						<input class="form-control hidden" v-model="item[property]" 
+							v-on:focusout="editfinish(item,property,$event)" 
+							v-on:change="save(item,property,$event)" />
+					</td>
+					<!--<td>{{item.title}} </td>
+					<td>{{item.cssClass}}</td>
+					<td>{{item.icon}}</td>
+					<td>{{item.order}}</td>-->
+					<td class="last-td">
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+								操作<span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:;" v-on:click="remove(item,$event)">删除</a></li>
+								<li><a href="javascript:;">修改</a></li>
+								<li><a href="javascript:;" data-toggle="modal" data-target="#myModal" 
+									v-on:click="setNewItemParent(item)" >添加子菜单</a></li>
+							</ul>
+						</div>
+					</td>
+				</tr>
+			</table>
+			
+			
+			<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form id="menuform" class="form-horizontal" role="form" action="#">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+									&times;
+								</button>
+								<h4 class="modal-title" id="myModalLabel">
+									添加菜单
+								</h4>
+							</div>
+							<div class="modal-body">
+								<div class="form-group">
+									<label class="control-label col-md-3">名称：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="text" v-model="newItem.text"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-3">链接：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="link" v-model="newItem.link"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-3">鼠标提示：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="title" v-model="newItem.title"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-3">附加样式：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="cssClass" v-model="newItem.cssClass"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-3">图标：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="icon" v-model="newItem.icon"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-3">权重：</label>
+									<div class="col-md-9">
+										<input class="form-control" name="order" type="number" pattern="[0-9]*"
+											 v-model="newItem.order"/>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+								</button>
+								<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="add()">
+									提交更改
+								</button>
+							</div>
+						</form>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal -->
+			</div>
+			
+			
+			<!--<div>{{newItem.parentNode}}</div>-->
+		</div>
+	</body>
+	<script src="../js/basepath.js"></script>
+	<script src="../js/jquery-1.12.1.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/sysadmin/menuadmin.js" type="text/javascript" charset="utf-8"></script>
+	
+</html>

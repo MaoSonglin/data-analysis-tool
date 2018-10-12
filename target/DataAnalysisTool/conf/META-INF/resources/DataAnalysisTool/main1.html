@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>企业数据分析工具</title>
+		<script src="js/basepath.js" type="text/javascript" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
+		<style>
+			.wrapper{
+				position: absolute ;
+				top:0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				/*background-color: #245269;*/
+				display: flex;
+				flex-direction: column;
+			}
+			.main{
+				display: flex;
+				flex-direction: row;
+				/*height: 85%;*/
+				flex-grow: 1;
+				
+			}
+			.header{
+				height: 50px;
+				/*background-color: rosybrown;*/
+			}
+			.left-nav{
+				/*background-color: olivedrab;*/
+				width: 200px;
+				padding: 10px 5px;
+				overflow: auto;
+			}
+			.right-content{
+				flex-grow: 1;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="header">
+								
+				<nav class="navbar navbar-default" role="navigation">
+				    <div class="container-fluid"> 
+					    <div class="navbar-header">
+					        <button type="button" class="navbar-toggle" data-toggle="collapse"
+					                data-target="#example-navbar-collapse">
+					            <span class="sr-only">切换导航</span>
+					            <span class="icon-bar"></span>
+					            <span class="icon-bar"></span>
+					            <span class="icon-bar"></span>
+					        </button>
+					        <a class="navbar-brand" href="#">企业数据分析平台</a>
+					    </div>
+					    <div class="collapse navbar-collapse" id="example-navbar-collapse">
+					        <ul class="nav navbar-nav">
+					            <li class="active"><a href="index.html" target="mainWindow">配置数据源</a></li>
+					            <li><a href="#" target="mainWindow">业务数据集</a></li>
+					            <li class="dropdown">
+					                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					                    	数据分析 <b class="caret"></b>
+					                </a>
+					                <ul class="dropdown-menu">
+					                    <li><a href="#">jmeter</a></li>
+					                    <li><a href="#">EJB</a></li>
+					                    <li><a href="#">Jasper Report</a></li>
+					                    <li class="divider"></li>
+					                    <li><a href="#">分离的链接</a></li>
+					                    <li class="divider"></li>
+					                    <li><a href="#">另一个分离的链接</a></li>
+					                </ul>
+					            </li>
+					        </ul>
+					    </div>
+				    </div>
+				</nav>
+
+			</div>
+			<div class="main">
+				<div class="left-nav">
+					<div class="panel-group" id="menu">
+						<template v-for="(item,index) in menulist">
+							
+						<div class="panel panel-info">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a href="#one" style="display: block;" v-bind:href="'#'+'menu'+item.text" data-toggle="collapse" data-parent="#menu" v-on:click="menuItemClick($event)">
+										{{item.text}}<span class="glyphicon glyphicon-chevron-right glyphicon-align-right"></span>&nbsp;
+									</a>
+								</h4>
+							</div>
+							<div id="one" v-bind:id="'menu'+item.text" class="panel-collapse collapse ">
+								<div class="list-group">
+									<template v-for="(child,jindex ) in item.children">
+										<a  v-bind:href="child.link" v-bind:class="child.cssClass"
+											target="main" v-on:click="active(child,$event)" >{{child.text}}</a>
+									</template>
+								</div>
+							</div>
+						</div>
+						</template>
+					</div>
+				</div>
+				<iframe class="right-content" name="main" frameborder="no" scrolling="auto" width="500px" >
+					
+				</iframe>
+			</div>
+		</div>
+	</body>
+	<script src="https://cdn.bootcss.com/vue/2.4.2/vue.min.js"></script>
+	<script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.min.js"></script>	
+	<script src="js/jquery-1.12.1.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/main.js" type="text/javascript" charset="utf-8"></script>
+</html>

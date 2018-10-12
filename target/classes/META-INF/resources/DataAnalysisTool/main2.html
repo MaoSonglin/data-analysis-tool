@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="js/basepath.js" type="text/javascript" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css"/>
+		<style type="text/css">
+			*{
+				margin: 0;
+				padding: 0;
+			}
+			.wrapper{
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				/*display: flex;
+				flex-direction: column;*/
+			}
+			.main{
+				/*display: flex;
+				flex-grow: 1;*/
+				position: absolute;
+				top: 55px;
+				left: 0;
+				right: 0;
+				bottom: 0;
+			}
+			.panel-group{
+				padding: 5px;
+				overflow: auto;
+			}
+			.menu-parent{
+				display: flex;
+				width: 100%; 
+				text-decoration: none;
+			}
+			.menu-parent:hover,.menu-parent:visited,.menu-parent:active,.menu-parent:focus{
+				text-decoration: none !important;
+			}
+			.mune-text{
+				display: flex;
+				flex-grow: 1;
+			}
+		</style>
+	</head>
+	<body >
+		<div class="wrapper">
+			<div class="header" style="height: 50px;" id="header">
+				<nav class="navbar navbar-default" role="navigation">
+				    <div class="container-fluid"> 
+					    <div class="navbar-header">
+					        <button type="button" class="navbar-toggle" data-toggle="collapse"
+					                data-target="#example-navbar-collapse">
+					            <span class="sr-only">切换导航</span>
+					            <span class="icon-bar"></span>
+					            <span class="icon-bar"></span>
+					            <span class="icon-bar"></span>
+					        </button>
+					        <a class="navbar-brand" href="#">企业数据分析平台</a>
+					    </div>
+					    <div class="collapse navbar-collapse" id="example-navbar-collapse">
+					        <ul class="nav navbar-nav">
+					            <li class="active"><a href="index.html" target="mainWindow">配置数据源</a></li>
+					            <li><a href="#" target="mainWindow">业务数据集</a></li>
+					            <li class="dropdown">
+					                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					                    	数据分析 <b class="caret"></b>
+					                </a>
+					                <ul class="dropdown-menu">
+					                    <li><a href="#">jmeter</a></li>
+					                    <li><a href="#">EJB</a></li>
+					                    <li><a href="#">Jasper Report</a></li>
+					                    <li class="divider"></li>
+					                    <li><a href="#">分离的链接</a></li>
+					                    <li class="divider"></li>
+					                    <li><a href="#">另一个分离的链接</a></li>
+					                </ul>
+					            </li>
+					        </ul>
+					        <ul class="nav navbar-nav navbar-right">
+					        	<template v-if="user != null">
+					        	<li class="dropdown" >
+					        		<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
+					        			<span v-text="user.username"></span>
+					        			<span class="caret"></span>
+					        		</a>
+					        		<ul class="dropdown-menu">
+					        			<li><a href="javascript:;">用户信息</a></li>
+					        			<li><a href="javascript:;">修改密码</a></li>
+					        			<li><a href="javascript:;">退出登录</a></li>
+					        		</ul>
+					        	</li>
+					        	</template>
+					        	<template v-if="user==null">
+					        		<li><a href="index.html" target="_parent">登录</a></li>
+					        	</template>
+					        </ul>
+					    </div>
+				    </div>
+				</nav>
+			</div>
+			<div class="main">
+				<div class="col-md-2" style="padding: 0;height: 98%;overflow: auto;">
+					<div class="panel-group" id="menu">
+						<template v-for="(item,index) in menulist">
+							
+						<div class="panel panel-info">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a href="#one" class="menu-parent"
+										v-bind:href="'#'+'menu'+item.text" 
+										data-toggle="collapse" data-parent="#menu" 
+										v-on:click="menuItemClick($event)">
+										<i v-bind:class="'glyphicon '+ item.icon"></i>
+										<i v-if="!item.icon" class="glyphicon glyphicon-th-list"></i> &nbsp;
+										<span class="mune-text">{{item.text}}</span>
+										<span class="glyphicon glyphicon-chevron-right" 
+											v-if="item.children != null && item.children.length > 0"></span>
+									</a>
+								</h4>
+							</div>
+							<div id="one" v-bind:id="'menu'+item.text" class="panel-collapse collapse ">
+								<div class="list-group">
+									<template v-for="(child,jindex ) in item.children">
+										<a  v-bind:href="child.link" v-bind:class="child.childItemClass"
+											target="main" v-on:click="active(child,$event)" >{{child.text}}</a>
+									</template>
+								</div>
+							</div>
+						</div>
+						</template>
+					</div>
+				</div>
+				<div class="col-md-10" style="padding: 0;height: 98%;">
+					<iframe src="index.html" name="main" width="100%" height="100%" frameborder="no" scrolling="auto" framespacing="0"></iframe>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="js/vue.min.js"></script>
+	<!--<script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.min.js"></script>-->	
+	<script src="js/jquery-1.12.1.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/main.js" type="text/javascript" charset="utf-8"></script>
+</html>

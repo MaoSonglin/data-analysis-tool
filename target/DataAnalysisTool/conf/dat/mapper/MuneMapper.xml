@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dat.mapper.MuneMapper" >
+  <resultMap id="BaseResultMap" type="dat.pojo.Mune" >
+    <id column="ID" property="id" jdbcType="INTEGER" />
+    <result column="text" property="text" jdbcType="VARCHAR" />
+    <result column="link" property="link" jdbcType="VARCHAR" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="cssClass" property="cssclass" jdbcType="VARCHAR" />
+    <result column="icon" property="icon" jdbcType="VARCHAR" />
+    <result column="parent" property="parent" jdbcType="INTEGER" />
+    <result column="order" property="order" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap type="dat.pojo.Mune" id="children_map">
+  	<id column="id" property="id" />
+  	<result column="text" property="text"/>
+  	<result column="link" property="link"/>
+  	<result column="title" property="title"/>
+  	<result column="cssClass" property="cssClass"/>
+  	<result column="icon" property="icon"/>
+  	<result column="parent" property="parent"/>
+  	<result column="order" property="order"/>
+  	<collection property="children" ofType="dat.pojo.Mune" column="parent" >
+  		<id column="childID" property="id"/>
+  		<result column="child_text" property="text"/>
+  		<result column="child_link" property="link"/>
+  		<result column="child_title" property="title"/>
+  		<result column="child_css" property="cssClass"/>
+  		<result column="child_order" property="order"/>
+  		<result column="parentID" property="parent"/>
+  	</collection>
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    ID, text, link, title, cssClass, icon, parent, `order`
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="dat.pojo.MuneExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from mune
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      `order` by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from mune
+    where ID = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from mune
+    where ID = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="dat.pojo.MuneExample" >
+    delete from mune
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="dat.pojo.Mune" >
+    insert into mune (ID, text, link, 
+      title, cssClass, icon, 
+      parent, `order`)
+    values (#{id,jdbcType=INTEGER}, #{text,jdbcType=VARCHAR}, #{link,jdbcType=VARCHAR}, 
+      #{title,jdbcType=VARCHAR}, #{cssclass,jdbcType=VARCHAR}, #{icon,jdbcType=VARCHAR}, 
+      #{parent,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="dat.pojo.Mune" >
+    insert into mune
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="text != null" >
+        text,
+      </if>
+      <if test="link != null" >
+        link,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="cssclass != null" >
+        cssClass,
+      </if>
+      <if test="icon != null" >
+        icon,
+      </if>
+      <if test="parent != null" >
+        parent,
+      </if>
+      <if test="order != null" >
+        `order`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="text != null" >
+        #{text,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        #{link,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="cssclass != null" >
+        #{cssclass,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null" >
+        #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="parent != null" >
+        #{parent,jdbcType=INTEGER},
+      </if>
+      <if test="order != null" >
+        #{order,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="dat.pojo.MuneExample" resultType="java.lang.Integer" >
+    select count(*) from mune
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update mune
+    <set >
+      <if test="record.id != null" >
+        ID = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.text != null" >
+        text = #{record.text,jdbcType=VARCHAR},
+      </if>
+      <if test="record.link != null" >
+        link = #{record.link,jdbcType=VARCHAR},
+      </if>
+      <if test="record.title != null" >
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cssclass != null" >
+        cssClass = #{record.cssclass,jdbcType=VARCHAR},
+      </if>
+      <if test="record.icon != null" >
+        icon = #{record.icon,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parent != null" >
+        parent = #{record.parent,jdbcType=INTEGER},
+      </if>
+      <if test="record.order != null" >
+        order = #{record.order,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update mune
+    set ID = #{record.id,jdbcType=INTEGER},
+      text = #{record.text,jdbcType=VARCHAR},
+      link = #{record.link,jdbcType=VARCHAR},
+      title = #{record.title,jdbcType=VARCHAR},
+      cssClass = #{record.cssclass,jdbcType=VARCHAR},
+      icon = #{record.icon,jdbcType=VARCHAR},
+      parent = #{record.parent,jdbcType=INTEGER},
+      `order` = #{record.order,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="dat.pojo.Mune" >
+    update mune
+    <set >
+      <if test="text != null" >
+        text = #{text,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        link = #{link,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="cssclass != null" >
+        cssClass = #{cssclass,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null" >
+        icon = #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="parent != null" >
+        parent = #{parent,jdbcType=INTEGER},
+      </if>
+      <if test="order != null" >
+        `order` = #{order,jdbcType=INTEGER},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="dat.pojo.Mune" >
+    update mune
+    set text = #{text,jdbcType=VARCHAR},
+      link = #{link,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      cssClass = #{cssclass,jdbcType=VARCHAR},
+      icon = #{icon,jdbcType=VARCHAR},
+      parent = #{parent,jdbcType=INTEGER},
+      `order` = #{order,jdbcType=INTEGER}
+    where ID = #{id,jdbcType=INTEGER}
+  </update>
+  <!-- 自定义查询 -->
+  <select id="listChildren" parameterType="Integer" resultMap="children_map">
+  	SELECT
+		m1.*, m2.ID childID,
+		m2.text child_text,
+		m2.link child_link,
+		m2.title child_title,
+		m2.cssClass child_css,
+		m2.`order` child_order,
+		m2.parent parentID
+	FROM
+		mune m1
+	LEFT JOIN mune m2 ON m1.ID = m2.parent
+	<if test="_parameter != null">
+		 where m1.id = #{_parameter};
+	</if>
+	<if test="_parameter == null">
+		where m1.parent is NULL
+	</if>
+  </select>
+</mapper>

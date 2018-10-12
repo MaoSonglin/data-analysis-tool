@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" href="css/bootstrap-theme.min.css" />
+		<style type="text/css">
+			:root{
+				background-color: #F7F7F7;
+			}
+			#warpper{
+				position: absolute;
+				top: 50px;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				display: flex;
+				flex-direction: row;
+				background-color: #424B4F;
+			}
+			.grow{
+				flex-grow: 1;
+			}
+			.high{
+				height: 100%;
+				padding: 0;
+			}
+			#content{
+				display: flex;
+				display: -ms-flexbox;
+				flex-direction: column;
+				-ms-flex-direction: column;
+				
+			}
+			.mainWindow{
+				flex-grow: 1;
+			}
+			.navbar{
+				margin-bottom: 5px;
+			}
+			.panel-group{
+				padding: 5px;
+				height: 100%;
+				overflow: auto;
+				margin-bottom: 0;
+			}
+			.menu-parent{
+				display: flex;
+				width: 100%; 
+				text-decoration: none;
+			}
+			.menu-parent:hover,.menu-parent:visited,.menu-parent:active,.menu-parent:focus{
+				text-decoration: none !important;
+			}
+			.mune-text{
+				display: flex;
+				flex-grow: 1;
+			}
+			.navbar-default{
+				border-radius: 0;
+				background-image: initial !important;
+				background-color: #1F2224;
+				border: none;
+				text-shadow: initial !important;
+			}
+			
+			
+			.nav.nav-tabs{
+			}
+			.nav.nav-tabs .active a{
+			}
+			ul.nav.nav-tabs li i{
+				cursor: pointer;
+				visibility: hidden;
+			}
+			ul.nav.nav-tabs li:hover i{
+				visibility: visible;
+				cursor: pointer;
+			}
+			
+			.left-menu{
+				width: 200px;
+				position: relative;
+				transition: width 1s;
+			}
+			.left-menu-hide{
+				width:0;
+				padding:0 !important;
+				margin:0;
+			}
+			.left-menu-hide * {
+				/* display: none; */
+				box-sizing: border-box !important;
+				margin-left : 0 !important;
+				margin-right: 0 !important;
+				padding-left: 0 !important;
+				padding-right: 0 !important;
+			}
+			.left-menu .panel-title,.list-group{
+				overflow: hidden;
+				text-overflow: clip;
+				white-space: nowrap;
+			}
+			.toggle-tag{
+				position: absolute;
+				top:50%;
+				right: 0;
+				width: 20px;
+				height: 60px;
+				margin-top: -30px;
+				background-color: #66AFE9;
+				z-index: 100;
+				cursor: pointer;
+				transition: width 1s;
+			}
+			.toggle-tag-right{
+				right: -20px;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- 顶部导航栏 -->
+		<nav class="navbar navbar-default bg-danger" role="navigation" id="header">
+			<div class="container-fluid "> 
+				<div class="navbar-header am-text-lg">
+					<a class="navbar-brand" href="#">企业数据管理工具</a>
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+							data-target="#example-navbar-collapse">
+						<span class="sr-only">切换导航</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+				</div>
+				<div class="collapse navbar-collapse" id="example-navbar-collapse">
+					<ul class="nav navbar-nav hidden" >
+						<li class=""><a href="index.html" target="mainWindow">配置数据源</a></li>
+						<li><a href="#" target="mainWindow">业务数据集</a></li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+									数据分析 <b class="caret"></b>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="#">jmeter</a></li>
+								<li><a href="#">EJB</a></li>
+								<li><a href="#">Jasper Report</a></li>
+								<li class="divider"></li>
+								<li><a href="#">分离的链接</a></li>
+								<li class="divider"></li>
+								<li><a href="#">另一个分离的链接</a></li>
+							</ul>
+						</li>
+					</ul>
+					 <form class="navbar-form navbar-left" action="#">
+						<div class="form-group">
+						  <input type="text" class="form-control" placeholder="Search">
+						</div>
+						<button type="submit" class="btn btn-default">Submit</button>
+					  </form>
+					<ul class="nav navbar-nav navbar-right">
+						<template v-if="user != null">
+						<li class="dropdown" >
+							<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
+								<span v-text="user.username"></span>
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:;">用户信息</a></li>
+								<li><a href="javascript:;" data-toggle="modal" data-target="#modifyModal">修改密码</a></li>
+								<li><a href="javascript:;">退出登录</a></li>
+							</ul>
+						</li>
+						</template>
+						<template v-if="user==null">
+							<li><a href="index.html" target="_parent">登录</a></li>
+						</template>
+					</ul>
+				</div>
+			</div>
+			
+			<!-- 修改密码模态框 -->
+			<div class="modal" id="modifyModal">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button class="close" data-dismiss="modal">&times;</button>
+							<h3 class="modal-title">修改密码</h3>
+						</div>
+						<div class="modal-body">
+							<form id="modifyForm" class="form-horizontal" name="modifyForm" 
+								action="#content" method="post">
+								<div class="form-group">
+									<label class="control-label col-md-4" for="oldpwd">原密码：</label>
+									<div class="col-md-8">
+										<input class="form-control" type="password" id="oldpwd" name="oldpwd" placeholder="请输入原密码" />
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-4" for="newpwd">新密码：</label>
+									<div class="col-md-8">
+										<input class="form-control" type="password" id="newpwd" name="newpwd" placeholder="请输入新密码" />
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-md-4" for="repwd">确认密码：</label>
+									<div class="col-md-8">
+										<input class="form-control" type="password" id="repwd" name="repwd" placeholder="请输入确认密码" />
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-default" type="button" data-dismiss="modal" @click="clear()">取消</button>
+							<button class="btn btn-primary" data-dismiss="modal" type="button" @click="save($event)" >保存</button>
+						</div>
+					</div>
+				</div>
+			</div>	<!--修改密码模态框结束-->
+			
+			
+		</nav><!-- 顶部导航栏 -->
+		
+		
+		<div id="warpper">
+			<!-- 左侧导航菜单 -->
+			<div class="high left-menu">
+				<div class="panel-group" id="menu">
+					<template v-for="(item,index) in menulist">
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h4 class="panel-title">
+								<a href="#one" class="menu-parent"
+									v-bind:href="'#'+'menu'+item.text" 
+									data-toggle="collapse" data-parent="#menu" 
+									v-on:click="menuItemClick($event)">
+									<i v-bind:class="'glyphicon '+ item.icon"></i>
+									<i v-if="!item.icon" class="glyphicon glyphicon-th-list"></i> &nbsp;
+									<span class="mune-text">{{item.text}}</span>
+									<span class="glyphicon glyphicon-chevron-right" 
+										v-if="item.children != null && item.children.length > 0"></span>
+								</a>
+							</h4>
+						</div>
+						<div id="one" v-bind:id="'menu'+item.text" class="panel-collapse collapse ">
+							<div class="list-group">
+								<template v-for="(child,jindex ) in item.children">
+									<a  href="javascript:;" v-bind:class="child.childItemClass"
+										 v-on:click="addPage(child,$event)" >{{child.text}}</a>
+								</template>
+							</div>
+						</div>
+					</div>
+					</template>
+				</div>
+				<div id="tag" class="toggle-tag">
+					
+				</div>
+				
+			</div><!-- 左侧导航菜单-->
+			
+			<!-- 右侧主体部分 -->
+			<div class="high grow" id="content">
+				<!-- 标签页标头 -->
+				<ul class="nav nav-tabs">
+					<li v-bind:class="index == curPageIndex ? 'active':''" v-for="(tab,index) in navtabs" 
+						v-on:click="toggle(index,$event)">
+						<a href="javascript:;">
+							<span v-text="tab.text + '  '"></span>
+							<!--<i v-if="index > 0" class="glyphicon glyphicon-remove" 
+								v-on:click="remove(index,$event)"></i>-->
+							<button v-if="index > 0" type="button" class="close" @click="remove(index,$event)">&times;</button>
+						</a>
+					</li>
+				</ul><!-- 标签页标头 -->
+				
+				<iframe class="mainWindow"   src="index.htm" 
+						width="100%" height="" frameborder="no" scrolling="auto"></iframe>
+			</div><!-- 右侧主体部分 -->
+		</div>
+		
+		
+		
+	</body>
+	<script src="js/jquery-1.12.1.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/main3.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		$("div#tag").click(function(event){
+			$("div#tag").toggleClass("toggle-tag-right")
+			$("div.high.left-menu").toggleClass("left-menu-hide")
+		})
+	</script>
+</html>
