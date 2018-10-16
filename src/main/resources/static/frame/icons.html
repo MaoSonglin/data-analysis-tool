@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../assets/css/amazeui.min.css" />
+		<style type="text/css">
+			#app{
+				padding: 5px 10px;
+			}
+			.icon-list-item{
+				cursor: pointer;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.icon-list-item:hover{
+				color: #009688;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<ul class="am-avg-sm-2 am-avg-md-4 am-avg-lg-6 ">
+				<li v-for="(icon,index) in icons" class="icon-list-item" :title="icon.name" @click="select(icon.name,icon.icon,$event)">
+					<input type="radio" name="selecticon" />
+					<i :class="icon.icon"></i>
+					{{icon.name}}
+					<!-- <span v-html="icon.name"></span> -->
+				</li>
+			</ul>
+		</div>
+	</body>
+	<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el: "#app",
+			data: {
+				icons: []
+			},
+			created: function() {
+				this.$http.get("../icons.json").then(function(res) {
+					this.icons = res.body
+				}, function(error) {
+					alert(error.status)
+				})
+			},
+			methods: {
+				select: function(name, icon, event) {
+					localStorage.icon  = icon
+					localStorage.name = name 
+				}
+			}
+		})
+
+		function show() {
+			alert(app.icons.length)
+		}
+	</script>
+</html>

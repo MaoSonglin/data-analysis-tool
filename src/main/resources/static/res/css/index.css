@@ -1,0 +1,32 @@
+#bg{
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	left: 0px;
+	bottom: 0px;
+	background-color: darkgoldenrod;
+	background-image: url(../images/326320-106.jpg);
+}
+
+#login{
+	width: 500px;
+	height: 400px;
+	position: absolute;
+	top:50%;
+	left: 50%;
+	margin-left: -300px;
+	margin-top: -200px;
+}
+.form-group{
+	margin: 30px ;
+}
+.title{
+	text-align: center;
+	font:"微软雅黑";
+	font-size: 24px;
+	color: chocolate;
+}
+input{
+	display: ;
+	background-color: rgba(255,255,255,0.5) !important;
+}

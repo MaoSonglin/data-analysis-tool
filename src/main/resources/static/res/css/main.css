@@ -1,0 +1,35 @@
+.admin-content,
+.admin-sidebar {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-content-body,
+.am-tabs{
+	display: flex;
+	height: ;
+	flex-direction: column;
+}
+.am-tabs,.am-tabs-bd{
+	flex-grow: 1;
+}
+.am-tabs-bd .am-tab-panel.am-active{
+	position: absolute;
+	top:0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	overflow: auto;
+}
+#doc-tab-demo-1 > ul > li{
+	margin-top: 3px;
+}
+.am-topbar-nav>li>form {
+	position: relative;
+	line-height: 50px;
+	padding: 0 10px;
+}
+.am-topbar-brand{
+	width:260px;
+}

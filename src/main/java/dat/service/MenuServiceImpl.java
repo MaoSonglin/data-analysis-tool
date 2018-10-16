@@ -31,7 +31,9 @@ public class MenuServiceImpl implements MenuService {
 		MuneExample example = new MuneExample();
 		Criteria criteria = example.createCriteria();
 		criteria.andTextEqualTo(menu.getText());
-		criteria.andParentEqualTo(menu.getParent());
+		Integer parent = menu.getParent();
+		if(parent != null)
+			criteria.andParentEqualTo(parent);
 		int countByExample = muneMapper.countByExample(example);
 		if(countByExample > 0){
 			return new Response(Constant.ERROR_CODE,String.format("名称为‘%s’的菜单项已经存在了！", menu.getText()));

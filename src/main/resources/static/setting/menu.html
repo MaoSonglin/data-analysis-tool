@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			.wrapper{
+				box-sizing: border-box;
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			}
+			.wrapper .layui-row,
+			.wrapper .layui-row>div.layui-col-md8,
+			.wrapper .layui-row>div .layui-card{
+				height: 100%;
+				overflow-y: auto;
+			}
+			.layui-card{
+				margin-left: 5px;
+				margin-right: 5px;
+			}
+			.layui-table > tr > td > div.layui-input-block{
+				min-height: initial;
+			}
+			.layui-table > tr > td > div.layui-input-block > input.layui-input{
+				box-sizing: border-box;
+			}
+			
+			.edit-ceil{
+				padding: 0 !important;
+				box-sizing: border-box;
+			}
+			.edit-ceil div{
+				height: 100%;
+			}
+			.layui-icon{
+				padding-left: 10px;
+				cursor: pointer;
+			}
+			.layui-icon:hover{
+				color: #01AAED;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<div class="layui-container wrapper"  style="padding: 10px; background-color: ;">
+				<div class="layui-row">
+					<!-- 树形菜单栏 -->
+					<div class="layui-col-md4" >
+						<div class="layui-card" >
+							<div class="layui-card-header"><h3>系统菜单</h3></div>
+							<div class="layui-card-body">
+								<ul id="myTree"></ul>
+							</div>
+					    </div>
+					</div>
+					
+					<div class="layui-col-md8">
+						<div class="layui-card" v-if="menu">
+							<div class="layui-card-header">
+								<h3>
+									{{menu.text}}
+									<i class="layui-icon" style="float: right;" title="删除" @click="remove(menu,$event)">&#xe640;</i>
+									<i class="layui-icon" style="float: right;" title="添加" @click="toAdd($event)">&#xe654;</i>
+									<i class="layui-icon" style="float: right;" title="修改" @click="toUpdate(menu,$event)">&#xe642;</i>
+								</h3>
+							</div>
+							<div class="layui-card-body">
+								<!-- 显示 -->
+								<table class="layui-table" lay-even v-if="!isEdit && !isAdd">
+									<colgroup>
+										<col width="200">
+										<col />
+									</colgroup>
+									<thead>
+										<tr><th>属性</th><th>值</th></tr>
+									</thead>
+									<tr>
+										<td>菜单编号(id)</td>
+										<td v-html="menu.id"></td>
+									</tr>
+									<tr>
+										<td>菜单名(text)</td>
+										<td v-html="menu.text"></td>
+									</tr>
+									<tr>
+										<td>连接(link)</td>
+										<td v-html="menu.link"></td>
+									</tr>
+									<tr>
+										<td>指针提示(title)</td>
+										<td v-html="menu.title"></td>
+									</tr>
+									<tr>
+										<td>样式(cssclass)</td>
+										<td v-html="menu.cssclass"><i ></i></td>
+									</tr>
+									<tr>
+										<td>图标(icon)</td>
+										<td v-html="menu.icon"></td>
+									</tr>
+									<tr>
+										<td>父菜单(parent)</td>
+										<td v-html="menu.parent"></td>
+									</tr>
+								</table><!-- 显示 end -->
+								<form action="#" name="EditForm" method="" >
+									
+								<!-- 修改 start-->
+								<table class="layui-table" lay-even :class="(isEdit && !isAdd )? 'layui-table':'layui-hide'" >
+									<colgroup>
+										<col width="200">
+										<col />
+									</colgroup>
+									<caption>修改“{{menu.text}}”的属性</caption>
+									<thead>
+										<tr><th>属性</th><th>值</th></tr>
+									</thead>
+									<tr>
+										<td>菜单名(text)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="text" v-model="menu.text" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>连接(link)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="link" v-model="menu.link" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>指针提示(title)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input"name="title" v-model="menu.title" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>样式(cssclass)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="cssclass" v-model="menu.cssclass" onclick="showIcons(this)" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>图标(icon)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="icon" v-model="menu.icon" onclick="showIcons(this)" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>父菜单(parent)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="parent" v-model="menu.parent" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td></td>
+										<td class="edit-ceil">
+											<button type="button" class="layui-btn" @click="cancel($event)">取消</button>
+											<button type="button" class="layui-btn layui-btn-primary" @click="save(menu,null,$event)">保存</button>
+										</td>
+									</tr>
+								</table><!-- 修改 end -->
+								</form>
+
+								
+								<form id="addForm" name="addFrom" action="#">
+									
+								<!-- 添加 start-->
+								<table  lay-even :class="(!isEdit && isAdd) ? 'layui-table':'layui-hide'" >
+									<caption>“{{menu.text}}”菜单添加子菜单</caption>
+									<colgroup>
+										<col width="200">
+										<col />
+									</colgroup>
+									<thead>
+										<tr><th>属性</th><th>值</th></tr>
+									</thead>
+									<tr>
+										<td>菜单名(text)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="text" v-model="addMenu.text" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>连接(link)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="link" v-model="addMenu.link" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>指针提示(title)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="title" v-model="addMenu.title" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>样式(cssclass)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="cssclass" v-model="addMenu.cssclass" onclick="showIcons(this)" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>图标(icon)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="icon" v-model="addMenu.icon" onclick="showIcons(this)" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td>父菜单(parent)</td>
+										<td class="edit-ceil">
+											<div class="layui-input-block" style="margin-left: 0;">
+												<input class="layui-input" name="parent" readonly="readonly" v-model="menu.text" />
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td></td>
+										<td class="edit-ceil">
+											<button type="submit" class="layui-btn layui-btn-warm">提交</button>
+											<button type="button" class="layui-btn" @click="cancel($event)">取消</button>
+											<button type="button" class="layui-btn layui-btn-primary" @click="add(addMenu,menu,$event)">保存</button>
+										</td>
+									</tr>
+								</table><!-- 添加 end-->
+								</form>
+
+							</div>
+						</div>
+					</div>
+					
+				</div>	
+			</div>
+		</div>
+		<script src="../assets/js/basepath.js"text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js"text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/jquery.min.js"></script>
+		<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/amazeui.min.js"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" src="../res/js/setting/menu.js"></script>
+		<script type="text/javascript">
+		</script>
+	</body>
+</html>

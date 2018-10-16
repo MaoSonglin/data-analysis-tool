@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -29,10 +28,14 @@ import dat.web.AddUserServlet;
 import dat.web.ImageServlet;
 import dat.web.IsLoginFilter;
 
+/**
+ * @author MaoSonglin
+ *	应用程序在springMVC方面的配置类
+ */
 @Configuration
 public class MyConfigurer implements WebMvcConfigurer {
 
-private static Logger log = Logger.getLogger(MyConfigurer.class);
+	private static Logger log = Logger.getLogger(MyConfigurer.class);
 	
 	@Autowired
 	private ApplicationContext context = null;
@@ -110,7 +113,7 @@ private static Logger log = Logger.getLogger(MyConfigurer.class);
 		configurer.setUseSuffixPatternMatch(true);// 在匹配路径的时候忽略后缀
 	}
 
-	@Override
+/*	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/**")
 	        .addResourceLocations("classpath:/META-INF/resources/")
@@ -121,7 +124,7 @@ private static Logger log = Logger.getLogger(MyConfigurer.class);
 	        .addResourceLocations("file:///D:/original/Pictures/lovewallpaper");
 		log.info(String.format("添加静态资源路径：‘%s’，‘%s’", "classpath:/META-INF/resources/DataAnalysisTool/","file:D:/original/Pictures/lovewallpaper"));
 	}
-
+*/
 	/**
 	 * 配置数据源
 	 * @return
@@ -146,7 +149,7 @@ private static Logger log = Logger.getLogger(MyConfigurer.class);
 //					path = item + "\\";
 //			}
 //		}
-		url = url.replace("classpath:", path != null ? path : "");
+		url = url.replace("classpath:", path != null ? path : System.getProperty("user.dir")+"\\");
 		dataSource.setUrl(url);
 		String driverClassName = env.getProperty("spring.datasource.driverClassName");
 		dataSource.setDriverClassName(driverClassName);

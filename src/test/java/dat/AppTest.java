@@ -46,7 +46,7 @@ public class AppTest
 	
 	@Test
 	public void wirteClassPath(){
-		String classpath = System.getProperty("CLASSPATH");
+		String classpath = System.getProperty("user.dir");
 		System.err.println(classpath);
 	}
 }

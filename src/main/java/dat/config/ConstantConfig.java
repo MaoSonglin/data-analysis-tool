@@ -4,10 +4,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 
+/**
+ * @author MaoSonglin
+ * 自定义的常亮配置类
+ */
 @Configuration
 @ConfigurationProperties(prefix="constant",ignoreUnknownFields=true)
 public class ConstantConfig {
 
+	/**
+	 * 使用Cors协议允许跨域访问的配置信息，该对象配置了允许访问本服务器的origin
+	 */
 	private Cors cors;
 	
 	private Interceptors interceptors;

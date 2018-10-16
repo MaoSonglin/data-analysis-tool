@@ -16,7 +16,7 @@
   	<result column="text" property="text"/>
   	<result column="link" property="link"/>
   	<result column="title" property="title"/>
-  	<result column="cssClass" property="cssClass"/>
+  	<result column="cssClass" property="cssclass"/>
   	<result column="icon" property="icon"/>
   	<result column="parent" property="parent"/>
   	<result column="order" property="order"/>

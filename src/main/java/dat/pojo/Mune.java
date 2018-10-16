@@ -61,6 +61,12 @@ public class Mune {
         this.cssclass = cssclass == null ? null : cssclass.trim();
     }
 
+    public void setCssClass(String cssclass){
+    	this.cssclass = cssclass == null ? null : cssclass.trim();
+    }
+    public String getCssClass(){
+    	return cssclass;
+    }
     public String getIcon() {
         return icon;
     }

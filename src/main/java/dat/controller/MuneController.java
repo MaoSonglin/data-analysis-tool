@@ -5,6 +5,7 @@ import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import dat.pojo.Mune;
@@ -24,13 +25,10 @@ public class MuneController {
 	 * @param menuid
 	 * @return
 	 */
-	@RequestMapping("/{menuid}")
-	public Response list(@PathVariable Integer menuid){
+	@RequestMapping(value={"/{menuid}","/"},method=RequestMethod.GET)
+	public Response list(@PathVariable(required=false) Integer menuid){
 		Response response;
 		try {
-			if(menuid == 0){
-				menuid = null;
-			}
 			response = menuService.list(menuid);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -44,20 +42,20 @@ public class MuneController {
 	 * @param menu
 	 * @return
 	 */
-	@RequestMapping("/")
+	@RequestMapping(value="/",method=RequestMethod.POST)
 	public Response menu(@ModelAttribute Mune menu){
 		Response response = menuService.addMenu(menu);
 		
 		return response;
 	}
 	
-	@RequestMapping("/save")
+	@RequestMapping(value="/",method=RequestMethod.PUT)
 	public Response update(@ModelAttribute Mune menu){
 		return menuService.update(menu);
 	}
 	
-	@RequestMapping("/delete")
-	public Response delete(Integer id){
+	@RequestMapping(value="/{id}",method=RequestMethod.DELETE)
+	public Response delete(@PathVariable Integer id){
 		Response response = menuService.delete(id);
 		return response;
 	}
