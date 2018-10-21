@@ -2,6 +2,7 @@ package dat.pojo;
 
 import java.util.List;
 
+
 public class Mune {
     private Integer id;
 
@@ -18,9 +19,9 @@ public class Mune {
     private Integer parent;
 
     private Integer order;
-    
     private List<Mune> children;
 
+    private Mune father;
     public Integer getId() {
         return id;
     }
@@ -97,6 +98,22 @@ public class Mune {
 
 	public void setChildren(List<Mune> children) {
 		this.children = children;
+	}
+
+	@Override
+	public String toString() {
+		return "Mune [id=" + id + ", text=" + text + ", link=" + link
+				+ ", title=" + title + ", cssclass=" + cssclass + ", icon="
+				+ icon + ", parent=" + parent + ", order=" + order
+				+ ", children="  + "]";
+	}
+
+	public Mune getFather() {
+		return father;
+	}
+
+	public void setFather(Mune father) {
+		this.father = father;
 	}
     
 }

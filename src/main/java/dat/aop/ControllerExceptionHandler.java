@@ -11,12 +11,14 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.jboss.logging.Logger;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 
 import dat.pojo.Response;
 import dat.util.Constant;
-//@Component
+@Component
 @Aspect
 public class ControllerExceptionHandler implements Serializable {
 	
@@ -38,19 +40,31 @@ public class ControllerExceptionHandler implements Serializable {
 	
 	@Around("execution(* dat.controller.*.*(..))")
 	public Object aroud(ProceedingJoinPoint point){
+		MethodSignature signature = (MethodSignature) point.getSignature();
+		String name = signature.getMethod().getName();
+		String declaringTypeName = signature.getDeclaringTypeName();
+		Class<?>[] parameterTypes = signature.getParameterTypes();
+		StringBuffer sb = new StringBuffer();
+		for (Class<?> parameterName : parameterTypes) {
+			sb.append(parameterName.getSimpleName()).append(",");
+		}
+		if(sb.length() > 0){
+			sb.deleteCharAt(sb.length()-1);
+		}
+		log.infof("访问控制器方法%s.%s(%s)", declaringTypeName,name,sb.toString());
 		try {
-			Object target = point.getTarget();
-			log.infof("访问控制器“%s”", target.getClass().getName());
 			Object proceed = point.proceed();
 			return proceed;
 		} catch (Throwable e) {
 			e.printStackTrace();
-			try {
-				return getNewReturenValue(point, e);
-			} catch (Exception e1) {
-				throw new RuntimeException(e);
+			Class<?> returnType = signature.getReturnType();
+			if(returnType.equals(Response.class)){
+				return new Response(Constant.ERROR_CODE,e.getMessage(),e);
+			}else if(returnType.equals(String.class)){
+				return e.getMessage();
 			}
 		}
+		return null;
 	}
 
 	protected Object getNewReturenValue(ProceedingJoinPoint point, Throwable e) {

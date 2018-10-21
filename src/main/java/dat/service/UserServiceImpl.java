@@ -7,9 +7,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dat.domain.User;
 import dat.mapper.UserMapper;
 import dat.pojo.Response;
 import dat.pojo.UserBean;
@@ -17,7 +17,8 @@ import dat.util.Constant;
 import dat.util.Md5Util;
 import dat.util.StrUtil;
 
-@Service("userService")
+//@Service
+@Deprecated
 public class UserServiceImpl implements UserService, Serializable {
 
 	/**
@@ -58,7 +59,6 @@ public class UserServiceImpl implements UserService, Serializable {
 		return response;
 	}
 
-	@Override
 	public Response login(UserBean user) {
 		// 根据用户名操作用户
 		UserBean userBean = userMapper.findByUsername(user.getUsername());
@@ -74,14 +74,12 @@ public class UserServiceImpl implements UserService, Serializable {
 		}
 	}
 
-	@Override
-	public List<UserBean> listAll() {
+	public List<UserBean> listAll1() {
 		List<UserBean> all = userMapper.listAll();
 		return all;
 	}
 
-	@Override
-	public List<UserBean> listAll( String filter) {
+	public List<UserBean> listAll1( String filter) {
 		if(filter!=null){
 			if(!filter.startsWith("%"))
 				filter = "%"+filter;
@@ -101,7 +99,6 @@ public class UserServiceImpl implements UserService, Serializable {
 		return new Response(Constant.SUCCESS_CODE,"删除成功！",id);
 	}
 
-	@Override
 	public Response save(UserBean user) {
 		String id = user.getId();
 		UserBean userBean = userMapper.findById(id);
@@ -116,6 +113,30 @@ public class UserServiceImpl implements UserService, Serializable {
 		user.setPassword(password);
 		userMapper.updateById(user);
 		return new Response(Constant.SUCCESS_CODE,String.format("修改成功"),user);
+	}
+
+	@Override
+	public Response login(User user) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Response save(User user) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<User> listAll() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<User> listAll(String filter) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -1,0 +1,27 @@
+.layui-layer-content{
+	margin: auto;
+}
+.layui-icon{
+	cursor: pointer;
+}
+.layui-icon:hover{
+	color: #009CDA;
+}
+.float-right{
+	float: right;
+}
+
+#add-div{
+	display: none;
+}
+
+li:hover .option-icon{
+	display: block;
+}
+
+.option-icon{
+	display: none;
+}
+.option-icon + .option-icon{
+	margin-left: 10px;
+}

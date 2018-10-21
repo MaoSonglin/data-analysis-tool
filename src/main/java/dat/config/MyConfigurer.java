@@ -16,9 +16,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.alibaba.druid.pool.DruidDataSource;
@@ -102,29 +103,14 @@ public class MyConfigurer implements WebMvcConfigurer {
 	*/
 	
 	
-	
-	@Override
-	public void configureViewResolvers(ViewResolverRegistry registry) {
-		WebMvcConfigurer.super.configureViewResolvers(registry);
-	}
 
 	@Override
 	public void configurePathMatch(PathMatchConfigurer configurer) {
-		configurer.setUseSuffixPatternMatch(true);// 在匹配路径的时候忽略后缀
+		configurer.setUseSuffixPatternMatch(false);// 在匹配路径的时候忽略后缀
 	}
 
-/*	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/**")
-	        .addResourceLocations("classpath:/META-INF/resources/")
-	        .addResourceLocations("classpath:/resources/")
-	        .addResourceLocations("classpath:/static/")
-	        .addResourceLocations("classpath:/public/")
-	        .addResourceLocations("classpath:/META-INF/resources/DataAnalysisTool/")
-	        .addResourceLocations("file:///D:/original/Pictures/lovewallpaper");
-		log.info(String.format("添加静态资源路径：‘%s’，‘%s’", "classpath:/META-INF/resources/DataAnalysisTool/","file:D:/original/Pictures/lovewallpaper"));
-	}
-*/
+
+
 	/**
 	 * 配置数据源
 	 * @return
@@ -134,22 +120,6 @@ public class MyConfigurer implements WebMvcConfigurer {
 	public DataSource createDataSource() throws IOException{
 		DruidDataSource dataSource = new DruidDataSource();
 		String url = env.getProperty("spring.datasource.url");
-//		String classpath = env.getProperty("classpath",System.getProperty("user.dir"));
-//		String separator = System.getProperty("path.separator");
-//		String[] split = classpath.split(separator);
-		String path = null;
-//		for (String item : split) {
-//			System.err.println(item);
-//			File file = new File(item.replaceAll("\"", ""));
-//			boolean b = file.isDirectory();
-//			if(b){
-//				if(item.endsWith("\\"))
-//				path = item;
-//				else
-//					path = item + "\\";
-//			}
-//		}
-		url = url.replace("classpath:", path != null ? path : System.getProperty("user.dir")+"\\");
 		dataSource.setUrl(url);
 		String driverClassName = env.getProperty("spring.datasource.driverClassName");
 		dataSource.setDriverClassName(driverClassName);
@@ -185,6 +155,17 @@ public class MyConfigurer implements WebMvcConfigurer {
 		registrationBean.setUrlPatterns(set);
 		
 		return registrationBean;
+	}
+	
+	/**
+	 * 文件上传配置
+	 * @return
+	 */
+//	@Bean
+	public MultipartResolver fileUpload(){
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+		multipartResolver.setMaxUploadSize(1024*1024*10);
+		return multipartResolver;
 	}
 
 }

@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dat.domain.Menu;
 import dat.mapper.MuneMapper;
 import dat.pojo.Mune;
 import dat.pojo.MuneExample;
@@ -14,7 +14,8 @@ import dat.pojo.MuneExample.Criteria;
 import dat.pojo.Response;
 import dat.util.Constant;
 
-@Service("menuService")
+//@Service
+@Deprecated
 public class MenuServiceImpl implements MenuService {
 	
 	@Resource(name="muneMapper")
@@ -63,6 +64,18 @@ public class MenuServiceImpl implements MenuService {
 			int deleteByPrimaryKey = muneMapper.deleteByPrimaryKey(id);
 			return new Response(Constant.SUCCESS_CODE,String.format("删除‘%d’条记录！", deleteByPrimaryKey));
 		}
+	}
+
+	@Override
+	public Response addMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Response update(Menu menu) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

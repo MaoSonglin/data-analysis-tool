@@ -1,62 +1,19 @@
-$(function() {
 	Vue.http.options.withCredentials = true;
 	Vue.http.options.emulateJSON = true;
 	var app = new Vue({
 		el: "#app",
 		data: {
 			menu: null,
-			addMenu: {},
-			menus: [],
-			isEdit: false,
-			isAdd: false
+			// addMenu: {},
+			menus: []
 		},
 		created: function() {
 			loadTree()
-			this.addMenu = new Object()
-			SetNull(addMenu)
+			// this.addMenu = new Object()
+			// SetNull(addMenu)
 		},
 		mounted: function() {},
 		methods: {
-			toEdit: function(event) {
-				var $target = $(event.target)
-				$target.toggle()
-				var $toggleTarget = $(event.target).next("td")
-				$toggleTarget.toggle()
-				$toggleTarget.focus()
-				event.stopPropagation()
-			},
-			save: function(menu, parent, event) { // 保存
-				// TODO 保存菜单
-				if (!$(document.forms[0]).valid()) {
-					return;
-				}
-				let icon = document.EditForm.icon.value
-				let cssclass = document.EditForm.cssclass.value
-				confirmDialog("确定要提交吗？", function() {
-					Vue.http.put(basePath + "menu/", {
-						id : menu.id,
-						text : menu.text,
-						title : menu.title,
-						link : menu.link,
-						cssclass : cssclass,
-						icon : icon,
-						parent : menu.parent
-					}, {
-						before: layer.load(1)
-					}).then(function(res) {
-						alertDialog(res.body.message, function() {
-							if (parent && res.body.code == 1) {
-								showTree(app.menus)
-							}
-							layer.closeAll()
-							app.cancel()
-						})
-					}, function(error) {
-						alertDialog("网络错误！", layer.closeAll)
-					})
-				})
-				
-			},
 			remove: function(menu, event) {
 				confirmDialog("您确定要删除菜单\"" + menu.text + "\"及其子菜单吗？", function() {
 					Vue.http.delete(basePath + "menu/" + menu.id, {
@@ -77,63 +34,18 @@ $(function() {
 				})
 			},
 			toAdd: function(event) {
-				this.isAdd = true
-				this.isEdit = false
-				this.addMenu.parent = this.menu.id
+				addMenuVue.menu = {}
+				editDialog("添加子菜单")
 			},
 			toUpdate: function(menu, event) {
-				this.isEdit = true
-				this.isAdd = false
-			},
-			cancel: function(event) {
-				this.isAdd = false
-				this.isEdit = false
-				SetNull(addMenu)
-			},
-			add: function(menu, parent, event) { // 添加子菜单
-				if ($("#addForm").valid()) {
-					confirmDialog("确定要提交吗？", function() {
-						Vue.http.post(basePath + "menu/", {
-							text : menu.text,
-							title : menu.title,
-							link : menu.link,
-							cssclass : document.addFrom.cssclass.value,
-							icon :  document.addFrom.icon.value,
-							parent : parent.id? parent.id : ""
-						}, {
-							before: layer.load(1)
-						}).then(function(res) {
-							alertDialog(res.body.message, function() {
-								if (parent && res.body.code == 1) {
-									if (!parent.children) parent.children = new Array()
-									parent.children.push(res.body.data)
-									showTree(app.menus)
-								}
-								layer.closeAll()
-								app.cancel()
-							})
-						}, function(error) {
-							alertDialog("网络错误！", layer.closeAll)
-						})
-					})
-				}
+				addMenuVue.menu = this.menu
+				editDialog("修改")
 			}
 		},
 
 	})
 
-	function SetNull(menu) {
-		menu.id = null,
-			menu.text = null,
-			menu.link = null,
-			menu.title = null,
-			menu.cssclass = null,
-			menu.icon = null,
-			menu.parent = null,
-			menu.order = null,
-			menu.spread = false
-	}
-
+	// 加载目录树中的数据
 	function loadTree() {
 		Vue.http.get(basePath+"menu/").then(function(res) {
 			// app.menu = res.body[0]
@@ -145,12 +57,14 @@ $(function() {
 					id : null
 				}],
 			app.menu = app.menus[0]
+			Vue.set(addMenuVue,'lst',res.body.data)
 			showTree(app.menus)
 		}, function(error) {
 
 		})
 	}
 
+	// 显示目录树
 	function showTree(nodes) {
 		format(nodes)  
 		$("#myTree").empty()
@@ -158,22 +72,14 @@ $(function() {
 		layui.use('tree', function() {
 			layui.tree({
 				elem: "#myTree",
-				click: menuTreeItemClick,
+				click: function(options){app.menu=options},
 				nodes: nodes,
 				skin: 'shihuang'
 			})
 		})
 	}
-
-
-	function menuTreeItemClick(options) {
-		// alert(JSON.stringify(options))
-		app.isEdit = false
-		app.isAdd = false
-		app.menu = options
-		SetNull(app.addMenu)
-	}
 	
+	// 在显示目录树之前对数据进行处理
 	function format(nodes) {
 		for (var i in nodes) {
 			var node = nodes[i]
@@ -187,31 +93,116 @@ $(function() {
 			}
 		}
 	}
+
+	var addMenuVue = new Vue({
+		el : "#menuform",
+		data : {
+			menu : {},
+			lst : []
+		},
+		methods : {
+			chooseIcon  : function(icon,event){
+				layer.open({
+					title : "选择图标",
+					content : "../frame/icons.html",
+					type : 2,
+					btn : ['取消'],
+					area: ['500px', '300px'],
+					btn1 : function(index,layero){
+						layer.close(index)
+						// obj.value = localStorage.icon
+					},
+					success : function(){
+						localStorage.icon = "";
+					},
+					end : function(){
+						Vue.set(addMenuVue.menu,icon,localStorage.icon)
+					}
+				})
+			},
+			change : function(event){
+				console.log(event.target)
+			},
+		}
+	})
+	addMenuVue.$watch('menu',function(newValue,oldValue){
+		addMenuVue.menu.parent = null
+		drawForm()
+	})
 	
-	function findPerent(all,child){
-		if (typeof all === "array"){
-			for(var i in all){
-				if(all[i].id === child.id){
-					return all
+	function editDialog(title){
+		var cloner = new Cloner(addMenuVue.menu)
+		layer.open({
+			type : 1,
+			title : title,
+			content : $("#menuform"),
+			skin: 'layui-layer-lan',
+			area : ['600px','500px'],
+			btn : ['提交','取消'],
+			closeBtn : false,
+			yes : function(index,layero){
+				var options = {before : openLoading}// 请求选项，在请求前显示加载层
+				var saver = new Saver()
+				saver.save(['father','children'],addMenuVue.menu)
+				console.log(JSON.stringify(addMenuVue.menu))
+				if(addMenuVue.menu.id){
+					Vue.http.put(basePath+"menu/",addMenuVue.menu,options).then(s,e)
+				}else{
+					Vue.http.post(basePath+"menu/",addMenuVue.menu,options).then(s,e)
 				}
+				function s(res){
+					closeLoading()
+					alertDialog(res.body.message,layer.close(index))
+					if(!addMenuVue.menu.id){// 如果是添加
+						if(father){
+							father.children.push(res.body.data)
+							res.body.data.father = father
+							// 重新显示菜单树
+							showTree(app.menus)
+							app.menu = addMenuVue.menu
+						}
+					}
+					if(res.body.code != 1){
+						cloner.reset(addMenuVue.menu)
+					}else{
+						saver.restore(['father','children'],addMenuVue.menu)
+					}
+				}
+				function e(error){
+					closeLoading()
+					alertDialog(error.body,layer.close(index))
+					cloner.reset(addMenuVue.menu)
+				}
+			},
+			cancel : function(index,layero){
+				layer.close(index)
+				cloner.reset(addMenuVue.menu)
+			},
+			success : function(){
+			},
+			end : function(){
+				$("#menuform").hide()
+				addMenuVue.mune = {}
 			}
-			for(var i in all){
-				var r = findPerent(all[i].children,child)
-				if(r)
-					return r
-			}
-		}
-		else if(typeof all === "object"){
-			if( all !== child ){
-				return findPerent(all.children,child)
-			}
-		}
-		return null
+		})
 	}
 
-})
+function drawForm(){
+	layui.use('form',function(){
+		var form = layui.form; 
+		form.render()
+		form.on('select(parent)', function(data){
+			addMenuVue.menu.parent = data.value
+			addMenuVue.menu.father = addMenuVue.lst.filter(function(item){
+				return item.id == parseInt(data.value)
+			}).pop()
+		});
+	})
+	
+}
 
-$("form").validate({
+
+	$("form").validate({
 		rules: {
 			text: {
 				required: true,
@@ -245,14 +236,16 @@ $("form").validate({
 			title : "选择图标",
 			content : "../frame/icons.html",
 			type : 2,
-			btn : ['确定','取消'],
+			btn : ['取消'],
 			area: ['500px', '300px'],
 			btn1 : function(index,layero){
 				layer.close(index)
-				obj.value = localStorage.icon
+				// obj.value = localStorage.icon
 			},
-			btn2 : function(index,layero){
-				layer.close(index)
+			end : function(){
+				
 			}
 		})
 	}
+	
+	

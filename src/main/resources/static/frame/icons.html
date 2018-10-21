@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title></title>
 		<link rel="stylesheet" type="text/css" href="../assets/css/amazeui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
 		<style type="text/css">
 			#app{
 				padding: 5px 10px;
@@ -33,6 +34,8 @@
 	</body>
 	<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		var app = new Vue({
 			el: "#app",
@@ -50,6 +53,8 @@
 				select: function(name, icon, event) {
 					localStorage.icon  = icon
 					localStorage.name = name 
+					var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+					parent.layer.close(index); //再执行关闭        
 				}
 			}
 		})

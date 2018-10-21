@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import dat.domain.User;
 import dat.pojo.Response;
-import dat.pojo.UserBean;
 import dat.service.UserService;
 import dat.util.Constant;
 
@@ -33,13 +33,13 @@ public class UserController implements Serializable {
 	private UserService userService;
 	
 	@RequestMapping(value="/add",method=RequestMethod.POST)
-	public Response add(UserBean user){
+	public Response add(User user){
 		log.info(user);
 		return userService.register(user.getUsername(), user.getPassword());
 	}
 	
 	@PostMapping("/login")
-	public Response login(@ModelAttribute UserBean user,String validateCode,
+	public Response login(@ModelAttribute User user,String validateCode,
 			Boolean autologin,HttpServletRequest req,HttpServletResponse res ,
 			HttpSession session){
 		// 获取保存在session中验证码
@@ -94,7 +94,7 @@ public class UserController implements Serializable {
 	@GetMapping({"/list/{filter}","/list"})
 	public Response list(@PathVariable(value="filter",required=false) String filter){
 		System.err.println("filter:"+filter);
-		List<UserBean> list = userService.listAll(filter);
+		List<User> list = userService.listAll(filter);
 		return new Response(Constant.SUCCESS_CODE,"查询成功！",list);
 	}
 
@@ -104,7 +104,7 @@ public class UserController implements Serializable {
 	}
 	
 	@RequestMapping(value={"/update"},method=RequestMethod.PUT)
-	public Response update(UserBean user){
+	public Response update(User user){
 		log.info(user);
 		Response response = userService.save(user);
 		return response;

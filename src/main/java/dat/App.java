@@ -1,16 +1,17 @@
 package dat;
 
 import org.jboss.logging.Logger;
+import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
- * Hello world!
+ * 启动主函数
  *
  */
-@SpringBootApplication(exclude={ErrorMvcAutoConfiguration.class})
+@SpringBootApplication(exclude={ErrorMvcAutoConfiguration.class,MybatisAutoConfiguration.class})
 public class App 
 {
     public static void main( String[] args ) throws Exception
@@ -20,8 +21,5 @@ public class App
     	int beanDefinitionCount = context.getBeanDefinitionCount();
     	Logger log = Logger.getLogger(App.class);
     	log.info("创建了"+beanDefinitionCount+"个对象...");
-//    	Environment env = context.getBean(Environment.class);
-//    	String classpath = env.getProperty("classpath");
-//    	log.info("classpath:"+classpath);
     }
 }

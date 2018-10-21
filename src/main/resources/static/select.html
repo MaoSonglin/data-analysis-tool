@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+	</head>
+	<body>
+		<div id="app">
+			<select name="" v-model="choose">
+				<option v-for="item in options" :value="item">{{item}}</option>
+			</select>
+			<p>
+				您选择了{{choose}}
+			</p>
+		</div>
+		
+	<script src="assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el : "#app",
+			data : {
+				choose : "E",
+				options : ["A","B","C","D","E","F","G","H"]
+			}
+		})
+	</script>
+	</body>
+	
+</html>

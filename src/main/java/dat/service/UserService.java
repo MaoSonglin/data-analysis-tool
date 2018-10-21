@@ -2,8 +2,8 @@ package dat.service;
 
 import java.util.List;
 
+import dat.domain.User;
 import dat.pojo.Response;
-import dat.pojo.UserBean;
 
 public interface UserService {
 	
@@ -20,17 +20,17 @@ public interface UserService {
 	 * @param user
 	 * @return
 	 */
-	Response login(UserBean user);
+	Response login(User user);
 
 	/**
 	 * @return
 	 */
 	@Deprecated
-	List<UserBean> listAll();
+	List<User> listAll();
 
-	List<UserBean> listAll(String filter);
+	List<User> listAll(String filter);
 
 	Response remove(String id);
 
-	Response save(UserBean user);
+	Response save(User user);
 }
