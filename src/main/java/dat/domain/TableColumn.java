@@ -20,27 +20,48 @@ public class TableColumn implements IdGeneratorable{
 	@Column(length=18)
 	private String id;
 	
-	@Column(length=32)
-	private String name;
-	
+	 
 	@Column(length=64)
 	private String chinese;
 	
-	@Column(length=10)
-	private String jdbcType;
-	
-	private Integer length;
-	
-	private Boolean canBeNull;
-	
+	 
+	 
 	private Boolean isPrimaryKey;
 	
 	private Boolean isForeginKey;
 	
 	private Boolean isUnique;
+	/******************************************************/
+	private String columnName;
 	
-	@Column(length=255)
-	private String comment;
+	private Integer dataType;
+	
+	private String typeName;
+	
+	private Integer columnSize;
+	
+	private Integer bufferLength;
+	
+	private Integer decimalDigits;
+	
+	private Integer numPrecRadix;
+	
+	private Boolean nullable;
+	
+	private String remarks;
+	
+	private String columnDef;
+	
+	private Integer sqlDataType;
+	
+	private Integer sqlDatetimeSub;
+	
+	private Integer charOctetLength;
+	
+	private Integer ordinalPosition;
+	
+	/******************************************************/
+	
 	
 	@ManyToOne(targetEntity=DataTable.class,optional=true)
 	@JoinColumn(name="data_table_id",referencedColumnName="id")
@@ -61,14 +82,7 @@ public class TableColumn implements IdGeneratorable{
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
+	 
 	public String getChinese() {
 		return chinese;
 	}
@@ -77,30 +91,11 @@ public class TableColumn implements IdGeneratorable{
 		this.chinese = chinese;
 	}
 
-	public String getJdbcType() {
-		return jdbcType;
-	}
+	 
 
-	public void setJdbcType(String jdbcType) {
-		this.jdbcType = jdbcType;
-	}
+	 
 
-	public Integer getLength() {
-		return length;
-	}
-
-	public void setLength(Integer length) {
-		this.length = length;
-	}
-
-	public Boolean getCanBeNull() {
-		return canBeNull;
-	}
-
-	public void setCanBeNull(Boolean canBeNull) {
-		this.canBeNull = canBeNull;
-	}
-
+	 
 	public Boolean getIsPrimaryKey() {
 		return isPrimaryKey;
 	}
@@ -125,13 +120,7 @@ public class TableColumn implements IdGeneratorable{
 		this.isUnique = isUnique;
 	}
 
-	public String getComment() {
-		return comment;
-	}
-
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+	
 
 	public DataTable getDataTable() {
 		return dataTable;
@@ -149,14 +138,119 @@ public class TableColumn implements IdGeneratorable{
 		this.referenceColumn = referenceColumn;
 	}
 
-	@Override
-	public String toString() {
-		return "TableColumn [id=" + id + ", name=" + name + ", chinese="
-				+ chinese + ", jdbcType=" + jdbcType + ", length=" + length
-				+ ", canBeNull=" + canBeNull + ", isPrimaryKey=" + isPrimaryKey
-				+ ", isForeginKey=" + isForeginKey + ", isUnique=" + isUnique
-				+ ", comment=" + comment + "]";
+
+	public String getColumnName() {
+		return columnName;
 	}
 
+	public void setColumnName(String columnName) {
+		this.columnName = columnName;
+	}
+
+	public Integer getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(Integer dataType) {
+		this.dataType = dataType;
+	}
+
+	public String getTypeName() {
+		return typeName;
+	}
+
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
+
+	public Integer getColumnSize() {
+		return columnSize;
+	}
+
+	public void setColumnSize(Integer columnSize) {
+		this.columnSize = columnSize;
+	}
+
+	public Integer getBufferLength() {
+		return bufferLength;
+	}
+
+	public void setBufferLength(Integer bufferLength) {
+		this.bufferLength = bufferLength;
+	}
+
+	public Integer getDecimalDigits() {
+		return decimalDigits;
+	}
+
+	public void setDecimalDigits(Integer decimalDigits) {
+		this.decimalDigits = decimalDigits;
+	}
+
+	public Integer getNumPrecRadix() {
+		return numPrecRadix;
+	}
+
+	public void setNumPrecRadix(Integer numPrecRadix) {
+		this.numPrecRadix = numPrecRadix;
+	}
+
+	public Boolean getNullable() {
+		return nullable;
+	}
+
+	public void setNullable(Boolean nullable) {
+		this.nullable = nullable;
+	}
+
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+
+	public String getColumnDef() {
+		return columnDef;
+	}
+
+	public void setColumnDef(String columnDef) {
+		this.columnDef = columnDef;
+	}
+
+	public Integer getSqlDataType() {
+		return sqlDataType;
+	}
+
+	public void setSqlDataType(Integer sqlDataType) {
+		this.sqlDataType = sqlDataType;
+	}
+
+	public Integer getSqlDatetimeSub() {
+		return sqlDatetimeSub;
+	}
+
+	public void setSqlDatetimeSub(Integer sqlDatetimeSub) {
+		this.sqlDatetimeSub = sqlDatetimeSub;
+	}
+
+	public Integer getCharOctetLength() {
+		return charOctetLength;
+	}
+
+	public void setCharOctetLength(Integer charOctetLength) {
+		this.charOctetLength = charOctetLength;
+	}
+
+	public Integer getOrdinalPosition() {
+		return ordinalPosition;
+	}
+
+	public void setOrdinalPosition(Integer ordinalPosition) {
+		this.ordinalPosition = ordinalPosition;
+	}
+
+	
 	
 }

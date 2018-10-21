@@ -17,7 +17,7 @@
 						</div>
 						<div class="layui-card-body">
 							<ul class="">
-								<li v-for="(ds,index) in dsList">
+								<li v-for="(ds,index) in dsList" @click="choose(ds,$event)">
 									<span v-html="ds.name"></span>
 									<i class="layui-icon option-icon float-right" @click="remove(ds,$event)">&#xe640;</i>
 									<i class="layui-icon option-icon float-right" @click="toUpdate(ds,$event)">&#xe642;</i>
@@ -27,8 +27,27 @@
 						
 					</div>
 				</div>
+				<!-- 一下内容显示数据源详情 -->
 				<div class="layui-col-md8">
-					
+					<div class="layui-card">
+						<div class="layui-card-header">
+							<h2 v-html="datasource.name"></h2>
+						</div>
+						<div class="layui-card-body">
+							<table class="layui-table" lay-even v-if="datasource.id" >
+								<colgroup>
+									<col width="200">
+									<col />
+								</colgroup>
+								<tr><th>属性</th><th>值</th></tr>
+								<template v-for="(value,key) in datasource">
+									<tr v-if="value">
+										<td v-html="key"></td><td v-html="value"></td>
+									</tr>
+								</template>
+							</table>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -77,13 +96,13 @@
 						class="layui-input" placeholder="请输入数据源密码"/>
 					</div>
 				</div>
-				<div class="layui-form-item" v-if="ds.isFile">
+				<div v-if="ds.isFile" :class="ds.isFile ? 'layui-form-item':'layui-hide'">
 					<div class="layui-inline">
 						<label for="" class="layui-form-label">数据文件</label>
 						<div class="layui-input-inline">
 							<button class="layui-btn" type="button" id="up-ds-btn"><i class="layui-icon">&#xe67c;</i>上传数据源</button>
 						</div>
-						 <div class="layui-form-mid layui-word-aux" v-html="ds.association ? ds.association.fileName:''">请填写6到12位密码</div>
+						 <div class="layui-form-mid layui-word-aux" v-html="ds.association ? ds.association.fileName:loading">请填写6到12位密码</div>
 					</div>
 					<!-- <div class="layui-inline">
 						<div class="layui-input-inline">

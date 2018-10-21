@@ -2,6 +2,7 @@ package dat.controller;
 
 import javax.annotation.Resource;
 
+import org.jboss.logging.Logger;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,6 +20,7 @@ public class DSController {
 	@Resource(name="dataSourceServiceImpl")
 	private DataSourceService dsService;
 	
+	private static Logger log = Logger.getLogger(DSController.class);
 	/**
 	 * 分页查询数据源信息
 	 * @param keyword	查询关键词
@@ -61,7 +63,8 @@ public class DSController {
 	 * @return
 	 */
 	@RequestMapping(value={"{id}"},method=RequestMethod.DELETE)
-	public Response delete(String id){
+	public Response delete(@PathVariable String id){
+		log.debug(String.format("the value of id which will be deleted is %s", id));
 		return dsService.delete(id);
 	}
 	

@@ -20,4 +20,11 @@ public interface Constant {
 	String SESSION_VALIDATE_CODE = "SESSION_VALIDATE_CODE";
 	String SESSION_USER_BEAN = "sessionUserBean";
 	String AUTO_LOGIN_COOKIE_NAME = "autologin";
+	/**
+	 * 删除状态
+	 */
+	int DELETE_STATE = 0;
+	
+	int ACTIVATE_SATE = 1;
+	String MYSOL = "MySQL";
 }

@@ -25,10 +25,10 @@ import dat.repos.CustomerSpecs;
 import dat.repos.DsRepository;
 import dat.util.BeanUtil;
 import dat.util.Constant;
+import dat.util.SourceMetaData.SourceType;
 import dat.util.StrUtil;
 
 @Service
-@Transactional
 public class DataSourceServiceImpl implements DataSourceService {
 	
 	/**
@@ -64,6 +64,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	
 
 	@Override
+	@Transactional
 	public Response add(Source source) {
 		String name = source.getName();
 		// 检查数据源的名称是否已经存在
@@ -75,6 +76,8 @@ public class DataSourceServiceImpl implements DataSourceService {
 		source.generateId();
 		source.setAddTime(StrUtil.currentTime());
 		Source save = dsRepos.save(source);
+		// TODO 1. 读取数据源中的数据表
+		// TODO 2. 读取数据表之间的关联关系
 		return new Response(Constant.SUCCESS_CODE,"添加成功！",save);
 	}
 
@@ -98,7 +101,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 		Optional<Source> optional = dsRepos.findById(id);
 		try {
 			Source source = optional.get();
-			dsRepos.delete(source);
+			source.setState(Constant.DELETE_STATE);
 		} catch (Exception e) {
 			return new Response(Constant.ERROR_CODE,"删除失败",e.getMessage());
 		}

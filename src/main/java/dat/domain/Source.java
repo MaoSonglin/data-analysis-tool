@@ -7,6 +7,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 /**
@@ -45,7 +46,7 @@ public class Source implements IdGeneratorable{
 	
 	private String addTime;
 	
-	private Integer state = 1;
+	private Integer state = Constant.ACTIVATE_SATE;
 	
 	@OneToOne(targetEntity=UploadFile.class)
 	@JoinColumn(name="file_id",referencedColumnName="id")

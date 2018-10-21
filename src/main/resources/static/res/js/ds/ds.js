@@ -4,17 +4,18 @@ Vue.http.options.withCredentials=true;
 var app = new Vue({
 	el : "#wrapper",
 	data : {
-		dsList : []
+		dsList : [],
+		datasource : {}
 	},
 	created : function(){
 		Vue.http.get(basePath+"ds/",{
 			before : openLoading
 		}).then(function(res){
-			console.log(res.body)
 			if(res.body.code !== 1){
 				alertDialog(res.body.message)
 			}else{
 				app.dsList = res.body.data.content
+				app.datasource = app.dsList.shift()
 			}
 			closeLoading()
 		},function(error){
@@ -29,16 +30,26 @@ var app = new Vue({
 			showDialog("修改数据源")
 			event.stopPropagation()
 		},
-		remove : function(ds){	// 删除一个数据源
-			Vue.http.delete(basePath+"ds/",{
-				before : openLoading
-			}).then(function(res){
-				closeLoading()
-				alertDialog(res.body.message)
-				app.dsList = app.dsList.filter(function(item){return item !== ds})
-			},function(error){
-				closeLoading()
-			})
+		remove : function(ds,event){	// 删除一个数据源
+			confirmDialog("您确定要删除这个数据源吗？",del)
+			function del(){
+				Vue.http.delete(basePath+"ds/"+ds.id,{
+					before : openLoading
+				}).then(function(res){
+					closeLoading()
+					layer.msg(res.body.message)
+					if(res.body.code == 1)
+						app.dsList = app.dsList.filter(function(item){return item !== ds})
+				},function(error){
+					closeLoading()
+					layer.msg("网络异常，请稍后重试！")
+				})
+			}
+			event.stopPropagation()
+		},
+		choose : function(ds,event){
+			this.datasource = ds
+			event.stopPropagation()
 		}
 	}
 });
@@ -47,6 +58,25 @@ var databaseProductNames = {
 	server : ['MySQL','Oracle','SQL Server','DB2','hive','Hbase','MongoDB'],
 	file : ['Access','SQLite','Excel']
 }
+var driverInfos = {
+	"MySQL" : {
+		"driverClass" : "com.mysql.jdbc.Driver",
+		"url" : "jdbc:mysql://localhost:3306/test"
+	},
+	"Oracle" : {
+		"driverClass" : "oracle.jdbc.driver.OracleDriver",
+		"url" : "jdbc:oracle:thin@localhost:1521:XE"
+	},
+	'SQL Server':{
+		"driverClass" : "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+		"url" : "jdbc:microsoft:sqlserver://localhost:1433;DatabaseName=tempdb"
+	},
+	"hive" : {
+		"driverClass" : "org.apache.hadoop.hive.jdbc.HiveDriver",
+		"url" : "jdbc:hive2://localhost:10002/default"
+	}
+}
+
 /**
  * 判断一个数据源名称对应的数据源类型
  */
@@ -58,13 +88,16 @@ function isFile(name){
 	}
 	return false;
 }
-
+/**
+ * 表单
+ */
 var addForm = new Vue({
 	el : "#add-div",
 	data : {
 		dstype : [],
 		ds : {},
-		isFile : true
+		isFile : true,
+		loading : null
 	},
 	created : function(){
 		for(var i in databaseProductNames.server){
@@ -76,16 +109,29 @@ var addForm = new Vue({
 	},
 	watch : {
 		"ds.databaseName" : function(newVal,oldVal){
-			this.ds.isFile = isFile(newVal)
+			this.$set(this.ds,'isFile',isFile(newVal))
+			if(!this.ds.isFile && driverInfos[newVal]){
+				this.$set(this.ds,'driverClass',driverInfos[newVal].driverClass)
+				this.$set(this.ds,'url',driverInfos[newVal].url)
+			}
+			else{
+				this.$set(this.ds,'driverClass',null)
+				this.$set(this.ds,'url',null)
+			}
 		},
+		"ds.isFile":function(newVal,oldVal){
+			if(newVal){
+			}
+		}
 	},
 	updated : function(){
-		if(this.ds.isFile){// 如果ds.isFile为true，重新渲染文件上传按钮
-			drawUpload()
+		if(this.ds.association){
+			this.ds.isFile = true
 		}
+		drawForm()
+		drawUpload()
 	}
 })
-
 
 
 /**
@@ -125,7 +171,7 @@ function drawForm(){
 		 btn1 : close, // 点击第一个按钮
 		 btn2 : submit,		// 点击第二个按钮
 		 cancel : close,// 关闭按钮
-		 success : drawForm, // 模态框打开
+		 // success : drawForm, // 模态框打开
 		 end : function(){$("#add-div").hide();},// 模态框销毁事件
 	 })
 	 
@@ -155,9 +201,9 @@ function drawForm(){
 		 }
 		 // 验证通过
 		 if(addForm.ds.id){// 修改
-			 Vue.http.put(basePath+"ds/",addForm.ds,options).then(success,fail)
+			 Vue.http.put(basePath+"ds/",tile(addForm.ds),options).then(success,fail)
 		 }else{// 添加
-			 Vue.http.post(basePath+"ds/",addForm.ds,options).then(success,fail)
+			 Vue.http.post(basePath+"ds/",tile(addForm.ds),options).then(success,fail)
 		 }
 		 /**
 		  * 请求失败回调函数
@@ -227,26 +273,29 @@ function drawUpload(){
 			elem : "#up-ds-btn",
 			url : basePath+"file/upload/",
 			accept : "file",
+			before : function(){
+				addForm.ds.association = null
+				addForm.loading = "<i class='layui-icon layui-anim layui-anim-rotate layui-anim-loop'>&#xe63d;</i>"
+			},
 			done : function(res){
 				console.log(res)
 				if(res.code ===1){
 					Vue.set(addForm.ds,'association',res.data);
+					addForm.isFile = true
 					layer.msg("上传成功");
 				}
 				else{
 					alertDialog(res.message);
 				}
+				addForm.loading  = null
 			},
 			error : function(error){
 				alertDialog("网络异常，上传失败")
+				addForm.loading = null
 			}
 		})
 	})
 }
-window.onunload = function(){
-	alert("页面销毁")
-}
-
 
  
  // 验证添加数据源的表单
@@ -254,7 +303,7 @@ window.onunload = function(){
 	 rules : {
 		 dsname : {
 			 required : true,
-			 maxlength : 10
+			 maxlength : 25
 		 },
 		 dstype : {
 			 required : true
@@ -280,7 +329,7 @@ window.onunload = function(){
 	 messages : {
 		 dsname : {
 			 required : "请输入数据源名称",
-			 maxlength : "数据源名称不能超过10个字符"
+			 maxlength : "数据源名称不能超过25个字符"
 		 },
 		 dstype : {
 			 required : "请选择数据源类型"

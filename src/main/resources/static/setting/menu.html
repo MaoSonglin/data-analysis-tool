@@ -65,7 +65,7 @@
 						<div class="layui-card" v-if="menu">
 							<div class="layui-card-header">
 								<h3>
-									{{menu.text}}
+									<span v-html='menu.text'></span>
 									<i class="layui-icon" style="float: right;" title="删除" @click="remove(menu,$event)">&#xe640;</i>
 									<i class="layui-icon" style="float: right;" title="添加" @click="toAdd($event)">&#xe654;</i>
 									<i class="layui-icon" style="float: right;" title="修改" @click="toUpdate(menu,$event)">&#xe642;</i>
