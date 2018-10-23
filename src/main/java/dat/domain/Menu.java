@@ -1,6 +1,6 @@
 package dat.domain;
 
-import java.util.Set;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -34,7 +34,7 @@ public class Menu {
 //    private Menu father;
     
     @OneToMany(targetEntity=Menu.class,mappedBy="parent",fetch=FetchType.EAGER)
-    private Set<Menu> children ;
+    private List<Menu> children ;
 
 	public Integer getId() {
 		return id;
@@ -100,11 +100,11 @@ public class Menu {
 //		this.father = father;
 //	}
 
-	public Set<Menu> getChildren() {
+	public List<Menu> getChildren() {
 		return children;
 	}
 
-	public void setChildren(Set<Menu> children) {
+	public void setChildren(List<Menu> children) {
 		this.children = children;
 	}
 

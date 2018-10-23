@@ -1,30 +1,18 @@
-package dat.service;
+package dat.service.impl;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.springframework.transaction.annotation.Transactional;
-
-import dat.domain.User;
-import dat.mapper.UserMapper;
-import dat.pojo.Response;
-import dat.pojo.UserBean;
-import dat.util.Constant;
-import dat.util.Md5Util;
-import dat.util.StrUtil;
+import dat.service.UserService;
 
 //@Service
 @Deprecated
-public class UserServiceImpl implements UserService, Serializable {
+public abstract class UserServiceImpl implements UserService, Serializable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -446077888220956770L;
+	/*
 	
 	@Resource(name="userMapper")
 	private UserMapper userMapper;
@@ -138,5 +126,5 @@ public class UserServiceImpl implements UserService, Serializable {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+*/
 }

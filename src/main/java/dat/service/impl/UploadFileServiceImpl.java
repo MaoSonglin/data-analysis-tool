@@ -1,12 +1,13 @@
-package dat.service;
+package dat.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dat.domain.Response;
 import dat.domain.UploadFile;
-import dat.pojo.Response;
 import dat.repos.UploadFileRepos;
+import dat.service.UploadFileService;
 import dat.util.Constant;
 
 @Service

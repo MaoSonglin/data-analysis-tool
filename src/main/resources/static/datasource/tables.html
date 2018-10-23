@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>数据表管理</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			div.layui-inline > label.layui-form-label{
+				width: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layui-container" id="table-div">
+			<div class="layui-col-md12">
+				<div class="">
+					<form action="#" class="layui-form layui-form-mid" method="">
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">编号</label>
+								<div class="layui-input-inline">
+									<input class="layui-input" type="text" name="page.id" id="page.id" v-model="page.id" placeholder="请输入数据表编号" />
+								</div>
+							</div>
+							<div class="layui-inline">
+								<label class="layui-form-label">表名称</label>
+								<div class="layui-input-inline">
+									<input class="layui-input" type="text" name="page.tableName" id="page.tableName" v-model="page.tableName" placeholder="请输入表名称"/>
+								</div>
+							</div>
+							<div class="layui-inline">
+								<label class="layui-form-label">数据源名称</label>
+								<div class="layui-input-inline">
+									<input class="layui-input" type="text" name="page.sourceName" id="page.sourceName" v-model="page.sourceName" placeholder="请输入数据源名称" />
+								</div>
+							</div>
+							<div class="layui-inline">
+								<div class="layui-input-inline">
+									<button type="button" class="layui-btn" @click="search()"><i class="layui-icon">&#xe615;</i>搜索</button><button type="button" class="layui-btn layui-btn-primary">清空</button>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<table class="layui-table">
+					<!-- <colgroup>
+						<col width="100">
+						<col width="">
+					</colgroup> -->
+					<thead>
+						<tr>
+							<th>序号</th>
+							<th>编号</th>
+							<th>数据表名称</th>
+							<th>中文名称</th>
+							<th>添加时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(table,index) in tables">
+							<td v-html="1 + index + page.curPage * page.pageSize"></td>
+							<td v-html="table.id"></td>
+							<td v-html="table.name"></td>
+							<td v-html="table.chinese"></td>
+							<td v-html="table.addTime"></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="5" id="page">
+								
+							</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+		</div>
+	</body>
+	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/ds/tables.js" type="text/javascript" charset="utf-8"></script>
+</html>

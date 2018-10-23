@@ -1,4 +1,4 @@
-package dat.util;
+package dat.service;
 
 import static org.junit.Assert.fail;
 
@@ -14,6 +14,8 @@ import org.junit.Test;
 
 import dat.domain.DataTable;
 import dat.domain.Source;
+import dat.domain.TableColumn;
+import dat.util.SourceMetaData;
 import dat.util.SourceMetaData.ColumnAttrName;
 
 public class SourceMetaDataTest {
@@ -37,9 +39,9 @@ public class SourceMetaDataTest {
 	@Test
 	public void testGetTables() {
 		SourceMetaData sourceMetaData = SourceMetaData.getSourceMetaData(source);
-		List<DataTable> tables = sourceMetaData.getTables();
-		for (DataTable dataTable : tables) {
-			System.err.println(dataTable);
+		List<TableColumn> columns = sourceMetaData.getColumns();
+		for (TableColumn tableColumn : columns) {
+			System.out.println(tableColumn);
 		}
 	}
 
@@ -48,7 +50,10 @@ public class SourceMetaDataTest {
 		SourceMetaData metaData = SourceMetaData.getSourceMetaData(source);
 		List<DataTable> tables = metaData.getTables();
 		for (DataTable dataTable : tables) {
-			metaData.getColumnOfTable(dataTable);
+			List<TableColumn> columns = metaData.getColumnOfTable(dataTable);
+			for (TableColumn tableColumn : columns) {
+				System.out.println(tableColumn.getColumnName());
+			}
 			break;
 		}
 	}
@@ -71,12 +76,12 @@ public class SourceMetaDataTest {
 		while(columns.next()){
 			for (int i = 0; i < columnCount; i++) {
 				String columnLabel = md.getColumnLabel(i+1);
-//				System.out.println(columnLabel);
-				String value = columns.getString(columnLabel);
-				System.out.print(columnLabel+"=>"+value+"\t");
+				System.out.println(columnLabel);
+//				String value = columns.getString(columnLabel);
+//				System.out.print(columnLabel+"=>"+value+"\t");
 			}
-//			break;
-			System.out.println();
+			break;
+//			System.out.println();
 		}
 		columns.close();
 		conn.close();

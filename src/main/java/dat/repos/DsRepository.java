@@ -12,4 +12,8 @@ public interface DsRepository extends JpaRepository<Source, String>,
 	List<Source> findByName(String name);
 	
 	boolean existsByName(String name);
+	
+	boolean existsByUrl(String url);
+	
+	List<Source> findByUrl(String url);
 }

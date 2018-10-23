@@ -11,7 +11,7 @@
 	<body id="app">
 		<header class="am-topbar am-topbar-inverse admin-header" id="header">
 		  <div class="am-topbar-brand">
-		    <strong>鑫翼</strong> <small>数据分析平台</small>
+		    <strong>鑫翼</strong> <small>BI数据工具集</small>
 		  </div>
 		  <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-success am-show-sm-only" data-am-collapse="{target: '#topbar-collapse'}"><span class="am-sr-only">导航切换</span> <span class="am-icon-bars"></span></button>
 		
@@ -51,8 +51,7 @@
 					<li v-for="(menu,index) in menus" :class="menu.children ? 'admin-parent':''" @click="to(menu,$event)">
 						<a href="javascript:;" :data-am-collapse="'{target:\'#'+menu.text+'\'}'" >
 							<span :class="menu.icon"></span>
-							<!-- <span v-html="menu.text"></span> -->
-							{{menu.text}}
+							<span v-html="menu.text"></span>
 							<span v-if="menu.children && menu.children.length > 0" 
 							class="am-icon-angle-right am-fr am-margin-right"></span>
 						</a>
@@ -60,8 +59,7 @@
 							<li v-for="(child,index) in menu.children" @click="to(child,$event)">
 								<a href="javascript:;">
 									<span :class="child.icon"></span>
-									<!-- <span v-html="child.text"></span> -->
-									{{child.text}}
+									<span v-html="child.text"></span>
 									<span class="am-icon-star am-fr am-margin-right admin-icon-yellow"></span>
 								</a>
 							</li>
@@ -108,19 +106,12 @@
 					<div class="am-tabs" data-am-tabs="{noSwipe: 1}" id="doc-tab-demo-1">
 					  <ul class="am-tabs-nav am-nav am-nav-tabs">
 						<li class="am-active"><a href="javascript: void(0)">首页</a></li>
-						<!-- <li><a href="javascript: void(0)">流浪<span class="am-icon-close"></span></a></li>
-						<li><a href="javascript: void(0)">再流浪<span class="am-icon-close"></span></a></li> -->
 					  </ul>
 
 					  <div class="am-tabs-bd">
 						<div class="am-tab-panel am-active" v-html="firstpage">
 							
 						</div>
-						<!-- <div class="am-tab-panel" style="background-color: #0A628F;">
-						</div>
-						<div class="am-tab-panel">
-						  ...
-						</div> -->
 					  </div>
 					</div>
 				</div>

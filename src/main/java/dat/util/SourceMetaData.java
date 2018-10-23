@@ -18,12 +18,18 @@ import dat.domain.TableColumn;
 public interface SourceMetaData {
 	
 	static SourceMetaData getSourceMetaData(Source source){
-		if(Constant.MYSOL.equalsIgnoreCase(source.getDatabaseName())){
+		String databaseName = source.getDatabaseName();
+		if(Constant.MYSOL.equalsIgnoreCase(databaseName)
+				||Constant.SQL_SERVER.equalsIgnoreCase(databaseName)
+				||Constant.ORACLE.equalsIgnoreCase(databaseName)
+				||Constant.SQLITE.equalsIgnoreCase(databaseName)){
 			return new MySQLSourceMetaData(source);
 		}
 		return null;
 	}
-	
+	default boolean testConnection(){
+		return false;
+	}
 	default List<DataTable> getTables(){
 		return null;
 	}
@@ -111,6 +117,19 @@ class MySQLSourceMetaData implements SourceMetaData{
 	}
 	
 	
+	@Override
+	public boolean testConnection() {
+		Connection conn = null;
+        try {
+			conn =  getConn();
+			return true;
+		} catch (Exception e) {
+			return false;
+		} finally {
+			close(conn,null,null);
+		}
+	}
+
 	private Connection getConn(){
 		try {
 			Class.forName(driverClass);
@@ -202,10 +221,11 @@ class MySQLSourceMetaData implements SourceMetaData{
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		} finally {
 			close(conn,null,rs);
 		}
-		return SourceMetaData.super.getColumnOfTable(table);
+		return list;
 	}
 
 	private TableColumn doResult(ResultSet columns) throws SQLException {
@@ -224,7 +244,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 		tableColumn.setSqlDatetimeSub(columns.getInt("SQL_DATETIME_SUB"));
 		tableColumn.setCharOctetLength(columns.getInt("CHAR_OCTET_LENGTH"));
 		tableColumn.setOrdinalPosition(columns.getInt("ORDINAL_POSITION"));
-		
+		tableColumn.setAddTime(StrUtil.currentTime());
 		return tableColumn;
 	}
 
@@ -242,7 +262,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 				String name = table.getName();
 				ResultSet columns = metaData.getColumns(conn.getCatalog(), "%", name, "%");
 				while(columns.next()){
-					TableColumn tableColumn = doResult(rs);
+					TableColumn tableColumn = doResult(columns);
 					tableColumn.setDataTable(table);
 					tableColumn.generateId();
 					list.add(tableColumn);
@@ -252,6 +272,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		} finally {
 			close(conn,null,rs);
 		}

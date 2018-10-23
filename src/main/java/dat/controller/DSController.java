@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import dat.domain.PagingBean;
+import dat.domain.Response;
 import dat.domain.Source;
-import dat.pojo.Response;
 import dat.service.DataSourceService;
 
 @RestController
-@RequestMapping("/ds/")
+@RequestMapping("/ds")
 public class DSController {
 
 	@Resource(name="dataSourceServiceImpl")
@@ -28,11 +28,17 @@ public class DSController {
 	 * @param pageSize	每页显示大小
 	 * @return	
 	 */
-	@RequestMapping(method=RequestMethod.GET,value={"","{keyword}/{curPage}/{pageSize}"})
+	@RequestMapping(method=RequestMethod.GET,value={"","/{keyword}/{curPage}/{pageSize}"})
 	public Response list(@PathVariable(value="keyword",required=false) String keyword,
 			@PathVariable(value="curPage",required=false) Integer curPage,
 			@PathVariable(value="pageSize",required=false) Integer pageSize){
 		Response response = dsService.list(new PagingBean());
+		return response;
+	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/{id}")
+	public Response get(@PathVariable String id){
+		Response response = dsService.getById(id);
 		return response;
 	}
 	
@@ -62,10 +68,20 @@ public class DSController {
 	 * @param id
 	 * @return
 	 */
-	@RequestMapping(value={"{id}"},method=RequestMethod.DELETE)
+	@RequestMapping(value={"/{id}"},method=RequestMethod.DELETE)
 	public Response delete(@PathVariable String id){
 		log.debug(String.format("the value of id which will be deleted is %s", id));
 		return dsService.delete(id);
+	}
+	
+	/**
+	 * 获取指定id的数据下所有数据表
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value="/{id}/tables",method=RequestMethod.GET)
+	public Response getTables(@PathVariable String id){
+		return dsService.getTablesById(id);
 	}
 	
 }

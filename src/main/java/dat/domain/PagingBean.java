@@ -7,7 +7,7 @@ public class PagingBean {
 
 	private Integer curPage = 0;
 	
-	private Integer pageSize = 10;
+	private Integer pageSize = 100;
 	
 	private Integer totalCount;
 	

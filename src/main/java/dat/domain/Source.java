@@ -1,11 +1,17 @@
 package dat.domain;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
@@ -48,10 +54,14 @@ public class Source implements IdGeneratorable{
 	
 	private Integer state = Constant.ACTIVATE_SATE;
 	
-	@OneToOne(targetEntity=UploadFile.class)
+	@OneToOne(targetEntity=UploadFile.class,fetch=FetchType.EAGER)
 	@JoinColumn(name="file_id",referencedColumnName="id")
 	private UploadFile association;
 
+	@OneToMany(targetEntity=DataTable.class,fetch=FetchType.LAZY,mappedBy="source")
+	@JsonIgnore
+	private List<DataTable> tables;
+	
 	public String getId() {
 		return id;
 	}
@@ -177,6 +187,14 @@ public class Source implements IdGeneratorable{
 
 	public void setDriverClass(String driverClass) {
 		this.driverClass = driverClass;
+	}
+
+	public List<DataTable> getTables() {
+		return tables;
+	}
+
+	public void setTables(List<DataTable> tables) {
+		this.tables = tables;
 	}
 	
 	

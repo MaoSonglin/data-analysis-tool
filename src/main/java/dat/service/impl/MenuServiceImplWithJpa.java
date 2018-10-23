@@ -1,4 +1,4 @@
-package dat.service;
+package dat.service.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dat.domain.Menu;
-import dat.pojo.Mune;
-import dat.pojo.Response;
+import dat.domain.Response;
 import dat.repos.MenuRepository;
+import dat.service.MenuService;
 import dat.util.Constant;
 
 @Service
@@ -71,16 +71,6 @@ public class MenuServiceImplWithJpa implements MenuService {
 			return new Response(Constant.ERROR_CODE,"ID不存在",menu);
 		}
 		return new Response(Constant.SUCCESS_CODE,"删除成功");
-	}
-
-	@Override
-	public Response addMenu(Mune menu) {
-		throw new RuntimeException("该方法没有实现");
-	}
-
-	@Override
-	public Response update(Mune menu) {
-		return addMenu(menu);
 	}
 
 }

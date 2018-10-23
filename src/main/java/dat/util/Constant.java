@@ -27,4 +27,9 @@ public interface Constant {
 	
 	int ACTIVATE_SATE = 1;
 	String MYSOL = "MySQL";
+	String SQL_SERVER = "SQL Server";
+	String ORACLE = "Oracle";
+	String SQLITE = "SQLite";
+	String ACCESS = "Access";
+	String HIVE = "hive";
 }

@@ -1,4 +1,4 @@
-package dat.pojo;
+package dat.domain;
 
 import java.io.Serializable;
 import java.util.HashMap;

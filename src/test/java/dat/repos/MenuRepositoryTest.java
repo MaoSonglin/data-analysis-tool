@@ -3,7 +3,6 @@ package dat.repos;
 import static org.junit.Assert.fail;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -33,7 +32,7 @@ public class MenuRepositoryTest {
 		List<Menu> menus = menuRepos.findAll();
 		for (Menu mune : menus) {
 			System.out.println(mune);
-			Set<Menu> children = mune.getChildren();
+			List<Menu> children = mune.getChildren();
 			System.out.println("子菜单个数："+children.size());
 		}
 	}

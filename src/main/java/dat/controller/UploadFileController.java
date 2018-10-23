@@ -1,7 +1,6 @@
 package dat.controller;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -17,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import dat.domain.Response;
 import dat.domain.UploadFile;
-import dat.pojo.Response;
 import dat.service.UploadFileService;
 
 /**
@@ -65,9 +64,7 @@ public class UploadFileController {
 			}
 		}
 		// 保存文件
-		FileOutputStream fos = new FileOutputStream(file3);
-		fos.write(file.getBytes());
-		fos.close();
+		file.transferTo(file3);
 		String virtualPath = virtualdir+System.getProperty("file.separator")+file3.getName();
 		UploadFile uploadFile = new UploadFile();
 		uploadFile.setVirtualPath(virtualPath);

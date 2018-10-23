@@ -1,24 +1,12 @@
-package dat.service;
+package dat.service.impl;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.springframework.transaction.annotation.Transactional;
-
-import dat.domain.Menu;
-import dat.mapper.MuneMapper;
-import dat.pojo.Mune;
-import dat.pojo.MuneExample;
-import dat.pojo.MuneExample.Criteria;
-import dat.pojo.Response;
-import dat.util.Constant;
+import dat.service.MenuService;
 
 //@Service
 @Deprecated
-public class MenuServiceImpl implements MenuService {
+public abstract class MenuServiceImpl implements MenuService {
 	
-	@Resource(name="muneMapper")
+	/*@Resource(name="muneMapper")
 	private MuneMapper muneMapper;
 	
 	public Response list(Integer menuid) {
@@ -76,6 +64,6 @@ public class MenuServiceImpl implements MenuService {
 	public Response update(Menu menu) {
 		// TODO Auto-generated method stub
 		return null;
-	}
+	}*/
 
 }

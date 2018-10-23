@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import dat.pojo.Response;
+import dat.domain.Response;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest

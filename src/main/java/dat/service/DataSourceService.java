@@ -1,8 +1,8 @@
 package dat.service;
 
 import dat.domain.PagingBean;
+import dat.domain.Response;
 import dat.domain.Source;
-import dat.pojo.Response;
 
 public interface DataSourceService {
 
@@ -28,5 +28,14 @@ public interface DataSourceService {
 	 * @return
 	 */
 	Response delete(String id);
+
+	Response getById(String id);
+
+	/**
+	 * 获取指定id的数据源下的所有数据表
+	 * @param id 数据源id
+	 * @return	数据表查询结果
+	 */
+	Response getTablesById(String id);
 
 }

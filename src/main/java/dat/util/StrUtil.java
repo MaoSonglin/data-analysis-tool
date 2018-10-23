@@ -35,4 +35,8 @@ public class StrUtil {
 		String format = sdf.format(new Date());
 		return format;
 	}
+	
+	public static String appendLike(String key){
+		return "%"+key+"%";
+	}
 }

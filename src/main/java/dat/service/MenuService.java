@@ -1,8 +1,7 @@
 package dat.service;
 
 import dat.domain.Menu;
-import dat.pojo.Mune;
-import dat.pojo.Response;
+import dat.domain.Response;
 
 public interface MenuService {
 
@@ -34,20 +33,4 @@ public interface MenuService {
 	 */
 	Response delete(Integer menu);
 	
-
-	/**
-	 * 添加新菜单
-	 * @param menu
-	 * @return
-	 */
-	Response addMenu(Mune menu);
-
-	/**
-	 * 修改菜单内容
-	 * @param menu
-	 * @return
-	 */
-	Response update(Mune menu);
-
-
 }

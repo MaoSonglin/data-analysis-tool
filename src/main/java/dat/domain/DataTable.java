@@ -1,12 +1,18 @@
 package dat.domain;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 /**
@@ -23,13 +29,18 @@ public class DataTable implements IdGeneratorable{
 	
 	private String chinese;
 	
-	@ManyToOne(targetEntity=Source.class)
+	@ManyToOne(targetEntity=Source.class,fetch=FetchType.LAZY)
 	@JoinColumn(name="data_source_id",referencedColumnName="id")
+	@JsonIgnore
 	private Source source;
+	
+	@OneToMany(targetEntity=TableColumn.class,fetch=FetchType.LAZY,mappedBy="dataTable")
+	@JsonIgnore
+	private List<TableColumn> columns;
 	
 	private Date addTime;
 	
-	private Integer state;
+	private Integer state = Constant.ACTIVATE_SATE;
 
 	@Override
 	public String toString() {
@@ -91,4 +102,13 @@ public class DataTable implements IdGeneratorable{
 		String id = StrUtil.generatorId();
 		setId(id);
 	}
+
+	public List<TableColumn> getColumns() {
+		return columns;
+	}
+
+	public void setColumns(List<TableColumn> columns) {
+		this.columns = columns;
+	}
+	
 }

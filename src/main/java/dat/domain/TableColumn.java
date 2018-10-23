@@ -2,11 +2,15 @@ package dat.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 /**
@@ -62,14 +66,31 @@ public class TableColumn implements IdGeneratorable{
 	
 	/******************************************************/
 	
-	
-	@ManyToOne(targetEntity=DataTable.class,optional=true)
+	@JsonIgnore
+	@ManyToOne(targetEntity=DataTable.class,optional=true,fetch=FetchType.LAZY)
 	@JoinColumn(name="data_table_id",referencedColumnName="id")
 	private DataTable dataTable;
 	
 	@OneToOne(targetEntity=TableColumn.class)
 	private TableColumn referenceColumn;
 	
+	private String addTime;
+	/**
+	 * 删除状态
+	 */
+	private Integer state = Constant.ACTIVATE_SATE;
+	
+	
+	
+
+	public Integer getState() {
+		return state;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
+	}
+
 	public void generateId() {
 		id = StrUtil.generatorId();
 	}
@@ -249,6 +270,14 @@ public class TableColumn implements IdGeneratorable{
 
 	public void setOrdinalPosition(Integer ordinalPosition) {
 		this.ordinalPosition = ordinalPosition;
+	}
+
+	public String getAddTime() {
+		return addTime;
+	}
+
+	public void setAddTime(String addTime) {
+		this.addTime = addTime;
 	}
 
 	

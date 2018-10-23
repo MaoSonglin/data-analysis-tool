@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.alibaba.druid.pool.DruidDataSource;
@@ -69,40 +71,6 @@ public class MyConfigurer implements WebMvcConfigurer {
 	}
 	
 	
-/*
-	public void addInterceptors(InterceptorRegistry registry) {
-		InterceptorRegistration interceptorRegistration = registry.addInterceptor(new HandlerInterceptor(){
-			private File[] listFiles;
-			{
-				String path = getClass().getClassLoader().getResource("META-INF/resources").getPath();
-				
-			}
-			public boolean preHandle(HttpServletRequest request,
-					HttpServletResponse response, Object handler)
-					throws Exception {
-				 if(request.getSession().getAttribute(Constant.SESSION_USER_BEAN) != null)
-					 return true;
-				 else{
-					 Response result = new Response(Constant.ERROR_CODE,"您还没有登录，请先登录!");
-					 String jsonString = JSON.toJSONString(result);
-					 response.setContentType("text/json;charset=utf-8");
-					 response.getWriter().println(jsonString);
-					 return false;
-				 }
-			}
-			
-		});
-		Interceptors inter = context.getBean(ConstantConfig.class).getInterceptors();
-		String[] path = inter.getIncludePath();
-		interceptorRegistration.addPathPatterns(path);
-		String[] excludePath = inter.getExcludePath();
-		interceptorRegistration.excludePathPatterns(excludePath);
-		String info = String.format("拦截器拦截资源路径%s，不拦截资源路径%s",Arrays.toString(path),Arrays.toString(excludePath));
-		log.info(info);
-	}
-	*/
-	
-	
 
 	@Override
 	public void configurePathMatch(PathMatchConfigurer configurer) {
@@ -110,6 +78,18 @@ public class MyConfigurer implements WebMvcConfigurer {
 	}
 
 
+	// 添加静态资源访问路径
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		// addResourceHandler指对外暴露的访问路径，addResourcesLocations指的是配置文件存放的目录
+//		registry.addResourceHandler("/assets/**").addResourceLocations("classpath:/assets");
+	}
+	// 添加视图映射路径
+	@Override
+	public void addViewControllers(ViewControllerRegistry registry) {
+		// 
+		registry.addViewController("/").setViewName("index.html");
+	}
 
 	/**
 	 * 配置数据源
