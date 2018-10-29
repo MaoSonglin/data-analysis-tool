@@ -1,12 +1,15 @@
 package dat.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -14,7 +17,7 @@ import dat.util.StrUtil;
 
 /**
  * @author MaoSonglin
- * 数据包中的虚拟表实体类
+ * 数据包中的虚拟表实体类对象
  */
 @Entity
 public class VirtualTable implements IdGeneratorable{
@@ -29,7 +32,7 @@ public class VirtualTable implements IdGeneratorable{
 	/**
 	 * 该虚拟表中包含的虚拟字段
 	 */
-	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY,mappedBy="tables")
+	@OneToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY,mappedBy="table",cascade={CascadeType.PERSIST,CascadeType.REMOVE})
 	@JsonIgnore
 	private List<VirtualColumn> columns;
 	
@@ -65,6 +68,8 @@ public class VirtualTable implements IdGeneratorable{
 	}
 
 	public List<VirtualColumn> getColumns() {
+		if(columns == null)
+			columns = new ArrayList<>();
 		return columns;
 	}
 

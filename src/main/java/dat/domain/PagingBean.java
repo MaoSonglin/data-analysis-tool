@@ -17,6 +17,17 @@ public class PagingBean {
 	
 	private List<? extends Object> beans;
 	
+	public PagingBean() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public PagingBean(Integer curPage, Integer pageSize) {
+		super();
+		this.curPage = curPage;
+		this.pageSize = pageSize;
+	}
+
 	public List<? extends Object> getBeans() {
 		return beans;
 	}

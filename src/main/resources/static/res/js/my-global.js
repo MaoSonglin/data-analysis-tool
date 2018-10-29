@@ -165,4 +165,13 @@ function showModalDialog(title,selector,callback,destory){
 		return that
 	}
 	
-	
+	function getParameter(para){
+		var reg = new RegExp("(^|&)"+para +"=([^&]*)(&|$)");
+		var url = decodeURI(window.location.search)
+		var r =  url.substr(1).match(reg);
+		if(r!=null){
+		   // return unescape(r[2]); 
+		   return r[2]
+		}
+		return null;
+	} 

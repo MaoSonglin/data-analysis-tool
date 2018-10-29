@@ -7,4 +7,6 @@ public interface UploadFileService {
 
 	Response save(UploadFile uploadFile);
 
+	Response delete(String id);
+
 }

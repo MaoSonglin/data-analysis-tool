@@ -1,7 +1,6 @@
 package dat;
 
 import org.jboss.logging.Logger;
-import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
@@ -11,7 +10,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * 启动主函数
  *
  */
-@SpringBootApplication(exclude={ErrorMvcAutoConfiguration.class,MybatisAutoConfiguration.class})
+@SpringBootApplication(exclude={ErrorMvcAutoConfiguration.class})
 public class App 
 {
     public static void main( String[] args ) throws Exception

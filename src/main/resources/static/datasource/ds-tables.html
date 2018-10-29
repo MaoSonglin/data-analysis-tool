@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>数据源数据表</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			#wrapper{
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				margin: 0;
+				overflow: auto;
+				padding: 7.5px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="wrapper">
+			<span class="layui-breadcrumb">
+				<a>配置数据源</a>
+				<a href="index.html">数据源管理</a>
+				<a>数据表信息</a>
+			</span> 
+			<div id="" style="height: 20px;">
+				
+			</div>
+			<div class="layui-row layui-col-space15">
+				<div id="tableList" class="layui-col-md6" >
+					<h1 class="layui-text layui-show-lg-block" v-html="'数据源名称: '+source.name"></h1>
+					<table class="layui-table" lay-size="sm" lay-skin="line" v-show="tables.length > 0">
+						<colgroup>
+							<col width="30">
+							<col width="100" />
+							<col width="100">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>序号</th><th>表名</th><th>简名</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(table,index) in tables" @click="showTable(table)">
+								<td v-html="index+1"></td>
+								<td v-html="table.name"></td>
+								<td v-html="table.chinese"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="fieldList" class="layui-col-md6">
+					<h1 class="layui-text" v-html="'数据表'+table.name+'中的字段'" v-show="table.name"></h1>
+					<table class="layui-table" lay-size="sm" lay-skin="" v-show="columns.length > 0">
+						<colgroup>
+							<col width="50">
+							<col width="100">
+							<col width="100">
+							<col width="50">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>序号</th>
+								<th>字段名称</th>
+								<th>中文名称</th>
+								<th>类型</th>
+								<th>长度</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(column,index) in columns">
+								<td v-html="index+1"></td>
+								<td v-html="column.columnName"></td>
+								<td v-html="column.chinese"></td>
+								<td v-html='column.typeName'></td>
+								<td v-html="column.columnSize"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			new Vue({
+				el : "#wrapper",
+				data:{
+					tables : [],// 当先显示的数据表
+					source : {},// 当前数据源
+					table : {}, // 当前显示的字段所属的数据表
+					columns : [] // 字段
+				},
+				created : function(){
+					var dsid = getParameter("dsid")
+					this.$http.get(basePath+"ds/"+dsid+"/tables").then(function(res){
+						if(res.body.code == 1)
+						{
+							this.tables = res.body.data;
+							this.source = res.body.values.datasource;
+							this.table = this.tables.length ? this.tables[0]:{};
+							// getTableColumns(columnVue.table.id,columnVue);
+						}
+						else
+							alertDialog(res.body.message);
+					},function(error){
+						alertDialog("加载数据源失败");
+					})
+				},
+				methods:{
+					showTable : function(table){
+						this.table = table;
+					}
+				},
+				watch:{
+					"table":function(newVal,oldVal){
+						if(newVal && newVal != oldVal){
+							getTableColumns(this.table.id,this);
+						}
+					}
+				}
+			})
+			
+			
+			function getTableColumns(id,obj){
+				Vue.http.get(basePath+"tab/"+id+"/columns").then(function(res){
+					if(res.body.code == 1){
+						Vue.set(obj,'columns',res.body.data);
+					}else{
+						layer.msg(res.body.message)
+					}
+				},function(error){
+					layer.msg("网络异常，加载数据表字段失败")
+				})
+			}
+		</script>
+	</body>
+</html>

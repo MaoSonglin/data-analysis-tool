@@ -24,7 +24,7 @@ public class ColumnController {
 	 * columnName：匹配条件列名称，tableName：匹配条件字段所属数据表名称，sourceName：匹配条件字段所属数据源名称
 	 * @return	查询结果
 	 */
-	@RequestMapping(value={""},method=RequestMethod.GET)
+	@RequestMapping(method=RequestMethod.GET)
 	public Response list(TableColumnPagingBean pageBean){
 		Response response = tabColService.search(pageBean);
 		return response;

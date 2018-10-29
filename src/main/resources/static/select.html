@@ -13,15 +13,28 @@
 			<p>
 				您选择了{{choose}}
 			</p>
+			<div>
+			  <input v-model="parentMsg">
+			  <br>
+			  <child v-bind:message="parentMsg"></child>
+			</div>
 		</div>
 		
 	<script src="assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
+		// 注册
+		Vue.component('child', {
+		  // 声明 props
+		  props: ['message'],
+		  // 同样也可以在 vm 实例中像 “this.message” 这样使用
+		  template: '<span>{{ message }}</span>'
+		})
 		var app = new Vue({
 			el : "#app",
 			data : {
 				choose : "E",
-				options : ["A","B","C","D","E","F","G","H"]
+				options : ["A","B","C","D","E","F","G","H"],
+				parentMsg: '父组件内容'
 			}
 		})
 	</script>

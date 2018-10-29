@@ -5,13 +5,32 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>数据表管理</title>
 		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap-theme.css"/>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap.min.css"/>
 		<style type="text/css">
 			div.layui-inline > label.layui-form-label{
 				width: auto;
 			}
+			#columns{
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				width: 0px;
+				background-color: rgb(210,210,210);
+				transition: width 0.5s;
+			}
+			.data-table-name{
+				cursor: pointer;
+			}
+			.list-group-item{
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
 		</style>
 	</head>
-	<body>
+	<body onclick="closeColumns()">
 		<div class="layui-container" id="table-div">
 			<div class="layui-col-md12">
 				<div class="">
@@ -37,7 +56,7 @@
 							</div>
 							<div class="layui-inline">
 								<div class="layui-input-inline">
-									<button type="button" class="layui-btn" @click="search()"><i class="layui-icon">&#xe615;</i>搜索</button><button type="button" class="layui-btn layui-btn-primary">清空</button>
+									<button type="button" class="layui-btn" @click="search()"><i class="layui-icon">&#xe615;</i>搜索</button><button type="button" class="layui-btn layui-btn-primary" @click="clear()">清空</button>
 								</div>
 							</div>
 						</div>
@@ -61,7 +80,7 @@
 						<tr v-for="(table,index) in tables">
 							<td v-html="1 + index + page.curPage * page.pageSize"></td>
 							<td v-html="table.id"></td>
-							<td v-html="table.name"></td>
+							<td v-html="table.name" title="查看数据字段" class="data-table-name" @click="showColumns(table,$event)"></td>
 							<td v-html="table.chinese"></td>
 							<td v-html="table.addTime"></td>
 						</tr>
@@ -75,6 +94,14 @@
 					</tfoot>
 				</table>
 			</div>
+		</div>
+		<div id="columns">
+			<ul class="list-group">
+				<li v-for="(col,index) in columns" class="list-group-item">
+					<i class="layui-icon layui-icon-align-left layui-icon-list"></i>
+					<span v-html="col.columnName" class="layui-text"></span>
+				</li>
+			</ul>
 		</div>
 	</body>
 	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>

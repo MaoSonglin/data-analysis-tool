@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Predicate;
 
+import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import dat.domain.DataTable;
 import dat.domain.PagingBean;
@@ -30,10 +32,13 @@ import dat.service.DataSourceService;
 import dat.util.BeanUtil;
 import dat.util.Constant;
 import dat.util.SourceMetaData;
+import dat.util.SourceMetaData.SourceMetaDataException;
 import dat.util.StrUtil;
 
 @Service
 public class DataSourceServiceImpl implements DataSourceService {
+	
+	private static Logger log = Logger.getLogger(DataSourceServiceImpl.class);
 	
 	/**
 	 * DataSource没有标记为删除
@@ -56,6 +61,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	EntityManager entityManager;
 	
 	public Response list(PagingBean pagingBean) {
+		log.info(pagingBean);
 		// 构建条件查询接口
 		Specification<Source> spec = CustomerSpecs.byKeyWord(Source.class,entityManager, pagingBean.getKeyword());
 		// 连接状态查询条件，过滤掉已经标记为删除状态的数据
@@ -73,48 +79,101 @@ public class DataSourceServiceImpl implements DataSourceService {
 
 	@Transactional
 	public Response add(Source source) {
-		String name = source.getName();
-		// 检查数据源的名称是否已经存在
-		boolean existsByName = dsRepos.existsByName(name);
-		if(existsByName){
-			return new Response(Constant.ERROR_CODE,String.format("数据源名称“%s”已经存在", name));
-		}
-		if( source.getUrl() != null ){
-			List<Source> list = dsRepos.findByUrl(source.getUrl());
-			if(!list.isEmpty()){
-				Source s = list.get(0);
-				return new Response(Constant.ERROR_CODE,
-						String.format("URL:\"%s\"对应的数据源已存在与数据源\"%s\"中", 
-								source.getUrl(),s.getName()));
-			}
+		try {
+			// 检查数据源的属性是否存在冲突
+			checkAttribute(source);
+		} catch (Exception e) {
+			log.info(e.getMessage());
+			return new Response(Constant.ERROR_CODE,e.getMessage(),e);
 		}
 		// 为数据源设置新的ID
 		source.generateId();
 		source.setAddTime(StrUtil.currentTime());
-		// TODO 1. 读取数据源中的数据表
-		SourceMetaData sourceMetaData = SourceMetaData.getSourceMetaData(source);
-		if(!sourceMetaData.testConnection()){
-			return new Response(Constant.ERROR_CODE,"数据源连接失败，请检查数据源配置是否正确！");
+		
+		Response response = new Response();
+		try {
+			// 读取数据源中的元数据
+			SourceMetaData sourceMetaData = SourceMetaData.getSourceMetaData(source);
+			if(!sourceMetaData.testConnection()){
+				return new Response(Constant.ERROR_CODE,"数据源连接失败，请检查数据源配置是否正确！");
+			}
+			// 保存数据源中的表格和字段
+			saveTableAndColumn(sourceMetaData);
+		} catch (SourceMetaDataException e) {
+			log.info(e.getMessage());
+			response.put("tableInfo", e.getMessage());
 		}
+		// TODO 2. 读取数据表之间的关联关系
+		
+		// 保存数据源信息
 		Source save = dsRepos.save(source);
+		
+		response.setCode(Constant.SUCCESS_CODE);
+		response.setMessage("保存成功");
+		response.setData(save);
+		
+		return response;
+	}
+
+
+
+	/**
+	 * 保存数据源中的数据表和字段列
+	 * @param sourceMetaData
+	 */
+	private void saveTableAndColumn(SourceMetaData sourceMetaData) {
+		// 读取数据源中包含的数据表
 		List<DataTable> tables = sourceMetaData.getTables();
+		// 保存数据表信息
 		tabRepos.saveAll(tables);
+		
+		// 读取数据表中包含的数据字段
 		List<TableColumn> list = new ArrayList<>();
 		for (DataTable dataTable : tables) {
 			List<TableColumn> columns = sourceMetaData.getColumnOfTable(dataTable);
 			list.addAll(columns);
 		}
+		// 保存数据字段信息
 		colRepos.saveAll(list);
-		// TODO 2. 读取数据表之间的关联关系
-		
-		Response response = new Response(Constant.SUCCESS_CODE,"添加成功！",save);
-		return response;
+	}
+
+
+
+	/**
+	 * 检查数据源source中的名称或者URL是否在数据库中已经存在了
+	 * @param source
+	 */
+	private void checkAttribute(Source source) {
+		List<Source> list = dsRepos.findAll((root,query,cb)->{
+			List<Predicate> predicates = new ArrayList<>();
+			predicates.add(cb.equal(root.get("name"), source.getName()));
+			predicates.add(cb.equal(root.get("url"), source.getUrl()));
+			Predicate predicate = cb.or(predicates.toArray(new Predicate[predicates.size()]));
+			predicates.clear();
+			predicates.add(cb.notEqual(root.get("state"), Constant.DELETE_STATE));
+			if(!StringUtils.isEmpty(source.getId())){
+				predicates.add(cb.notEqual(root.get("id"), source.getId()));
+			}
+			predicates.add(predicate);
+			// 最终过滤条件： where id <> :id and state <> :id and (name = :name or url = :url)
+			return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+		});
+		for (Source s : list) {
+			if(s.getName().equals(source.getName())){
+				throw new IllegalArgumentException("数据源名称\""+source.getName()+"\"已存在!");
+			}
+			if(s.getUrl().equals(source.getUrl())){
+				throw new IllegalArgumentException("URL\""+source.getUrl()+"\"在数据源\""+s.getName()+"\"中已经存在");
+			}
+		}
 	}
 
 	@Transactional
 	public Response update(Source source) {
-		// 根据数据源的ID号查找到要修改的对象
 		try {
+			// 检查数据源属性是否存在冲突
+			checkAttribute(source);
+			// 根据数据源的ID号查找到要修改的对象
 			Optional<Source> optional = dsRepos.findById(source.getId());
 			Source s = optional.get();
 			BeanUtil.copyAttributes(source, s);
@@ -122,7 +181,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 			return new Response(Constant.SUCCESS_CODE,"修改成功！",dsRepos.save(source));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new Response(Constant.ERROR_CODE,"修改失败",e.getMessage());
+			return new Response(Constant.ERROR_CODE,"修改失败:"+e.getMessage(),e);
 		}
 	}
 
@@ -153,7 +212,9 @@ public class DataSourceServiceImpl implements DataSourceService {
 		try {
 			Source source = dsRepos.findById(id).get();
 			List<DataTable> tables = source.getTables();
-			return new Response(Constant.SUCCESS_CODE,"查询成功",tables);
+			Response response = new Response(Constant.SUCCESS_CODE,"查询成功",tables);
+			response.put("datasource", source);
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new Response(Constant.ERROR_CODE,"查询失败",e);

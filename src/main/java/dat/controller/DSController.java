@@ -28,11 +28,12 @@ public class DSController {
 	 * @param pageSize	每页显示大小
 	 * @return	
 	 */
-	@RequestMapping(method=RequestMethod.GET,value={"","/{keyword}/{curPage}/{pageSize}"})
+	@RequestMapping(method=RequestMethod.GET,value={"","/{curPage}/{pageSize}/{keyword}"})
 	public Response list(@PathVariable(value="keyword",required=false) String keyword,
 			@PathVariable(value="curPage",required=false) Integer curPage,
 			@PathVariable(value="pageSize",required=false) Integer pageSize){
-		Response response = dsService.list(new PagingBean());
+		log.info("分页查询数据源：curPage="+curPage+"，pageSize="+pageSize+"，keywork="+keyword);
+		Response response = dsService.list(new PagingBean(curPage,pageSize));
 		return response;
 	}
 	

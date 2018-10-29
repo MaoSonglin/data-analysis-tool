@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>数据包管理</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			.wp-icon{
+				width: 100px;
+			}
+			.add-wp-icon{
+				font-size: 100px;
+			}
+			
+			.wp-list{
+				display: flex;
+				text-align: center;
+				flex-direction: row;
+				flex-wrap: wrap;
+				justify-content: flex-start;
+				align-items: flex-start;
+				align-content: center;
+			}
+			.wp-list li{
+				margin: 10px 15px;
+				padding: 5px 15px;
+				cursor: pointer;
+			}
+			.scale:hover{
+				transform: scale(1.2,1.2);
+			}
+			.top-right{
+				float: right;
+			}
+			.hide-icon{
+				visibility: hidden;
+			}
+			.wp-list li:hover > .hide-icon{
+				visibility: visible;
+			}
+			.wp-list li input{
+				max-width:80px;
+			}
+			/*让数据包名字*/
+			.wp-list li .layui-text{
+				width: 110px;
+				white-space: normal;
+				/* overflow: hidden; */
+				/* text-overflow: ellipsis; */
+			}
+			.wp-list li .layui-text:hover{
+				
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layui-container" id="wp-list-container">
+			<!-- 数据包列表 -->
+			<ul class="wp-list">
+				<li v-for="x in packages" class="scale">
+					<span class="top-right hide-icon"><i class="layui-icon layui-icon-delete" @click="remove(x,$event)"></i></span>
+					<img class="wp-icon" src="../res/images/folder001.png" @click="toTable(x,$event)">
+					<package v-bind:pg="x" v-bind:edit="x.edit" v-on:increment="saveUpdate($event)"></package>
+				</li>
+				<li>
+					<i class="layui-icon layui-icon-add-circle-fine add-wp-icon" @click="add()"></i>
+				</li>
+			</ul><!-- 数据包列表 -->
+		</div>
+		<!-- 添加数据包模态框 -->
+		<div id="addPackageDiv" class=" layui-hide">
+			<form action="#" method="method" class="layui-form">
+				<div class="layui-form-item">
+					<label class="layui-form-label" for="packageName">名称</label>
+					<div class="layui-input-block">
+						<input class="layui-input" type="text" name="packageName" id="packageName" v-model="pg.name" required="required"/>
+					</div>
+				</div>
+			</form>
+		</div><!-- 添加数据包模态框 -->
+	</body>
+	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/workset/wp.js" type="text/javascript" charset="utf-8"></script>
+</html>

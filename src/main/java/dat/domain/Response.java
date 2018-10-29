@@ -16,9 +16,6 @@ public class Response implements Serializable{
 	private Map<String,Object> values;
 	{
 		values = new HashMap<>();
-//		values.put("code intro", "0 represent there are some logic error in the processing, 1 represent success !");
-//		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-//		values.put("stackTrace", stackTrace);
 	}
 	public Response() {
 		super();
@@ -76,6 +73,17 @@ public class Response implements Serializable{
 		this.values = values;
 	}
 	
+	public Object put(String key,Object value){
+		Object put = this.values.put(key, value);
+		return put;
+	}
 	
+	public Object remove(String key){
+		return this.values.remove(key);
+	}
+	
+	public Object get(String key){
+		return this.values.get(key);
+	}
 	
 }

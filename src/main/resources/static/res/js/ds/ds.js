@@ -4,23 +4,27 @@ Vue.http.options.withCredentials=true;
 var app = new Vue({
 	el : "#wrapper",
 	data : {
-		dsList : [],
-		datasource : {}
+		dsList : dsList,
+		datasource : {},
+		keySet : keySet
 	},
 	created : function(){
-		Vue.http.get(basePath+"ds/",{
+		Vue.http.get(basePath+"ds/0/1000/%20",{
 			before : openLoading
 		}).then(function(res){
 			if(res.body.code !== 1){
-				alertDialog(res.body.message)
+				layer.msg(res.body.message)
 			}else{
 				app.dsList = res.body.data.content
 				app.datasource = app.dsList.shift()
+				if(app.datasource){
+					app.dsList.unshift(app.datasource)
+				}
 			}
 			closeLoading()
 		},function(error){
 			closeLoading()
-			alertDialog("网络异常")
+			layer.msg("网络异常")
 			console.log(error)
 		})
 	},
@@ -38,8 +42,12 @@ var app = new Vue({
 				}).then(function(res){
 					closeLoading()
 					layer.msg(res.body.message)
-					if(res.body.code == 1)
+					if(res.body.code == 1){
 						app.dsList = app.dsList.filter(function(item){return item !== ds})
+						if(ds==app.datasource){
+							app.datasource=app.dsList[0]
+						}
+					}
 				},function(error){
 					closeLoading()
 					layer.msg("网络异常，请稍后重试！")
@@ -50,32 +58,23 @@ var app = new Vue({
 		choose : function(ds,event){
 			this.datasource = ds
 			event.stopPropagation()
+		},
+		showValue : function(key,value){
+			if(key == "password"){
+				return "*********";
+			}
+			else if(typeof(value) == 'string' || typeof(value) == 'number' || typeof(value) == 'boolean'){
+				return value;
+			}
+			else if(key == "association" && value){
+				return value.fileName;
+			}
+			return null;
 		}
 	}
 });
 
-var databaseProductNames = {
-	server : ['MySQL','Oracle','SQL Server','DB2','hive','Hbase','MongoDB'],
-	file : ['Access','SQLite','Excel']
-}
-var driverInfos = {
-	"MySQL" : {
-		"driverClass" : "com.mysql.jdbc.Driver",
-		"url" : "jdbc:mysql://localhost:3306/test"
-	},
-	"Oracle" : {
-		"driverClass" : "oracle.jdbc.driver.OracleDriver",
-		"url" : "jdbc:oracle:thin@localhost:1521:XE"
-	},
-	'SQL Server':{
-		"driverClass" : "com.microsoft.jdbc.sqlserver.SQLServerDriver",
-		"url" : "jdbc:microsoft:sqlserver://localhost:1433;DatabaseName=tempdb"
-	},
-	"hive" : {
-		"driverClass" : "org.apache.hadoop.hive.jdbc.HiveDriver",
-		"url" : "jdbc:hive2://localhost:10002/default"
-	}
-}
+
 
 /**
  * 判断一个数据源名称对应的数据源类型
@@ -107,28 +106,41 @@ var addForm = new Vue({
 			this.dstype.push(databaseProductNames.file[i])
 		}
 	},
-	watch : {
-		"ds.databaseName" : function(newVal,oldVal){
-			this.$set(this.ds,'isFile',isFile(newVal))
-			if(!this.ds.isFile && driverInfos[newVal]){
-				this.$set(this.ds,'driverClass',driverInfos[newVal].driverClass)
-				this.$set(this.ds,'url',driverInfos[newVal].url)
-			}
-			else{
-				this.$set(this.ds,'driverClass',null)
-				this.$set(this.ds,'url',null)
-			}
-		},
-		"ds.isFile":function(newVal,oldVal){
-			if(newVal){
-			}
+	methods:{
+		chooseDatabase : function(){
+			$("#add-div-2").removeClass("layui-hide")
+			this.index = layer.open({
+				title : "选择数据源类型",
+				type : 1,
+				content : $("#add-div-2"),
+				btn : ["取消"],
+				success : function(){
+				},
+				end : function(){
+					$("#add-div-2").addClass("layui-hide")
+				},
+				btn1 : function(index,layero){
+					layer.close(index,layero)
+				},
+			})
 		}
 	},
-	updated : function(){
-		if(this.ds.association){
-			this.ds.isFile = true
+	watch : {
+		"ds.databaseName" : function(newVal,oldVal){
+			layer.close(this.index);
+			try{
+				this.ds.isFile = isFile(newVal)
+				this.ds.driverClass=driverInfos[newVal].driverClass
+				this.ds.url=driverInfos[newVal].url
+			}catch(e){
+				console.log(e)
+			}
+		},
+		"ds.association":function(newVal,oldVal){
+			this.isFile = newVal ? true:false;
 		}
-		drawForm()
+	},
+	mounted : function(){
 		drawUpload()
 	}
 })
@@ -179,11 +191,19 @@ function drawForm(){
 		 // 验证表单的完整性
 		 var f = $("#addForm").valid();
 		 if(!f) return f;// 验证不通过
-		 
-		 layer.confirm("您确定要提交吗？",{
+		 // 验证文件是否上传
+		 if(addForm.ds.isFile && !addForm.ds.association){
+			 var msg = addForm.ds.databaseName+"类型的数据源需要数据源文件，您确定要提交吗？"
+		 }
+		 else{
+			 var msg = "您确定要提交吗？"
+		 }
+		 // 验证通过
+		 layer.confirm(msg,{
 			 btn : ["取消","确定"],
 			 skin: 'layui-layer-lan'
 		 },function(i,l){
+			 layer.close(i)
 		 },function(i,l){
 			 tj()
 			 layer.close(index)
@@ -199,7 +219,6 @@ function drawForm(){
 		 		openLoading() // 3、提交之前显示加载层
 		 	}
 		 }
-		 // 验证通过
 		 if(addForm.ds.id){// 修改
 			 Vue.http.put(basePath+"ds/",tile(addForm.ds),options).then(success,fail)
 		 }else{// 添加
@@ -220,10 +239,11 @@ function drawForm(){
 			 closeLoading()
 			 if(res.body.code == 1){
 				 if(addForm.ds.id){// 修改成功
-					 
+					 addForm.ds = res.body.data;
 				 }else{// 添加成功
 					 app.dsList.push(res.body.data) //4、 在页面显示添加结果
 				 }
+				 app.datasource = res.body.data;
 				layer.msg(res.body.message) // 5、提示成功
 			 }else{
 			 	error(res.body.message) // 保存失败
@@ -252,10 +272,18 @@ function drawForm(){
 		 },function(index,layero){
 		 	layer.close(index);
 		 },function(){
-			 layer.closeAll("tips")// 关闭模态框中表单验证的提示消息
+			layer.closeAll("tips")// 关闭模态框中表单验证的提示消息
 			layer.close(parentIndex);// 关闭模态框
+			if(cloner.target.association != addForm.ds.association){
+				// TODO 请求后台删除上传的数据
+				console.log("删除之前上传的文件")
+				Vue.http.delete(basePath+"file/"+addForm.ds.association.id).then(function(res){
+					layer.msg(res.body.message)
+				},function(error){
+					layer.msg("网络错误")
+				})
+			}
 			cloner.reset(addForm.ds); // 在关闭模态框是将表单关联的数据恢复到编辑之前
-			// TODO 请求后台删除上传的数据
 			return true;// 关闭
 		 });
 		 return false;
@@ -366,4 +394,22 @@ function drawUpload(){
 	 }
  })
  
+ 
+ new Vue({
+	 el : "#add-div-2",
+	 data : {
+		 driverInfos : driverInfos
+	 },
+	 mounted : function(){
+		 layui.use(['form'], function(){
+		 	var form = layui.form; 
+		 	form.render()
+			console.log("xhonag")
+		 	form.on('radio(dbName)',function(data){
+		 		Vue.set(addForm.ds,'databaseName',data.value);
+				// alert(data.value)
+		 	})
+		 }); 
+	 }
+ })
  

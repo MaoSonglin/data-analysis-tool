@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			:root{
+				background-color: #F8F8F8;
+			}
+			.layui-icon-search,.layui-icon-add-1{
+				cursor: pointer;
+			}
+			.layui-container{
+				display: flex;
+				flex-direction: column;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+			}
+			.layui-card,.layui-card-body{
+				flex: 1;
+				overflow: auto;
+			}
+			.layui-card{
+				display: flex;
+				flex-direction: column;
+			}
+			.tab-list{
+				display: flex;
+				flex-wrap: wrap;
+			}
+			.tab-list-item{
+				margin: 5px 10px;
+				cursor: pointer;
+			}
+			.tab-list-item *{
+				font-size: 16px;
+			}
+			.tab-list-item .active{
+				color: deepskyblue;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layui-container" id="container">
+			<div class="layui-breadcrumb layui-clear">
+				<form id="searchForm" name="searchForm" class="layui-form layui-form-mid"
+				 action="#" method="">
+					<div class="layui-form-item">
+						<div class="layui-inline">
+							<!-- <label for=""></label> -->
+							<div class="layui-input-inline">
+								<input class="layui-input" type="text" name="search" id="search" v-model="page.keywork" />
+							</div>
+						</div>
+						<div class="layui-inline">
+							<i class="layui-icon layui-icon-search"></i>
+						</div>
+						<div class="layui-inline">
+							<i class="layui-icon layui-icon-add-1"></i>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="layui-card">
+				<div class="layui-card-body">
+					<ul class="tab-list">
+						<li v-for="tab in tables" class="tab-list-item" @click="showFields(tab,$event)">
+							<span :class="tab == table?'active':''">
+								<i class="layui-icon layui-icon-table"></i>
+								<span v-html="tab.name"></span>
+							</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="layui-card" v-show="table.name">
+				<div class="layui-card-header">
+					<h2 class="" v-html="table.name"></h2>
+				</div>
+				<div class="layui-card-body">
+					<ul>
+						<li v-for="field in fields" v-html="field"></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/workset/pkg-table.js" type="text/javascript" charset="utf-8"></script>
+	</body>
+</html>

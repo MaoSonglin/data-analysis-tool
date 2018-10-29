@@ -8,8 +8,8 @@
 		<link rel="stylesheet" type="text/css" href="../res/css/ds-index.css"/>
 	</head>
 	<body>
-		<div id="wrapper">
-			<div class="layui-container">
+		<div id="wrapper" class=" ">
+			<div class="layui-row layui-col-space10">
 				<div class="layui-col-md4">
 					<div class="layui-card">
 						<div class="layui-card-header">
@@ -17,7 +17,7 @@
 						</div>
 						<div class="layui-card-body">
 							<ul class="">
-								<li v-for="(ds,index) in dsList" @click="choose(ds,$event)">
+								<li v-for="(ds,index) in dsList" @click="choose(ds,$event)" :class="ds==datasource? 'active':''">
 									<span v-html="ds.name"></span>
 									<i class="layui-icon option-icon float-right" @click="remove(ds,$event)">&#xe640;</i>
 									<i class="layui-icon option-icon float-right" @click="toUpdate(ds,$event)">&#xe642;</i>
@@ -31,7 +31,7 @@
 				<div class="layui-col-md8">
 					<div class="layui-card">
 						<div class="layui-card-header">
-							<h2 v-html="datasource.name"></h2>
+							<h2><span v-html="datasource.name"></span><a :href="'ds-tables.html?dsid='+datasource.id" class="layui-btn layui-btn-primary float-right">显示数据表</a></h2>
 						</div>
 						<div class="layui-card-body">
 							<table class="layui-table" lay-even v-if="datasource.id" >
@@ -40,9 +40,9 @@
 									<col />
 								</colgroup>
 								<tr><th>属性</th><th>值</th></tr>
-								<template v-for="(value,key) in datasource">
+								<template v-for="(value,key) in datasource" v-show="false">
 									<tr v-if="value">
-										<td v-html="key"></td><td v-html="value"></td>
+										<td v-html="keySet[key]"></td><td v-html="showValue(key,value)"></td>
 									</tr>
 								</template>
 							</table>
@@ -51,6 +51,7 @@
 				</div>
 			</div>
 		</div>
+		<!-- 弹出层：添加数据源：version 1 -->
 		<div id="add-div" style="margin: 5px 10px;">
 			<form id="addForm" action="#" class="layui-form" method="">
 				<div class="layui-form-item">
@@ -63,46 +64,48 @@
 				<div class="layui-form-item">
 					<label class="layui-form-label" for="dstype">数据源类型</label>
 					<div class="layui-input-block">
-						<select name="dstype" id="dstype" v-model="ds.databaseName" lay-filter="dstype"> 
+						<!-- <select name="dstype" id="dstype" v-model="ds.databaseName" lay-filter="dstype"> 
 							<option v-for="(type,index) in dstype" :value="type" v-html="type"></option>
-						</select>
+						</select> -->
+						<!-- 使用弹出框选择类型 -->
+						<input class="layui-input" name="dstype" id="dstype" v-model="ds.databaseName" placeholder="请选择数据源类型" readonly="readonly" required="required" @focus="chooseDatabase()"/>
 					</div>
 				</div>
-				<div class="layui-form-item" v-if="!ds.isFile">
+				<div class="layui-form-item">
 					<label class="layui-form-label">数据库URL</label>
 					<div class="layui-input-block">
 						<input type="text" name="dsurl" id="dsurl" v-model="ds.url"
 						 class="layui-input" placeholder="请输入数据库url" autocomplete="off" />
 					</div>
 				</div>
-				<div class="layui-form-item" v-if="!ds.isFile">
+				<div class="layui-form-item">
 					<label class="layui-form-label" for="dsDriverClass">数据库驱动</label>
 					<div class="layui-input-block" >
 						<input type="text" name="dsDriverClass" id="dsDriverClass" v-model="ds.driverClass"
 						 class="layui-input" placeholder="请输入数据库驱动类" autocomplete="off" />
 					</div>
 				</div>
-				<div class="layui-form-item" v-if="!ds.isFile">
+				<div class="layui-form-item">
 					<label class="layui-form-label" for="dsuname">用户名</label>
 					<div class="layui-input-block">
 						<input type="text" name="dsuname" id="dsuname" v-model="ds.username" 
 						class="layui-input" placeholder="请输入数据源用户名" autocomplete="off"/>
 					</div>
 				</div>
-				<div class="layui-form-item" v-if="!ds.isFile">
+				<div class="layui-form-item">
 					<label class="layui-form-label" for="dspwd">密码</label>
 					<div class="layui-input-block">
 						<input type="password" name="dspwd" id="dspwd" v-model="ds.password"
 						class="layui-input" placeholder="请输入数据源密码"/>
 					</div>
 				</div>
-				<div v-if="ds.isFile" :class="ds.isFile ? 'layui-form-item':'layui-hide'">
+				<div  :class="ds.isFile ? 'layui-form-item':'layui-hide'">
 					<div class="layui-inline">
 						<label for="" class="layui-form-label">数据文件</label>
 						<div class="layui-input-inline">
 							<button class="layui-btn" type="button" id="up-ds-btn"><i class="layui-icon">&#xe67c;</i>上传数据源</button>
 						</div>
-						 <div class="layui-form-mid layui-word-aux" v-html="ds.association ? ds.association.fileName:loading">请填写6到12位密码</div>
+						 <div class="layui-form-mid layui-word-aux" v-html="ds.association ? ds.association.fileName:loading">请填写密码</div>
 					</div>
 					<!-- <div class="layui-inline">
 						<div class="layui-input-inline">
@@ -120,6 +123,14 @@
 					</div>
 				</div>
 			</form>
+		</div><!-- 弹出层：添加数据源：version 1 -->
+		
+		<div id="add-div-2" class="layui-hide">
+			<div class="layui-form" style="padding: 5px 15px;">
+				<template v-for="(value,key,index) in driverInfos">
+					<input type="radio" name="databaseName" :value="key" :title="key" lay-filter="dbName">
+				</template>
+			</div>
 		</div>
 	</body>
 	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
@@ -128,5 +139,6 @@
 	<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/ds/tmp-data.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/ds/ds.js" type="text/javascript" charset="utf-8"></script>
 </html>

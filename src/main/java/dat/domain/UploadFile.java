@@ -3,6 +3,7 @@ package dat.domain;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 @Entity
@@ -17,7 +18,7 @@ public class UploadFile implements IdGeneratorable {
 	
 	private Long size;
 	
-	private Integer state = 1;
+	private Integer state = Constant.DELETE_STATE;
 	
 	private String addTime;
 	

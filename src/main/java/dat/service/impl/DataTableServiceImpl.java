@@ -72,13 +72,8 @@ public class DataTableServiceImpl implements DataTableService {
 
 	@Override
 	public Response getTables(String id) {
-		try {
-			List<TableColumn> columns = tabRepos.findById(id).get().getColumns();
-			return new Response(Constant.SUCCESS_CODE,"查询成功",columns);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new Response(Constant.ERROR_CODE,e.getMessage(),e);
-		}
+		List<TableColumn> columns = tabRepos.findById(id).get().getColumns();
+		return new Response(Constant.SUCCESS_CODE,"查询成功",columns);
 	}
 
 }

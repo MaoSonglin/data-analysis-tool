@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.jboss.logging.Logger;
+
 import com.mysql.jdbc.Statement;
 
 import dat.domain.DataTable;
@@ -16,7 +18,12 @@ import dat.domain.Source;
 import dat.domain.TableColumn;
 
 public interface SourceMetaData {
-	
+	public static class SourceMetaDataException extends RuntimeException{
+		private static final long serialVersionUID = -543575228175945068L;
+		public SourceMetaDataException(String msg){
+			super(msg);
+		}
+	}
 	static SourceMetaData getSourceMetaData(Source source){
 		String databaseName = source.getDatabaseName();
 		if(Constant.MYSOL.equalsIgnoreCase(databaseName)
@@ -25,7 +32,7 @@ public interface SourceMetaData {
 				||Constant.SQLITE.equalsIgnoreCase(databaseName)){
 			return new MySQLSourceMetaData(source);
 		}
-		return null;
+		throw new SourceMetaDataException("unexpected datasource type of database name "+databaseName);
 	}
 	default boolean testConnection(){
 		return false;
@@ -88,7 +95,7 @@ public interface SourceMetaData {
 }
 
 class MySQLSourceMetaData implements SourceMetaData{
-	
+	private static Logger logger = Logger.getLogger(MySQLSourceMetaData.class);
 	private Source mysqlSource;
 	private String driverClass;
 	private String url;
@@ -120,10 +127,13 @@ class MySQLSourceMetaData implements SourceMetaData{
 	@Override
 	public boolean testConnection() {
 		Connection conn = null;
+		logger.debug("test database is connectable");
         try {
 			conn =  getConn();
+			logger.debug("database connected successful!");
 			return true;
 		} catch (Exception e) {
+			logger.debug("database connect fail with exception "+e.getMessage());
 			return false;
 		} finally {
 			close(conn,null,null);
@@ -132,7 +142,9 @@ class MySQLSourceMetaData implements SourceMetaData{
 
 	private Connection getConn(){
 		try {
+			logger.debug("load database driver class "+driverClass);
 			Class.forName(driverClass);
+			logger.debug("get database connection from url '"+url+"' with username '"+username+"' and password '"+password+"'");
 			return DriverManager.getConnection(url,username,password);
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
@@ -178,6 +190,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 		try{
 			conn = getConn();
 			DatabaseMetaData metaData = conn.getMetaData();
+			logger.debug("get tables in database ....");
 			rs = metaData.getTables(null, "%", null, new String[]{"TABLE","VIEW"});
 			while(rs.next()){
 				DataTable dataTable = getTable(rs);
@@ -200,6 +213,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 		dataTable.setAddTime(new Date());
 		dataTable.generateId();
 		dataTable.setState(Constant.ACTIVATE_SATE);
+		logger.debug("read table '"+table_name+"' from database '"+mysqlSource.getName()+"' successful !");
 		return dataTable;
 	}
 
@@ -211,10 +225,12 @@ class MySQLSourceMetaData implements SourceMetaData{
 		try {
 			conn = getConn();
 			String name = table.getName();
+			logger.debug("reading fields from table '"+name+"' in datasource '"+mysqlSource.getName()+"'");
 			DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getColumns(conn.getCatalog(), "%", name, "%");
+			rs = metaData.getColumns(conn.getCatalog(), null, name, null);
 			while(rs.next()){
 				TableColumn tableColumn = doResult(rs);
+				logger.debug("get fields '"+tableColumn.getColumnName()+"' from table '"+name+"' successful ");
 				tableColumn.setDataTable(table);
 				tableColumn.generateId();
 				list.add(tableColumn);
@@ -245,6 +261,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 		tableColumn.setCharOctetLength(columns.getInt("CHAR_OCTET_LENGTH"));
 		tableColumn.setOrdinalPosition(columns.getInt("ORDINAL_POSITION"));
 		tableColumn.setAddTime(StrUtil.currentTime());
+		
 		return tableColumn;
 	}
 
