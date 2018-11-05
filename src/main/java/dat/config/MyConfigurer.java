@@ -103,6 +103,8 @@ public class MyConfigurer implements WebMvcConfigurer {
 		dataSource.setUrl(url);
 		String driverClassName = env.getProperty("spring.datasource.driverClassName");
 		dataSource.setDriverClassName(driverClassName);
+		dataSource.setUsername(env.getProperty("spring.datasource.username","root"));
+		dataSource.setPassword(env.getProperty("spring.datasource.password", "123456"));
 		log.info(String.format("create datasource with driver class %s in url %s",driverClassName, url));
 		return dataSource;
 	}

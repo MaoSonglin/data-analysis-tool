@@ -52,14 +52,11 @@ function toggle(val,that){
 var app = new Vue({
 	el : "#wp-list-container",
 	data : {
-		packages : []
+		packages : [],
+		page : {curPage : 0,pageSize : 1000}
 	},
 	created : function(){
-		for(var i = 0; i < 20; i++){
-			this.packages.push({
-				name : "数据包" + i
-			})
-		}
+		initPkg(this);
 	},
 	watch : {
 		"packages" : function(newVal,oldNew){
@@ -67,8 +64,8 @@ var app = new Vue({
 		}
 	},
 	methods : {
-		saveUpdate : function(event){// 在这里保存修改
-			layer.msg(JSON.stringify(this.packages))
+		saveUpdate : function(pkg,event){// 在这里保存修改
+			save(this,pkg)
 		},
 		remove : function(pkg,event){// 删除
 			var that = this
@@ -78,37 +75,96 @@ var app = new Vue({
 				layer.close(index)
 			},function(index,layero){
 				openLoading()
-				setTimeout(function(){
-					closeLoading()
-					alertDialog("删除成功！")
-					that.packages = that.packages.filter(function(item){return item.name != pkg.name})
-				},1000)
+				pkg.state = 0;
+				save(that,pkg,function(data){
+					that.packages = that.packages.filter(function(item){return item.id != pkg.id})
+				})
 			})
 		},
 		add : function(event){// TODO 新建数据包
-			var that = this
-			var newpkg = {name:"数据包",edit:true}
-			for(var i = 0; i <= that.packages.length; i++){
-				var f = true;
-				for(var j in that.packages){
-					var curPkg = that.packages[j]
-					if(curPkg.name == newpkg.name+i){
-						f = false;
-						break;
-					}
-				}
-				if(f)
-					break;
-			}
-			newpkg.name += i
-			that.packages.push(newpkg)
+			var that = this;
+			var pkg = getPkg(this);
+			save(this,pkg,function(data){
+				data.edit = pkg.edit
+				that.packages.push(data)
+			})
 		},
 		toTable : function(pkg,event){
-			location.href = "pkg-table.html?pkgid="+pkg.name
+			location.href = "pkg-table.html?pkgid="+pkg.id
 			event.preventDefault()
 		}
 	}
 })
+
+function initPkg(vue){
+	vue.$http.get(basePath+"pkg",{
+		params : vue.page,
+		before : openLoading
+	}).then(function(res){
+		closeLoading()
+		if(res.body.code == 1){
+			Vue.set(vue,'packages',res.body.data.content)
+		}
+		layer.msg(res.body.message)
+	},function(error){
+		closeLoading()
+		layer.alert("网络异常")
+	})
+}
+
+function getPkg(that){
+	var newpkg = {name:"数据包",edit:true}
+	for(var i = 0; i <= that.packages.length; i++){
+		var f = true;
+		for(var j in that.packages){
+			var curPkg = that.packages[j]
+			if(curPkg.name == newpkg.name+i){
+				f = false;
+				break;
+			}
+		}
+		if(f)
+			break;
+	}
+	newpkg.name += i
+	return newpkg;
+}
+
+function save(that,pkg,success){
+	that.$http.post(basePath+"pkg",pkg).then(function(res){
+		closeLoading()
+		if(res.body.code == 1){
+			if(success){
+				success(res.body.data);
+			}
+		}
+		layer.msg(res.body.message)
+	},function(error){
+		closeLoading()
+		layer.msg("网络错误")
+	})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*****************************************************************/
 function addPackage(){
 	

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>新建数据表</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap-theme.min.css"/>
+		<style type="text/css">
+			#wrapper{
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				/* box-sizing: border-box; */
+				padding: 20px;
+			}
+			#wrapper>div{
+				height: 100%;
+				overflow: auto;
+				box-sizing: border-box;
+			}
+		
+			.pointer{
+				cursor: pointer;
+			}
+			.pointer:hover{
+				color: #2D93CA;
+				/* transform: scale(1.2,1.2); */
+			}
+		</style>
+	</head>
+	<body>
+		<div id="wrapper">
+			<span class="layui-text">当前位置：</span>
+			<span class="layui-breadcrumb" style="margin-bottom: 15px ;">
+				<a href="#">业务数据集</a>
+				<a href="wp.html">业务数据包</a>
+				<a href="javascript:history.go(-1)">数据表</a>
+				<a href="#">添加数据表</a>
+			</span>
+			<!-- <button type="button" class="layui-btn layui-btn-sm layui-btn-primary pull-right">返回</button> -->
+			<div class="layui-row layui-col-space15">
+				<div class="layui-col-md4">
+					<div class="layui-text"><a href="#">数据源列表</a></div>
+					<ul>
+						<li v-for="(ds,index) in dsList" class="pointer" @click="loadTables(ds)">
+							<i class="layui-icon layui-icon-tabs"></i>
+							<span v-html="ds.name"></span>
+						</li>
+					</ul>
+				</div>
+				<div class="layui-col-md8">
+					<div id="hoxnglmohxnofgdskf" class="layui-hide" lay-filter="dfw23">
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/html" id="tabtoolbar">
+			<div class="layui-btn-container">
+				<button type="button" class="layui-btn layui-btn-sm" lay-event="addCheckedRow">添加选中行</button>
+			</div>
+		</script>
+		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			Vue.http.options.emulateJSON=true;
+			Vue.http.options.withCredentials=true;
+			var app = new Vue({
+				el : "#wrapper",
+				data :{
+					tables : [],// 最左侧数据表列表中的数据表
+					dsList : [],// 左侧数据源选择框中的数据源
+					pkg : {},	// 当前操作的数据包
+					vtable : {},// 当前显示的虚拟数据表
+					vtables : [{name:"test"}],// 当前数据包中的虚拟数据表
+					fields : [],
+					isCheck : []
+				},
+				created:function(){
+					// var pkgid = getParameter("pkg.id")
+					loadSource(this);
+					loadPkg(this,getParameter("pkg.id"))
+				},
+				methods:{
+					move:function(table,event){// 将左边数据源中的表移动到右边数据包中
+						
+					},
+					loadTables : function(ds,event){
+						showTables(ds)
+					},
+					save : function(){
+						
+					},
+					choose:function(){
+						
+					}
+				},
+				watch : {
+				}
+			})
+			
+			// 请求数据源信息
+			function loadSource(vue){
+				vue.$http.get(basePath+"ds/0/1000/%20",{
+					before:openLoading
+				}).then(function(res){
+					closeLoading();
+					if(res.body.code == 1){
+						vue.dsList = res.body.data.content;
+						if(vue.dsList.length){
+							// loadTables(vue,vue.dsList[0].id)
+							showTables(vue.dsList[0].id)
+						}
+					}
+					// layer.msg(res.body.message);
+				},function(error){
+					closeLoading();
+					layer.msg("网络异常")
+				})
+			}
+			// 请求数据源对应的数据表信息
+			function loadTables(vue,id){
+				vue.$http.get(basePath+"ds/"+id+"/tables").then(function(res){
+					if(res.body.code == 1){
+						Vue.set(vue,'tables',res.body.data)
+					}
+				},function(error){
+					layer.msg("网络异常")
+				})
+			}
+			// 请求数据包信息
+			function loadPkg(vue,pkgid){
+				vue.$http.get(basePath+"pkg/"+pkgid).then(function(res){
+					if(res.body.code == 1){
+						vue.pkg = res.body.data;
+					}
+					console.log(res.body.message)
+				},function(error){
+					console.log("加载数据包失败")
+				})
+			}
+			// 请求数据视图
+			function loadView(vue,pkgid){
+				vue.$http.get(basePath+"pkg/tab/"+pkgid).then(function(res){
+					if(res.body.code == 1){
+						Vue.set(vue,'vtables',res.body.data);
+					}else{
+						layer.msg(res.body.message);
+					}
+					console.log(res)
+				},function(error){
+					layer.msg("网络异常")
+				})
+			}
+			var tableIndex = null;
+			/**
+			 * 加载数据表数据
+			 */
+			function showTables(ds){
+				tableIndex = table.render({
+					elem: '#hoxnglmohxnofgdskf',
+					toolbar : "#tabtoolbar",
+					LAY_CHECKED : true,
+					title : "数据源“"+ds.name+"”的数据表"
+					,url: basePath + 'pkg/'+getParameter('pkg.id')+'/'+ds.id
+					,cellMinWidth: 80 //全局定义常规单元格的最小宽度
+					,cols: [[
+						{type:'checkbox'}
+						,{field:'id', width:180, title: 'ID', sort: true}
+						,{field:'name', width:180, title: '表名'}
+						,{field:'chinese', width:180, title: '中文名称', sort: true}
+						,{field:'addTime', width:280, title: '添加时间'}
+					]],
+					response: {
+						statusCode: 1 //重新规定成功的状态码为 200，table 组件默认为 0
+					},
+					parseData : function(res){
+						return {
+							"code" : res.code,
+							"msg" : res.message,
+							"count" : res.data.length,
+							"data" : res.data
+						};
+					}
+				});
+			}
+			
+			var table = null;
+			layui.use('table',function(){
+				table = layui.table;
+				//监听表格复选框选择
+				table.on('checkbox(dfw23)', function(obj){
+					console.log(obj)
+					// alertDialog(JSON.stringify(obj))
+				});
+				//工具栏事件
+				table.on('toolbar(dfw23)', function(obj){
+					var checkStatus = table.checkStatus(obj.config.id);
+					console.log(checkStatus);
+					switch(obj.event){
+					case 'addCheckedRow':
+						var data = checkStatus.data;
+						// layer.alert(JSON.stringify(data));
+						// delCheckedRow(tableIndex)
+						// alert(JSON.stringify(app.pkg))
+						var array = new Array();
+						for(var i in data){
+							array.push(data[i].id)
+						}
+						Vue.http.put(basePath+"pkg/addTab",tile({
+							pid : app.pkg.id,
+							tids : array
+						}),{
+							emulateJSON : true,
+							before : openLoading
+						}).then(function(res){
+							closeLoading();
+							if(res.body.code == 1){
+								table.reload('hoxnglmohxnofgdskf')
+							}else{
+							}
+							layer.msg(res.body.message)
+						},function(error){
+							closeLoading()
+							layer.msg("网络异常，数据表添加失败")
+						})
+						
+						break;
+					}
+				});
+			})
+			function delCheckedRow(tableIndex){
+				
+				var layFilterIndex = 'LAY-table-'+tableIndex.config.index;
+				//找到table filter的索引
+				var tableContainer = $('div[lay-filter="'+layFilterIndex+'"]')
+				//查找选中的checkbox
+				tableContainer.find('input[name="layTableCheckbox"]:checked').each(function(){
+					//删除tr
+					var tr = $(this).parents('tr');
+					console.log(tr);
+					tr.remove();
+				});
+			}
+		</script>
+	</body>
+</html>

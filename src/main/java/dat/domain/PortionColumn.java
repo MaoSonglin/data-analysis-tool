@@ -1,7 +1,6 @@
 package dat.domain;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import dat.util.StrUtil;
@@ -10,7 +9,7 @@ import dat.util.StrUtil;
  * @author MaoSonglin
  * 虚拟字段的子丢按描述实体类
  */
-@Entity
+//@Entity
 public class PortionColumn implements IdGeneratorable {
 
 	public PortionColumn() {

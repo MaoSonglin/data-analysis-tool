@@ -1,5 +1,7 @@
 package dat.service;
 
+import dat.controller.WorkPackageController.ExcludeTable;
+import dat.domain.PkgPageBean;
 import dat.domain.Response;
 import dat.domain.WorkPackage;
 
@@ -43,5 +45,21 @@ public interface WorkPackageService {
 	 * @return
 	 */
 	Response remove(String pid, String tid);
+
+	/**
+	 * 通过分页信息和查询信息查询
+	 * @param pageBean
+	 * @return
+	 */
+	Response getPkgs(PkgPageBean pageBean);
+
+	/**
+	 * 获取指定数据包在某个数据源中不包含的数据表
+	 * @param excludeTable
+	 * @return
+	 */
+	Response getTables(ExcludeTable excludeTable);
+
+	Response addTab(String pid, String[] tid);
 
 }

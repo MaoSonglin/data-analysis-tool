@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
@@ -32,14 +33,15 @@ public class VirtualTable implements IdGeneratorable{
 	/**
 	 * 该虚拟表中包含的虚拟字段
 	 */
-	@OneToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY,mappedBy="table",cascade={CascadeType.PERSIST,CascadeType.REMOVE})
+	@OneToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY,mappedBy="table",cascade={CascadeType.REMOVE})
 	@JsonIgnore
 	private List<VirtualColumn> columns;
 	
 	/**
 	 * 该虚拟表所属的数据包
 	 */
-	@ManyToMany(targetEntity=WorkPackage.class,fetch=FetchType.LAZY)
+	@ManyToMany(targetEntity=WorkPackage.class,fetch=FetchType.LAZY,cascade=CascadeType.MERGE)
+	@JoinColumn(referencedColumnName="id")
 	@JsonIgnore
 	private List<WorkPackage> packages;
 
@@ -83,12 +85,20 @@ public class VirtualTable implements IdGeneratorable{
 	}
 
 	public List<WorkPackage> getPackages() {
+		if(packages == null)
+			packages = new ArrayList<>();
 		return packages;
 	}
 
 	public void setPackages(List<WorkPackage> packages) {
 		this.packages = packages;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "VirtualTable [id=" + id + ", name=" + name + ", chinese="
+				+ chinese + "]";
+	}
+
 	
 }

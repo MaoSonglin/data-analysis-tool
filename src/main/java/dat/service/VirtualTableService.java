@@ -1,6 +1,7 @@
 package dat.service;
 
 import dat.domain.Response;
+import dat.domain.VirtualTable;
 
 
 /**
@@ -22,4 +23,12 @@ public interface VirtualTableService {
 	 * @return
 	 */
 	Response getVirtualColumns(String id);
+
+	/**
+	 * 添加虚拟数据表
+	 * @param table
+	 * @return
+	 */
+	@Deprecated
+	Response add(VirtualTable table);
 }

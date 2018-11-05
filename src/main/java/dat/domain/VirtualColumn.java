@@ -9,8 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -38,15 +38,16 @@ public class VirtualColumn {
 	/**
 	 * 该虚拟字段相关联的实际字段
 	 */
-	@OneToMany(targetEntity=PortionColumn.class,fetch=FetchType.LAZY,cascade={CascadeType.REMOVE,CascadeType.PERSIST})
+	@ManyToMany(targetEntity=TableColumn.class,fetch=FetchType.LAZY)
 	@JoinColumn(referencedColumnName="id")
 	@JsonIgnore
-	private List<PortionColumn> refColumns;
+	private List<TableColumn> refColumns;
 
 	/**
 	 * 包含该虚拟字段的虚拟数据表
 	 */
-	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.LAZY)
+	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.LAZY,cascade={CascadeType.PERSIST,CascadeType.REFRESH/*,CascadeType.MERGE*/})
+	@JoinColumn(referencedColumnName="id")
 	@JsonIgnore
 	private VirtualTable table;
 	public String getId() {
@@ -112,13 +113,13 @@ public class VirtualColumn {
 		this.formula = formula;
 	}
 
-	public List<PortionColumn> getRefColumns() {
+	public List<TableColumn> getRefColumns() {
 		if(refColumns == null)
 			refColumns = new ArrayList<>();
 		return refColumns;
 	}
 
-	public void setRefColumns(List<PortionColumn> refColumns) {
+	public void setRefColumns(List<TableColumn> refColumns) {
 		this.refColumns = refColumns;
 	}
 
@@ -145,6 +146,13 @@ public class VirtualColumn {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "VirtualColumn [id=" + id + ", name=" + name + ", chinese="
+				+ chinese + ", state=" + state + ", formula=" + formula
+				+ ", typeName=" + typeName + ", refColumns=" + refColumns + "]";
 	}
 
 	

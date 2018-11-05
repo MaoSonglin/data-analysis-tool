@@ -12,6 +12,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import dat.domain.Response;
+import dat.domain.VirtualColumn;
+import dat.domain.VirtualTable;
+import dat.repos.VirtualColumnRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -36,4 +39,18 @@ public class UserServiceImplTest {
 		System.err.println(conn);
 		conn.close();
 	}
+	
+	@Test
+	public void test2(){
+		VirtualColumn vc = new VirtualColumn();
+		vc.setId();
+		vc.setName("test_virtual_column");
+		VirtualTable vt = new VirtualTable();
+		vt.setName("test_virtual_table");
+		vt.generateId();
+		vc.setTable(vt);
+		VirtualColumnRepository vtRepos = context.getBean(VirtualColumnRepository.class);
+		vtRepos.save(vc);
+	}
+	
 }

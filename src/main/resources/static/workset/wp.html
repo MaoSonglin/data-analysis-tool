@@ -61,7 +61,7 @@
 				<li v-for="x in packages" class="scale">
 					<span class="top-right hide-icon"><i class="layui-icon layui-icon-delete" @click="remove(x,$event)"></i></span>
 					<img class="wp-icon" src="../res/images/folder001.png" @click="toTable(x,$event)">
-					<package v-bind:pg="x" v-bind:edit="x.edit" v-on:increment="saveUpdate($event)"></package>
+					<package v-bind:pg="x" v-bind:edit="x.edit" v-on:increment="saveUpdate(x,$event)"></package>
 				</li>
 				<li>
 					<i class="layui-icon layui-icon-add-circle-fine add-wp-icon" @click="add()"></i>

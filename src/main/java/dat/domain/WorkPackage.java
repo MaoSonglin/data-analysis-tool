@@ -3,7 +3,6 @@ package dat.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,6 +11,7 @@ import javax.persistence.ManyToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 /**
@@ -27,9 +27,9 @@ public class WorkPackage {
 	
 	private String name;
 	
-	private Integer state;
+	private Integer state = Constant.ACTIVATE_SATE;
 	
-	@ManyToMany(targetEntity=VirtualTable.class,mappedBy="packages",fetch=FetchType.LAZY,cascade={CascadeType.PERSIST,CascadeType.REFRESH})
+	@ManyToMany(targetEntity=VirtualTable.class,mappedBy="packages",fetch=FetchType.LAZY)
 	@JsonIgnore
 	private List<VirtualTable> tables;
 
@@ -94,6 +94,12 @@ public class WorkPackage {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "WorkPackage [id=" + id + ", name=" + name + ", state=" + state
+				+ "]";
 	}
 
 

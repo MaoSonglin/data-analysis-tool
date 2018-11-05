@@ -61,7 +61,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	EntityManager entityManager;
 	
 	public Response list(PagingBean pagingBean) {
-		log.info(pagingBean);
+		log.debug(pagingBean);
 		// 构建条件查询接口
 		Specification<Source> spec = CustomerSpecs.byKeyWord(Source.class,entityManager, pagingBean.getKeyword());
 		// 连接状态查询条件，过滤掉已经标记为删除状态的数据
@@ -70,6 +70,8 @@ public class DataSourceServiceImpl implements DataSourceService {
 		PageRequest pageRequest = PageRequest.of(pagingBean.getCurPage(), pagingBean.getPageSize(),new Sort(Direction.ASC,"id"));
 		// 调用jpa接口查询
 		Page<Source> page = dsRepos.findAll(specification,pageRequest);
+//		List<Source> findAll = dsRepos.findAll(specification);
+		log.debug("查询到记录条数："+page.getNumberOfElements());
 		// 返回数据类型
 		Response res = new Response(Constant.SUCCESS_CODE,"查询成功",page);
 		return res;
@@ -123,16 +125,17 @@ public class DataSourceServiceImpl implements DataSourceService {
 	 */
 	private void saveTableAndColumn(SourceMetaData sourceMetaData) {
 		// 读取数据源中包含的数据表
-		List<DataTable> tables = sourceMetaData.getTables();
+		//List<DataTable> tables = sourceMetaData.getTables();
 		// 保存数据表信息
-		tabRepos.saveAll(tables);
+		//tabRepos.saveAll(tables);
 		
 		// 读取数据表中包含的数据字段
-		List<TableColumn> list = new ArrayList<>();
-		for (DataTable dataTable : tables) {
-			List<TableColumn> columns = sourceMetaData.getColumnOfTable(dataTable);
-			list.addAll(columns);
-		}
+		//List<TableColumn> list = new ArrayList<>();
+		//for (DataTable dataTable : tables) {
+		//	List<TableColumn> columns = sourceMetaData.getColumnOfTable(dataTable);
+		//	list.addAll(columns);
+		//}
+		List<TableColumn> list = sourceMetaData.getColumns();
 		// 保存数据字段信息
 		colRepos.saveAll(list);
 	}

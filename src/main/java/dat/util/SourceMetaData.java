@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jboss.logging.Logger;
 
@@ -230,7 +232,7 @@ class MySQLSourceMetaData implements SourceMetaData{
 			rs = metaData.getColumns(conn.getCatalog(), null, name, null);
 			while(rs.next()){
 				TableColumn tableColumn = doResult(rs);
-				logger.debug("get fields '"+tableColumn.getColumnName()+"' from table '"+name+"' successful ");
+				logger.debug("get a field '"+tableColumn.getColumnName()+"' from table '"+name+" successful ");
 				tableColumn.setDataTable(table);
 				tableColumn.generateId();
 				list.add(tableColumn);
@@ -270,27 +272,35 @@ class MySQLSourceMetaData implements SourceMetaData{
 		List<TableColumn> list = new ArrayList<>();
 		Connection conn = null;
 		ResultSet rs = null;
+		ResultSet rs2 = null;
 		try {
 			conn = getConn();
 			DatabaseMetaData metaData = conn.getMetaData();
 			rs = metaData.getTables(conn.getCatalog(), "%", null, new String[]{"TABLE","VIEW"});
+			Map<String,DataTable> map = new HashMap<>();
 			while(rs.next()){
 				DataTable table = getTable(rs);
 				String name = table.getName();
-				ResultSet columns = metaData.getColumns(conn.getCatalog(), "%", name, "%");
-				while(columns.next()){
-					TableColumn tableColumn = doResult(columns);
-					tableColumn.setDataTable(table);
-					tableColumn.generateId();
-					list.add(tableColumn);
-				}
-				columns.close();
+				logger.debug("read a table \""+name+"\" successful !");
+				map.put(name, table);
 			}
 			
+			rs2 = metaData.getColumns(conn.getCatalog(), "%", "%", "%");
+			while(rs2.next()){
+				String tableName = rs2.getString("TABLE_NAME");
+				TableColumn tableColumn = doResult(rs2);
+				logger.debug("read a field \""+tableColumn.getColumnName()+"\" from table \""+tableName+"\" successful !");
+				DataTable dataTable = map.get(tableName);
+				tableColumn.setDataTable(dataTable);
+				tableColumn.generateId();
+				if(dataTable!=null)
+					list.add(tableColumn);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		} finally {
+			close(null,null,rs2);
 			close(conn,null,rs);
 		}
 		return list;

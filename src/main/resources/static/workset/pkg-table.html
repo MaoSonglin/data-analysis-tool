@@ -12,7 +12,7 @@
 			.layui-icon-search,.layui-icon-add-1{
 				cursor: pointer;
 			}
-			.layui-container{
+			#container{
 				display: flex;
 				flex-direction: column;
 				position: absolute;
@@ -20,15 +20,22 @@
 				left: 0;
 				right: 0;
 				bottom: 0;
-			}
-			.layui-card,.layui-card-body{
-				flex: 1;
-				overflow: auto;
+				margin-left: 15px;
+				margin-right: 15px;
 			}
 			.layui-card{
 				display: flex;
 				flex-direction: column;
 			}
+			.content{
+				display: flex;
+				overflow: auto;
+			}
+			.content .layui-card,.layui-card-body{
+				flex: 1;
+				overflow: auto;
+			}
+			
 			.tab-list{
 				display: flex;
 				flex-wrap: wrap;
@@ -46,7 +53,13 @@
 		</style>
 	</head>
 	<body>
-		<div class="layui-container" id="container">
+		<div class="" id="container">
+			<span class="layui-breadcrumb">
+				<a href="javascript:;">当前位置：</a>
+				<a href="#">业务数据集</a>
+				<a href="wp.html">业务数据包</a>
+				<a href="javascript:;">{{pkg.name}}的数据表</a>
+			</span>
 			<div class="layui-breadcrumb layui-clear">
 				<form id="searchForm" name="searchForm" class="layui-form layui-form-mid"
 				 action="#" method="">
@@ -61,34 +74,55 @@
 							<i class="layui-icon layui-icon-search"></i>
 						</div>
 						<div class="layui-inline">
-							<i class="layui-icon layui-icon-add-1"></i>
+							<i class="layui-icon layui-icon-add-1" @click="addTable(pkg,$event)"></i>
 						</div>
 					</div>
 				</form>
 			</div>
-			<div class="layui-card">
-				<div class="layui-card-body">
-					<ul class="tab-list">
-						<li v-for="tab in tables" class="tab-list-item" @click="showFields(tab,$event)">
-							<span :class="tab == table?'active':''">
-								<i class="layui-icon layui-icon-table"></i>
-								<span v-html="tab.name"></span>
-							</span>
-						</li>
-					</ul>
+			<div class="layui-row content">
+				<div class="layui-card">
+					<div class="layui-card-body">
+						<ul class="tab-list">
+							<li v-for="tab in tables" class="tab-list-item" @click="showFields(tab,$event)">
+								<span :class="tab == table?'active':''">
+									<i class="layui-icon layui-icon-table"></i>
+									<span v-html="tab.name"></span>
+								</span>
+							</li>
+						</ul>
+					</div>
 				</div>
-			</div>
-			<div class="layui-card" v-show="table.name">
-				<div class="layui-card-header">
-					<h2 class="" v-html="table.name"></h2>
-				</div>
-				<div class="layui-card-body">
-					<ul>
-						<li v-for="field in fields" v-html="field"></li>
-					</ul>
+				<div class="layui-card" v-show="table.name">
+					<div class="layui-card-body">
+						<table lay-filter="kjix12312" lay-data="">
+							<thead>
+								<tr>
+									<th lay-data="{type:'checkbox'}">ID</th>
+									<th lay-data="{field:'id', width:60}">编号</th>
+									<th lay-data="{field:'name',edit:'text',width:100}">名称</th>
+									<th lay-data="{field:'chinese',edit:'text',width:100}">中文名称</th>
+									<th lay-data="{field:'typeName',minWidth:180}">类型名称</th>
+									<th lay-data="{fixed: 'right',  toolbar: '#barDemo', width:120}">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="(field,index) in fields">
+									<td></td>
+									<td v-html="index+1"></td>
+									<td v-html="field.name"></td>
+									<td v-html="field.chinese"></td>
+									<td v-html="field.typeName"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
+		<script type="text/html" id="barDemo">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
 		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>

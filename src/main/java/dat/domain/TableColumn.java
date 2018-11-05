@@ -1,5 +1,6 @@
 package dat.domain;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -67,7 +68,7 @@ public class TableColumn implements IdGeneratorable{
 	/******************************************************/
 	
 	@JsonIgnore
-	@ManyToOne(targetEntity=DataTable.class,optional=true,fetch=FetchType.LAZY)
+	@ManyToOne(targetEntity=DataTable.class,optional=true,fetch=FetchType.LAZY,cascade={CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.MERGE})
 	@JoinColumn(name="data_table_id",referencedColumnName="id")
 	private DataTable dataTable;
 	
@@ -280,6 +281,21 @@ public class TableColumn implements IdGeneratorable{
 		this.addTime = addTime;
 	}
 
-	
+	@Override
+	public String toString() {
+		return "TableColumn [id=" + id + ", chinese=" + chinese
+				+ ", isPrimaryKey=" + isPrimaryKey + ", isForeginKey="
+				+ isForeginKey + ", isUnique=" + isUnique + ", columnName="
+				+ columnName + ", dataType=" + dataType + ", typeName="
+				+ typeName + ", columnSize=" + columnSize + ", bufferLength="
+				+ bufferLength + ", decimalDigits=" + decimalDigits
+				+ ", numPrecRadix=" + numPrecRadix + ", nullable=" + nullable
+				+ ", remarks=" + remarks + ", columnDef=" + columnDef
+				+ ", sqlDataType=" + sqlDataType + ", sqlDatetimeSub="
+				+ sqlDatetimeSub + ", charOctetLength=" + charOctetLength
+				+ ", ordinalPosition=" + ordinalPosition + ", dataTable="
+				+ dataTable + ", referenceColumn=" + referenceColumn
+				+ ", addTime=" + addTime + ", state=" + state + "]";
+	}
 	
 }

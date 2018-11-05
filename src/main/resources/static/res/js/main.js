@@ -57,7 +57,7 @@
 		if(index === -1){
 			var nav = '<li><a href="javascript: void(0)">' + 
 			title + '<span class="am-icon-close"></span></a></li>';
-			var content = '<div class="am-tab-panel"><iframe id="iframe_'+title+'" src="'+link+'" width="100%" height="100%"></iframe></div>';
+			var content = '<div class="am-tab-panel"><iframe id="iframe_'+title+'" src="'+link+'" width="100%" height="98%"></iframe></div>';
 			$nav.append(nav);
 			$bd.append(content); 
 			tabs.push(title)
