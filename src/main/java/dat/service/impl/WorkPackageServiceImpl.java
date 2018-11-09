@@ -3,7 +3,6 @@ package dat.service.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
@@ -94,28 +93,27 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 
 	@Transactional
 	public Response add(WorkPackage pg) {
-		logger.debug("保存业务数据包");
+		logger.debug("保存业务数据包"+pg);
 		// 如果数据包ID为null，说明是第一次添加，设置数据包的id
 		if(pg.getId() == null){
 			pg.setId();
 			logger.debug("生成数据包ID："+pg.getId());
 		}
 		// 根据数据包的名称检查数据库中是否存在重复的数据包名称
-		Optional<WorkPackage> optional = wpRepos.findOne((root,query,cb)->{
+		List<WorkPackage> optional = wpRepos.findAll((root,query,cb)->{
 			List<Predicate> array = new ArrayList<>();
+			array.add(cb.notEqual(root.get("id"), pg.getId()));
 			if(StringUtils.isEmpty(pg.getId())){
-				Predicate notEqual = cb.notEqual(root.get("id"), pg.getId());
-				array.add(notEqual);
 			}
 			Predicate equal = cb.equal(root.get("name"), pg.getName());
 			array.add(equal);
-			Predicate notEqual = cb.notEqual(root.get("state"), pg.getState());
+			Predicate notEqual = cb.notEqual(root.get("state"), Constant.DELETE_STATE);
 			array.add(notEqual);
 			return cb.and(array.toArray(new Predicate[array.size()]));
 		});
 		try {
 			// 如果获取成功，说明数据库中存在数据包相同的名称，则添加失败
-			WorkPackage pkg = optional.get();
+			WorkPackage pkg = optional.get(0);
 			logger.debug(String.format("数据包名称“%s”在数据库中已经存在",pg.getName()));
 			return new Response(Constant.ERROR_CODE,"数据包名称\""+pkg.getName()+"\"已经存在!",pkg);
 		} catch (Exception e) {

@@ -9,7 +9,7 @@ var driverInfos = {
 	},
 	"Oracle" : {
 		"driverClass" : "oracle.jdbc.driver.OracleDriver",
-		"url" : "jdbc:oracle:thin@localhost:1521:XE"
+		"url" : "jdbc:oracle:thin:@localhost:1521:XE"
 	},
 	'SQL Server':{
 		"driverClass" : "com.microsoft.jdbc.sqlserver.SQLServerDriver",

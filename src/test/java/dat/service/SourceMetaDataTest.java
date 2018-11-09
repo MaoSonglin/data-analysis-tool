@@ -15,8 +15,8 @@ import org.junit.Test;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
-import dat.util.SourceMetaData;
-import dat.util.SourceMetaData.ColumnAttrName;
+import dat.util.MetaDataParser;
+import dat.util.MetaDataParser.ColumnAttrName;
 
 public class SourceMetaDataTest {
 
@@ -38,7 +38,7 @@ public class SourceMetaDataTest {
 
 	@Test
 	public void testGetTables() {
-		SourceMetaData sourceMetaData = SourceMetaData.getSourceMetaData(source);
+		MetaDataParser sourceMetaData = MetaDataParser.getSourceMetaData(source);
 		List<TableColumn> columns = sourceMetaData.getColumns();
 		for (TableColumn tableColumn : columns) {
 			System.out.println(tableColumn);
@@ -47,7 +47,7 @@ public class SourceMetaDataTest {
 
 	@Test
 	public void testGetColumnOfTable() {
-		SourceMetaData metaData = SourceMetaData.getSourceMetaData(source);
+		MetaDataParser metaData = MetaDataParser.getSourceMetaData(source);
 		List<DataTable> tables = metaData.getTables();
 		for (DataTable dataTable : tables) {
 			List<TableColumn> columns = metaData.getColumnOfTable(dataTable);

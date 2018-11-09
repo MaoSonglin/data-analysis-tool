@@ -35,6 +35,12 @@ public class VirtualColumn {
 	private String formula;
 	
 	private String  typeName;
+	
+	/**
+	 * 字段备注
+	 */
+	private String remask;
+	
 	/**
 	 * 该虚拟字段相关联的实际字段
 	 */
@@ -67,7 +73,8 @@ public class VirtualColumn {
 	}
 	
 	public void setId(){
-		this.id = StrUtil.generatorId();
+		String id = StrUtil.generatorId();
+		setId("VC"+id.substring(2));
 	}
 	public String getName() {
 		return name;
@@ -152,7 +159,16 @@ public class VirtualColumn {
 	public String toString() {
 		return "VirtualColumn [id=" + id + ", name=" + name + ", chinese="
 				+ chinese + ", state=" + state + ", formula=" + formula
-				+ ", typeName=" + typeName + ", refColumns=" + refColumns + "]";
+				+ ", typeName=" + typeName + ", remask=" + remask + ", table="
+				+ table + "]";
+	}
+
+	public String getRemask() {
+		return remask;
+	}
+
+	public void setRemask(String remask) {
+		this.remask = remask;
 	}
 
 	

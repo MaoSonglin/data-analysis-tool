@@ -31,8 +31,8 @@ import dat.repos.TableColumnRepository;
 import dat.service.DataSourceService;
 import dat.util.BeanUtil;
 import dat.util.Constant;
-import dat.util.SourceMetaData;
-import dat.util.SourceMetaData.SourceMetaDataException;
+import dat.util.MetaDataParser;
+import dat.util.MetaDataParser.SourceMetaDataException;
 import dat.util.StrUtil;
 
 @Service
@@ -95,7 +95,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 		Response response = new Response();
 		try {
 			// 读取数据源中的元数据
-			SourceMetaData sourceMetaData = SourceMetaData.getSourceMetaData(source);
+			MetaDataParser sourceMetaData = MetaDataParser.getSourceMetaData(source);
 			if(!sourceMetaData.testConnection()){
 				return new Response(Constant.ERROR_CODE,"数据源连接失败，请检查数据源配置是否正确！");
 			}
@@ -123,7 +123,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	 * 保存数据源中的数据表和字段列
 	 * @param sourceMetaData
 	 */
-	private void saveTableAndColumn(SourceMetaData sourceMetaData) {
+	private void saveTableAndColumn(MetaDataParser sourceMetaData) {
 		// 读取数据源中包含的数据表
 		//List<DataTable> tables = sourceMetaData.getTables();
 		// 保存数据表信息

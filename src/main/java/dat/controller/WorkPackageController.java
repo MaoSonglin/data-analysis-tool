@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.jboss.logging.Logger;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -82,7 +83,6 @@ public class WorkPackageController {
 	 */
 	@PutMapping("/addTab")
 	public Response addTab(PkgAddTable pkg){
-//		public Response addTab(String pid,ArrayList<String> tid){
 		log.debug(pkg);
 		return wpService.addTab(pkg.getPid(),pkg.getTids().stream().toArray(String[]::new));
 	}
@@ -93,7 +93,8 @@ public class WorkPackageController {
 	 * @param tid	虚拟数据表ID
 	 * @return
 	 */
-	public Response rm(String pid,String tid){
+	@DeleteMapping("/rm/{pid}/{tid}")
+	public Response rm(@PathVariable String pid,@PathVariable String tid){
 		return wpService.remove(pid,tid);
 	}
 	

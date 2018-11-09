@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import dat.util.Constant;
 import dat.util.StrUtil;
 
 /**
@@ -29,6 +30,8 @@ public class VirtualTable implements IdGeneratorable{
 	private String name;
 	
 	private String chinese;
+	
+	private Integer state = Constant.ACTIVATE_SATE;
 	
 	/**
 	 * 该虚拟表中包含的虚拟字段
@@ -47,6 +50,14 @@ public class VirtualTable implements IdGeneratorable{
 
 	public String getId() {
 		return id;
+	}
+
+	public Integer getState() {
+		return state;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
 	}
 
 	public void setId(String id) {
@@ -81,7 +92,8 @@ public class VirtualTable implements IdGeneratorable{
 
 	@Override
 	public void generateId() {
-		this.id = StrUtil.generatorId();
+		String id = StrUtil.generatorId();
+		setId("VT"+id.substring(2));
 	}
 
 	public List<WorkPackage> getPackages() {

@@ -100,7 +100,7 @@ public class DataTable implements IdGeneratorable{
 	
 	public void generateId(){
 		String id = StrUtil.generatorId();
-		setId(id);
+		setId("TB"+id.substring(2));
 	}
 
 	public List<TableColumn> getColumns() {

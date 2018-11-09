@@ -93,7 +93,8 @@ public class TableColumn implements IdGeneratorable{
 	}
 
 	public void generateId() {
-		id = StrUtil.generatorId();
+		String id = StrUtil.generatorId();
+		setId("FD"+id.substring(2));
 	}
 
 	public String getId() {

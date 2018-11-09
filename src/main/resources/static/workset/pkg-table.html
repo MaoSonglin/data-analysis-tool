@@ -4,6 +4,8 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title></title>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../dist/css/bootstrap-theme.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
 		<style type="text/css">
 			:root{
@@ -26,20 +28,19 @@
 			.layui-card{
 				display: flex;
 				flex-direction: column;
-			}
-			.content{
-				display: flex;
+				flex: 1;
 				overflow: auto;
 			}
-			.content .layui-card,.layui-card-body{
+			.layui-card-body{
+				display: flex;
 				flex: 1;
 				overflow: auto;
 			}
 			
-			.tab-list{
+			/* .tab-list{
 				display: flex;
 				flex-wrap: wrap;
-			}
+			} */
 			.tab-list-item{
 				margin: 5px 10px;
 				cursor: pointer;
@@ -60,7 +61,7 @@
 				<a href="wp.html">业务数据包</a>
 				<a href="javascript:;">{{pkg.name}}的数据表</a>
 			</span>
-			<div class="layui-breadcrumb layui-clear">
+			<div class="layui-row layui-clear">
 				<form id="searchForm" name="searchForm" class="layui-form layui-form-mid"
 				 action="#" method="">
 					<div class="layui-form-item">
@@ -73,35 +74,41 @@
 						<div class="layui-inline">
 							<i class="layui-icon layui-icon-search"></i>
 						</div>
-						<div class="layui-inline">
-							<i class="layui-icon layui-icon-add-1" @click="addTable(pkg,$event)"></i>
+						<div class="layui-inline btn-group">
+							<i class="layui-icon layui-icon-add-1 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ></i>
+							<ul class="dropdown-menu">
+								<li><a :href='"pkg-add-tab.html?pkg.id="+pkg.id'>添加数据表</a></li>
+								<li><a href="#">Another action</a></li>
+								<li><a href="#">Another action</a></li>
+							</ul>
 						</div>
 					</div>
 				</form>
 			</div>
-			<div class="layui-row content">
-				<div class="layui-card">
-					<div class="layui-card-body">
+			<div class="layui-card">
+				<div class="layui-card-body">
+					<div class="layui-col-md3">
+						<h2 v-html="pkg.name+'中的数据表'"></h2>
 						<ul class="tab-list">
 							<li v-for="tab in tables" class="tab-list-item" @click="showFields(tab,$event)">
 								<span :class="tab == table?'active':''">
 									<i class="layui-icon layui-icon-table"></i>
-									<span v-html="tab.name"></span>
+									<span v-html="tab.chinese ? tab.chinese:tab.name"></span>
 								</span>
 							</li>
 						</ul>
 					</div>
-				</div>
-				<div class="layui-card" v-show="table.name">
-					<div class="layui-card-body">
-						<table lay-filter="kjix12312" lay-data="">
+					<div class="layui-col-md9" style="flex: 1;overflow: auto;" v-show="table.name">
+						<!-- 显示字段信息的表格 -->
+						<table lay-filter="kjix12312" lay-data="{toolbar:'#tabtoolbar'}">
 							<thead>
 								<tr>
-									<th lay-data="{type:'checkbox'}">ID</th>
-									<th lay-data="{field:'id', width:60}">编号</th>
+									<th lay-data="{type:'checkbox',fixed: 'left'}">ID</th>
+									<th lay-data="{field:'index', width:60}">编号</th>
 									<th lay-data="{field:'name',edit:'text',width:100}">名称</th>
 									<th lay-data="{field:'chinese',edit:'text',width:100}">中文名称</th>
-									<th lay-data="{field:'typeName',minWidth:180}">类型名称</th>
+									<th lay-data="{field:'typeName',width:100}">类型名称</th>
+									<th lay-data="{field:'remask',edit:'text',minWidth:180}">备注</th>
 									<th lay-data="{fixed: 'right',  toolbar: '#barDemo', width:120}">操作</th>
 								</tr>
 							</thead>
@@ -109,9 +116,11 @@
 								<tr v-for="(field,index) in fields">
 									<td></td>
 									<td v-html="index+1"></td>
+									<!-- <td class="layui-hide" v-html="field.id"></td> -->
 									<td v-html="field.name"></td>
 									<td v-html="field.chinese"></td>
 									<td v-html="field.typeName"></td>
+									<td v-html="field.remask"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -119,11 +128,16 @@
 				</div>
 			</div>
 		</div>
+		<script type="text/html" id="tabtoolbar">
+			<button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-event='rmtab'>移除数据表</button>
+			<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event='addField'>新建字段</button>
+		</script>
 		<script type="text/html" id="barDemo">
 			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
 			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 		</script>
 		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>

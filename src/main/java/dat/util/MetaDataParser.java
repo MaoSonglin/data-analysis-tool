@@ -19,34 +19,65 @@ import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 
-public interface SourceMetaData {
+/**
+ * @author MaoSonglin
+ * 数据源元数据解析器，可以获取数据源中的数据表信息，字段信息等。
+ */
+public interface MetaDataParser {
 	public static class SourceMetaDataException extends RuntimeException{
 		private static final long serialVersionUID = -543575228175945068L;
 		public SourceMetaDataException(String msg){
 			super(msg);
 		}
 	}
-	static SourceMetaData getSourceMetaData(Source source){
+	/**
+	 * 根据数据源获取不同的数据源解析器
+	 * @param source	数据源
+	 * @return			数据源解析器
+	 */
+	static MetaDataParser getSourceMetaData(Source source){
 		String databaseName = source.getDatabaseName();
+		// MySQL、SQL Server、SQLite类型数据源
 		if(Constant.MYSOL.equalsIgnoreCase(databaseName)
 				||Constant.SQL_SERVER.equalsIgnoreCase(databaseName)
-				||Constant.ORACLE.equalsIgnoreCase(databaseName)
 				||Constant.SQLITE.equalsIgnoreCase(databaseName)){
 			return new MySQLSourceMetaData(source);
 		}
+		// oracle数据源使用
+		if(Constant.ORACLE.equals(databaseName)){
+			return new OracleSourceMetaData(source);
+		}
 		throw new SourceMetaDataException("unexpected datasource type of database name "+databaseName);
 	}
+	/**
+	 * 测试数据源连接是否正确
+	 * @return 如果可以顺利的连接到数据源返回true，否则返回false
+	 */
 	default boolean testConnection(){
 		return false;
 	}
+	
+	/**
+	 * 获取数据源中包含的数据表信息
+	 * @return
+	 */
 	default List<DataTable> getTables(){
 		return null;
 	}
 	
+	/**
+	 * 获取数据中指定数据表下的数据字段
+	 * @param table
+	 * @return
+	 */
 	default List<TableColumn> getColumnOfTable(DataTable table){
 		return null;
 	}
 	
+	/**
+	 * 获取数据源下的所有字段信息，字段中包含数据表信息的关联对象
+	 * @return
+	 */
 	default List<TableColumn> getColumns(){
 		return null;
 	}
@@ -96,7 +127,7 @@ public interface SourceMetaData {
 	}
 }
 
-class MySQLSourceMetaData implements SourceMetaData{
+class MySQLSourceMetaData implements MetaDataParser{
 	private static Logger logger = Logger.getLogger(MySQLSourceMetaData.class);
 	private Source mysqlSource;
 	private String driverClass;

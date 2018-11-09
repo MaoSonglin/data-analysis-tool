@@ -18,7 +18,7 @@ public interface VirtualTableRepository extends JpaRepository<VirtualTable, Stri
 	 * @param id
 	 * @return
 	 */
-	@Query("select c from VirtualColumn c join VirtualTable v on c.table.id=v.id where v.id=:id")
+	@Query("select c from VirtualColumn c join VirtualTable v on c.table.id=v.id where v.id=:id and c.state=1")
 	List<VirtualColumn> getColumnsWithId(@Param("id") String id);
 
 }

@@ -14,18 +14,29 @@ Vue.component("package",{
 			default : false
 		}
 	},
-	template:"<div class='layui-text'><span v-if='!edit' v-on:dblclick='toEdit($event)'>{{pg.name}}</span><input v-model='pg.name' v-if='edit' v-on:change='modify($event)'/></div>",
+	template:"<div class='layui-text'><span v-if='!edit' v-on:dblclick='toEdit($event)'>{{pg.name}}</span><input v-model='pg.name' v-if='edit' @change='modify($event)'/></div>",
 	methods:{
-		toEdit : function(event){
+		toEdit : function(event){// 切换到修改数据包名称的视图：显示一个编辑框，在编辑框中可以编辑
 			this.edit = true;
 		},
 		modify : function(event){
-			this.$emit('increment')
+			if(this.pg.name){// 如果修改后的数据包名称不为空字符
+				this.$emit('increment',this.backupName);// 发送保存修改的消息
+				delete this.backupName	// 删除
+			}
+			else{
+				this.pg.name = this.backupName
+			}
 		}
 	},
 	watch:{
 		"edit" : function(newVal,oldVal,event){
 			toggle(newVal,this)
+		},
+		"pg.name" : function(newVal,oldVal){// 监视数据包的名称
+			if(!this.backupName){
+				this.backupName=oldVal;
+			}
 		}
 	},
 	mounted : function() {
@@ -33,7 +44,10 @@ Vue.component("package",{
 		delete this.pg.edit
 	}
 })
-
+/**
+ * 切换数据包的编辑状态，当val为true的时候显示编辑框，图标不可以放缩
+ * 当val为false的时候隐藏编辑框，显示数据包名称并且图标可以放缩
+ */
 function toggle(val,that){
 	if(val){
 		$(that.$el.parentNode).removeClass("scale")
@@ -65,7 +79,8 @@ var app = new Vue({
 	},
 	methods : {
 		saveUpdate : function(pkg,event){// 在这里保存修改
-			save(this,pkg)
+			console.log(event)
+			save(this,pkg,null,(res)=>{pkg.name = event})
 		},
 		remove : function(pkg,event){// 删除
 			var that = this
@@ -83,19 +98,23 @@ var app = new Vue({
 		},
 		add : function(event){// TODO 新建数据包
 			var that = this;
-			var pkg = getPkg(this);
+			var pkg = getPkg(this);// 构建一个新的数据包
+			// 保存新构造的数据包
 			save(this,pkg,function(data){
-				data.edit = pkg.edit
-				that.packages.push(data)
+				data.edit = pkg.edit		// 将新构造的数据包的编辑状态设置为true
+				that.packages.push(data)	// 将新构造的数据包加入到数据包列表中
 			})
 		},
-		toTable : function(pkg,event){
+		toTable : function(pkg,event){// 跳转到显示数据包中数据表的页面
 			location.href = "pkg-table.html?pkgid="+pkg.id
 			event.preventDefault()
 		}
 	}
 })
 
+/**
+ * 初始化数据包列表，请求服务器加载数据包信息
+ */
 function initPkg(vue){
 	vue.$http.get(basePath+"pkg",{
 		params : vue.page,
@@ -111,7 +130,9 @@ function initPkg(vue){
 		layer.alert("网络异常")
 	})
 }
-
+/**
+ * 构建一个数据包，添加到队列末尾
+ */
 function getPkg(that){
 	var newpkg = {name:"数据包",edit:true}
 	for(var i = 0; i <= that.packages.length; i++){
@@ -130,12 +151,16 @@ function getPkg(that){
 	return newpkg;
 }
 
-function save(that,pkg,success){
+function save(that,pkg,success,fail){
 	that.$http.post(basePath+"pkg",pkg).then(function(res){
 		closeLoading()
 		if(res.body.code == 1){
 			if(success){
 				success(res.body.data);
+			}
+		}else{
+			if(fail){
+				fail(res.body);
 			}
 		}
 		layer.msg(res.body.message)

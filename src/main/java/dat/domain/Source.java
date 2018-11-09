@@ -170,7 +170,8 @@ public class Source implements IdGeneratorable{
 
 	@Override
 	public void generateId() {
-		id = StrUtil.generatorId();
+		String id = StrUtil.generatorId();
+		setId("DB"+id.substring(2));
 	}
 
 	public String getJdbcDirver() {

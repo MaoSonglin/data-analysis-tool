@@ -3,7 +3,6 @@ package dat.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -22,7 +21,7 @@ import dat.util.StrUtil;
 @Entity
 public class WorkPackage {
 	
-	@Id @Column(length=18)
+	@Id 
 	private String id;
 	
 	private String name;
@@ -42,7 +41,8 @@ public class WorkPackage {
 	}
 	
 	public void setId(){
-		this.id = StrUtil.generatorId();
+		String id = StrUtil.generatorId();
+		setId("PKG"+id.substring(2));
 	}
 
 	public String getName() {

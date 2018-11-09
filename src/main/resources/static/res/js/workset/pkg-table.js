@@ -17,17 +17,17 @@ var container = new Vue({
 			layer.msg(res.body.message)
 			Vue.set(this,'tables',res.body.data)
 			this.pkg = res.body.values.workPackage
+			if(this.tables.length) {
+				this.table = this.tables[0]
+				this.showFields(this.table)
+			}
 		},function(error){
 			closeLoading()
 			layer.msg("网络异常！")
 		})
 	},
 	methods : {
-		showFields : function(table,event){
-			var array = new Array();
-			for(var i = 0; i < 100; i++){
-				array.push(table.name+"字段"+i);
-			}
+		showFields : function(table,event){// 显示当前数据表中的字段信息
 			this.$http.get(basePath+"vt/vc/"+table.id,{
 				before : openLoading
 			}).then(function(res){
@@ -35,14 +35,15 @@ var container = new Vue({
 				if(res.body.code == 1){
 					this.$set(this,"fields",res.body.data);
 					this.table = table;
+				}else{
+					layer.msg(res.body.message)
 				}
-				layer.msg(res.body.message)
 			},function(error){
 				closeLoading()
 				layer.msg("网络异常")
 			})
 		},
-		addTable:function(pkg,event){
+		addTable:function(pkg,event){// 添加数据表格
 			location.href = "pkg-add-tab.html?pkg.id="+this.pkg.id;
 			event.preventDefault()
 		}
@@ -52,7 +53,13 @@ var container = new Vue({
 		}
 	},
 	updated : function(){
-		layuiTable.init('kjix12312',{})
+		layuiTable.init('kjix12312',{
+			page : {
+				limit : 5,
+				limits : [5,10,15,20,25],
+				curr : 1
+			}
+		})
 	}
 })
 
@@ -64,18 +71,27 @@ layui.use('table',function(){
 		,data = obj.data //得到所在行所有键值
 		,field = obj.field; //得到字段
 		// alert('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
-		for(var i in container.fields){
-			let curr = container.fields[i]
-			if(curr.id ==  data.id){
-				curr[field] = value
+		var index = data.index - 1;
+		var tmp = container.fields[index][field];// 保存原来的值
+		container.fields[index][field] = value;
+		Vue.http.put(basePath+"vc",container.fields[index]).then(function(res){
+			if(res.body.code != 1){
+				container.fields[index][field] = tmp;
+				obj.value = tmp;
+				layer.msg(res.body.message);
 			}
-		}
+		},function(error){
+			container.fields[index][field] = tmp;
+			layer.msg("网络异常，修改失败")
+		})
+		console.log(obj)
 	})
 	
 	layuiTable.on("tool(kjix12312)",function(obj){
 		console.log(obj)
 		switch(obj.event){
 			case "edit":
+				
 			break;
 			case "del":
 				layer.confirm("你确定要删除该字段吗？",{
@@ -83,14 +99,53 @@ layui.use('table',function(){
 					btn : ['确定','取消']
 				},function(index,layer0){
 					layer.close(index)
-					var x = container.fields[obj.data.id];
+					var x = container.fields[obj.data.index-1];
+					x.state = 0;
 					// TODO  请求后台删除
-					
-					container.fields = container.fields.filter((item)=>{return x != item;})
-					obj.del()
+					Vue.http.put(basePath+"vc",x).then(function(res){
+						if(res.body.code != 1){
+							layer.msg(res.body.message)
+							x.state = 1;
+						}else{
+							container.fields = container.fields.filter((item)=>{return x != item;})
+							obj.del()
+						}
+					},function(error){
+						layer.msg("网络异常，删除失败")
+					})
 				},function(index,layero){
 				})
 			break;
 		}
 	})
+	
+	/**
+	 * 数据表格工具栏事件监控
+	 */
+	layuiTable.on("toolbar(kjix12312)",function(obj){
+		switch(obj.event){
+			case 'rmtab': // 从当前数据包中移除一个数据表格
+			pkgRmTab()
+			break;
+		}
+	})
+	
+	function pkgRmTab(){
+		layer.confirm("您确定要从数据包"+container.pkg.name+"中移除数据表"+container.table.name+"吗？",{
+			title : "确定",
+			btn : ["确定","取消"]
+		},function(index,layero){
+			Vue.http.delete(basePath+"pkg/rm/"+container.pkg.id+"/"+container.table.id).then(function(res){
+				if(res.body.code == 1){
+					container.tables = container.tables.filter(item=>{return item != container.table})
+					container.tables.length ? container.showFields(container.tables[0]) : '';
+				}
+				layer.msg(res.body.message)
+			},function(error){
+				layer.msg("网络异常")
+			})
+		},function(index,layero){
+			return true;
+		})
+	}
 })
