@@ -14,4 +14,11 @@ public interface VirtualColumnService {
 	 */
 	Response save(VirtualColumn column);
 
+	/**
+	 * 新建字段
+	 * @param vt
+	 * @return
+	 */
+	Response createField(VirtualColumn vt);
+
 }

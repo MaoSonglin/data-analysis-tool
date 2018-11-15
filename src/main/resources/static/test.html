@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="layui/css/layui.css"/>
+	</head>
+	<body>
+		<!-- <ul id="myTree" class="layui-box layui-tree layui-tree-skin-shihuang">
+			<li data-spread="true">
+				<i class="layui-icon layui-tree-spread"></i>
+				<a href="javascript:;">
+					<i class="layui-icon layui-tree-branch"></i>
+					<cite>系统菜单</cite>
+				</a>
+				<ul class="layui-show">
+					<li>
+						<i class="layui-icon layui-tree-spread"></i>
+						<a href="javascript:;">
+							<i class="layui-icon layui-tree-branch"></i>
+							<cite>配置数据源</cite>
+						</a>
+						<ul class="">
+							<li>
+								<a href="javascript:;">
+									<i class="layui-icon layui-tree-leaf"></i>
+									<cite>数据源管理</cite>
+								</a>
+							</li>
+							<li>
+								<a href="javascript:;">
+									<i class="layui-icon layui-tree-leaf"></i>
+									<cite>数据表</cite>
+								</a>
+							</li>
+						</ul>
+					<li>
+				</ul> -->
+				<ul id="demo"></ul>
+		<script src="layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			layui.use('tree',function(){
+				layui.tree({
+				  elem: '#demo' //传入元素选择器
+				  ,nodes: [{ //节点
+					name: '父节点1'
+					,children: [{
+					  name: '子节点11'
+					},{
+					  name: '子节点12'
+					}]
+				  },{
+					name: '父节点2（可以点左侧箭头，也可以双击标题）'
+					,children: [{
+					  name: '子节点21'
+					  ,children: [{
+						name: '子节点211'
+					  }]
+					}]
+				  }]
+				});
+			})
+		</script>
+	</body>
+</html>

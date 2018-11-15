@@ -4,6 +4,24 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title></title>
+		<style type="text/css">
+			#wrapper{
+				position: absolute;
+				top: 0;right: 0;bottom: 0;left: 0;
+				display: flex;
+			}
+			.left{
+				width: 200px;
+				background-color: #009688;
+			}
+			.right{
+				flex-grow: 1;
+			}
+			.content{
+				height: 100%;
+				background: #00FF00;
+			}
+		</style>
 	</head>
 	<body>
 		<div id="app">
@@ -19,7 +37,16 @@
 			  <child v-bind:message="parentMsg"></child>
 			</div>
 		</div>
-		
+		<div id="wrapper">
+			<div class="left">
+				
+			</div>
+			<div class="right">
+				<div class="content">
+					
+				</div>
+			</div>
+		</div>
 	<script src="assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		// 注册

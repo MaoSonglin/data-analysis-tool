@@ -53,7 +53,7 @@
 				</div>
 				<div id="fieldList" class="layui-col-md6">
 					<h1 class="layui-text" v-html="'数据表'+table.name+'中的字段'" v-show="table.name"></h1>
-					<table class="layui-table" lay-size="sm" lay-skin="" v-show="columns.length > 0">
+					<table id="table009" class="layui-table" lay-size="sm" lay-skin="" v-show="columns.length > 0" lay-filter="table009">
 						<colgroup>
 							<col width="50">
 							<col width="100">
@@ -63,11 +63,11 @@
 						</colgroup>
 						<thead>
 							<tr>
-								<th>序号</th>
-								<th>字段名称</th>
-								<th>中文名称</th>
-								<th>类型</th>
-								<th>长度</th>
+								<th lay-data="{field:'index', width:60}">序号</th>
+								<th lay-data="{field:'columnName',width:100}">字段名称</th>
+								<th lay-data="{field:'chinese',minWidth:80}">中文名称</th>
+								<th lay-data="{field:'typeName',width:100}">类型</th>
+								<th lay-data="{field:'columnSize',width:60}">长度</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -124,6 +124,18 @@
 							getTableColumns(this.table.id,this);
 						}
 					}
+				},
+				updated:function(){
+					layui.use('table',function(){
+						var layuiTable = layui.table;
+						layuiTable.init('table009',{
+							page : {
+								limit : 10,
+								limits : [5,10,15,20,25],
+								curr : 1
+							}
+						})
+					})
 				}
 			})
 			

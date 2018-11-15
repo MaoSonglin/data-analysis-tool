@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>新建字段</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<style type="text/css">
+			.wrapper{
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			}
+			.keybord{
+				/* width: 300px; */
+				width: 100%;
+				height: 300px;
+				/* display: none; */
+				/* position: absolute; */
+				right: 40px;
+				left: 0;
+				z-index: 1000;
+			}
+			.keybord td{
+				font-size: 36px;
+				text-align: center;
+			}
+			.keybord td:hover{
+				cursor: pointer;
+				background-color: #FF5722;
+			}
+			.tab-list-wrapper{
+				height: 300px;
+				overflow: auto;
+				padding: 5px 10px;
+			}
+			.tab-list-item{
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				line-height: 150%;
+				font-size: 16px;
+				margin-top: 5px;
+			}
+			.tab-list-item+.tab-list-item{
+				border-top: 1px beige solid;
+			}
+			.tab-list-item:hover{
+				color: #009F95;
+				cursor: pointer;
+			}
+			.myTree ul{
+				margin-left: 20px;
+			}
+			.myTree li{
+				line-height: 26px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app" class="wrapper">
+			<div style="height: 40px;line-height: 40px;margin: 5px 15px 5px;">
+				<span class="layui-breadcrumb">
+					<a href="javascript:;">当前位置：</a>
+					<a href="#">业务数据集</a>
+					<a href="wp.html">业务数据包</a>
+					<a :href="backurl">数据表</a>
+					<a href="javascript:;">新建字段</a>
+				</span>
+			</div>
+			<form class="layui-form layui-col-sm8 layui-col-md6  layui-col-sm-offset2 layui-col-md-offset3" action="#" method="">
+				<div id="" class="layui-form-item">
+					<div class="layui-inline">
+						<label class="layui-form-label" for="columnName">名称</label>
+						<div class="layui-input-inline">
+							<input class="layui-input" type="text" name="columnName" id="columnName" v-model="column.name" />
+						</div>
+					</div>
+					<div class="layui-inline">
+						<label class="layui-form-label" for="chinese">中文名称</label>
+						<div class="layui-input-inline">
+							<input class="layui-input" type="text" name="chinese" id="chinese" v-model="column.chinese" />
+						</div>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">数据类型</label>
+					<div class="layui-input-block">
+						<input type="radio" name="sex" value="Number" title="Number" lay-filter='typeName' v-model="column.typeName">
+						<input type="radio" name="sex" value="String" title="String" lay-filter='typeName' v-model="column.typeName" >
+						<input type="radio" name="sex" value="date" title="date" lay-filter='typeName' v-model="column.typeName">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">字段公式</label>
+					<div class="layui-input-block">
+						<input class="layui-input" type="text" name="" id="formal" v-model="column.formula"/>
+						<div id="" class="layui-row layui-col-space15">
+							<div class="layui-col-md6 layui-col-sm6">
+								<table class="keybord layui-table" @click="input($event)">
+									<tr><td>(</td><td>)</td><!-- <td>#</td> --><td colspan="2">DEL</td></tr>
+									<tr>
+										<td>7</td><td>8</td><td>9</td><td>+</td>
+									</tr>
+									<tr>
+										<td>4</td><td>5</td><td>6</td><td>-</td>
+									</tr>
+									<tr>
+										<td>1</td><td>2</td><td>3</td><td>*</td>
+									</tr>
+									<tr>
+										<td colspan="2">0</td><td>.</td><td>/</td>
+									</tr>
+								</table>
+							</div>
+							<div class="layui-col-sm6 layui-col-md6">
+								<!-- <select lay-filter='select_a_pkg'>
+									<option v-for="x in pkgs" :value ="x.id" v-html="x.name"></option>
+								</select>
+								<div class="tab-list-wrapper" >
+									<ul class="tab-list">
+										<li v-for="table in curPkg.tables" class="tab-list-item" @click="">
+											<i class="layui-icon layui-icon-table"></i>
+											{{table.chinese}} {{table.name}}
+										</li>
+									</ul>
+								</div> -->
+								<div class="tab-list-wrapper">
+									<!-- <ul id="myTree"></ul> -->
+									<!-- <tree v-bind:list="treeNodes" v-on:treeNodeClick="treeNodeClick($event)"></tree> -->		
+									<div class="layui-form-item">
+										<label class="layui-form-label">业务包</label>
+										<div class="layui-input-block">
+											<select lay-filter="pkgfilter">
+												<option v-for="pkg in pkgs" v-html="pkg.chinese?pkg.chinese:pkg.name" :value="pkg.id" :selected="pkg.id==curPkg.id"></option>
+											</select>
+										</div>
+									</div>
+									<div class="layui-form-item">
+										<label class="layui-form-label">数据表</label>
+										<div class="layui-input-block">
+											<select lay-filter="tablefilter">
+												<option v-for="table in curPkg.tables" :value ="table.id" v-html="table.chinese?table.chinese:table.name" :selected="table.id==curTable.id"></option>
+											</select>
+										</div>
+									</div>
+									<div class="layui-form-item">
+										<label class="layui-form-label">数据字段</label>
+										<div class="layui-input-block">
+											<select lay-filter="columnfilter">
+												<option v-for="column in curTable.columns" :value ="column.id" v-html="column.chinese?column.chinese:column.name"></option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">备注</label>
+					<div class="layui-input-block">
+						<textarea rows="" class="layui-textarea" cols="" v-model="column.remask">
+							
+						</textarea>
+					</div>
+				</div>
+				<div id="" class="layui-form-item">
+					<label class="layui-form-label"></label>
+					<div class="layui-input-inline">
+						<button type="button" class="layui-btn layui-btn-primary" @click="add($event)">添加</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		
+		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" src="../res/js/workset/create_field.js"></script>
+		
+	</body>
+</html>

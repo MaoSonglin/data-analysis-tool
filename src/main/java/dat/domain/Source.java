@@ -1,5 +1,7 @@
 package dat.domain;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -25,7 +27,6 @@ import dat.util.StrUtil;
 public class Source implements IdGeneratorable{
 
 	@Id
-	@Column(length=20)
 	private String id;
 	
 	private String name;
@@ -52,6 +53,9 @@ public class Source implements IdGeneratorable{
 	
 	private String addTime;
 	
+	@Column(name="`desc`")
+	private String desc;
+	
 	private Integer state = Constant.ACTIVATE_SATE;
 	
 	@OneToOne(targetEntity=UploadFile.class,fetch=FetchType.EAGER)
@@ -62,8 +66,17 @@ public class Source implements IdGeneratorable{
 	@JsonIgnore
 	private List<DataTable> tables;
 	
+
 	public String getId() {
 		return id;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 
 	public void setId(String id) {
@@ -84,6 +97,14 @@ public class Source implements IdGeneratorable{
 
 	public void setChinese(String chinese) {
 		this.chinese = chinese;
+	}
+
+	public String getCommit() {
+		return desc;
+	}
+
+	public void setCommit(String commit) {
+		this.desc = commit;
 	}
 
 	public String getUrl() {
@@ -195,7 +216,15 @@ public class Source implements IdGeneratorable{
 	}
 
 	public void setTables(List<DataTable> tables) {
+		for (DataTable dataTable : tables) {
+			dataTable.setSource(this);
+		}
 		this.tables = tables;
+	}
+
+	public void setAddTime(Date date) {
+		String format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+		setAddTime(format);
 	}
 	
 	

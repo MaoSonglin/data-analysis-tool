@@ -5,6 +5,7 @@ import javax.annotation.Resource;
 import org.jboss.logging.Logger;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,5 +34,14 @@ public class VirtualColumnController {
 		logger.debug(column);
 		Response response = virtualColumnService.save(column);
 		return response;
+	}
+	
+	@PostMapping()
+	public Response createField(VirtualColumn vt){
+		if(logger.isDebugEnabled()){
+			logger.debug(vt);
+			logger.debug(vt.getRefColumns());
+		}
+		return virtualColumnService.createField(vt);
 	}
 }

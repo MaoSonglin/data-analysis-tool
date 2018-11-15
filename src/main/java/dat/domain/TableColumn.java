@@ -22,7 +22,6 @@ import dat.util.StrUtil;
 public class TableColumn implements IdGeneratorable{
 
 	@Id
-	@Column(length=18)
 	private String id;
 	
 	 

@@ -17,14 +17,16 @@
 						</div>
 						<div class="layui-card-body">
 							<ul class="">
-								<li v-for="(ds,index) in dsList" @click="choose(ds,$event)" :class="ds==datasource? 'active':''">
-									<span v-html="ds.name"></span>
-									<i class="layui-icon option-icon float-right" @click="remove(ds,$event)">&#xe640;</i>
-									<i class="layui-icon option-icon float-right" @click="toUpdate(ds,$event)">&#xe642;</i>
-								</li>
+								<template v-for="(ds,index) in dsList" >
+									<li @click="choose(ds,$event)" :class="ds==datasource? 'active':''">
+										<span v-html="ds.name"></span>
+										<i class="layui-icon option-icon float-right" @click="remove(ds,$event)">&#xe640;</i>
+										<i class="layui-icon option-icon float-right" @click="toUpdate(ds,$event)">&#xe642;</i>
+									</li>
+								</template>
 							</ul>
+							<div id="pageinfo"></div>
 						</div>
-						
 					</div>
 				</div>
 				<!-- 一下内容显示数据源详情 -->

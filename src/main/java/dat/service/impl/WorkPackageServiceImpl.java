@@ -345,7 +345,15 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 				return table.getName().equals(name);
 			});
 		});
-		return new Response(Constant.SUCCESS_CODE,"查询成功",tables);
+		int fromIndex = (excludeTable.getPage()-1)*excludeTable.getLimit();
+		int count = tables.size();
+		int toIndex = excludeTable.getPage()*excludeTable.getLimit();
+		toIndex = toIndex<count?toIndex:count;
+		toIndex = toIndex>fromIndex ? toIndex : fromIndex;
+		List<DataTable> subList = tables.subList(fromIndex, toIndex);
+		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",subList);
+		response.put("count", count);
+		return response;
 	}
 
 	

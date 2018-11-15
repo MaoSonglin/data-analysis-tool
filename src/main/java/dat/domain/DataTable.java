@@ -3,6 +3,7 @@ package dat.domain;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -40,6 +41,17 @@ public class DataTable implements IdGeneratorable{
 	
 	private Date addTime;
 	
+	@Column(name="`desc`")
+	private String desc;
+	
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+
 	private Integer state = Constant.ACTIVATE_SATE;
 
 	@Override
@@ -67,6 +79,14 @@ public class DataTable implements IdGeneratorable{
 
 	public String getChinese() {
 		return chinese;
+	}
+
+	public String getCommit() {
+		return desc;
+	}
+
+	public void setCommit(String commit) {
+		this.desc = commit;
 	}
 
 	public void setChinese(String chinese) {
@@ -108,6 +128,9 @@ public class DataTable implements IdGeneratorable{
 	}
 
 	public void setColumns(List<TableColumn> columns) {
+		for (TableColumn tableColumn : columns) {
+			tableColumn.setDataTable(this);
+		}
 		this.columns = columns;
 	}
 

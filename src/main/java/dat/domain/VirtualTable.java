@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -24,7 +23,7 @@ import dat.util.StrUtil;
 @Entity
 public class VirtualTable implements IdGeneratorable{
 
-	@Id	@Column(length=18)
+	@Id	
 	private String id;
 	
 	private String name;

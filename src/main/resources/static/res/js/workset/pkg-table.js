@@ -5,11 +5,11 @@ var pkgid = getParameter("pkgid")
 var container = new Vue({
 	el : "#container",
 	data : {
-		tables : [],
-		page : {},
-		fields : [],
-		table : {},
-		pkg : {}
+		tables : [],	// 当前显示数据表
+		page : {},		// 分页信息
+		fields : [],	// 当前显示字段
+		table : {},		// 当前操作（显示字段）的数据表
+		pkg : {}		// 当前数据包
 	},
 	created : function(){
 		this.$http.get(basePath+"pkg/tab/"+pkgid,{before:openLoading}).then(function(res){
@@ -17,6 +17,7 @@ var container = new Vue({
 			layer.msg(res.body.message)
 			Vue.set(this,'tables',res.body.data)
 			this.pkg = res.body.values.workPackage
+			document.getElementsByTagName("title")[0].innerHTML = this.pkg.name + "中的数据表"
 			if(this.tables.length) {
 				this.table = this.tables[0]
 				this.showFields(this.table)
@@ -49,7 +50,21 @@ var container = new Vue({
 		}
 	},
 	watch : {
-		"fields" : function(newVal,oldVal){
+		"page.keywork" : function(newVal,oldVal){
+			if(!this.tablesBackup){
+				this.tablesBackup = this.tables
+			}
+			if(newVal){
+				this.tables = this.tablesBackup.filter(item=>{
+					if(item.chinese){
+						return item.chinese.search(newVal) > -1;
+					}else{
+						return item.name.search(newVal)>-1 ;
+					}
+				})
+			}else{
+				this.tables = this.tablesBackup
+			}
 		}
 	},
 	updated : function(){
@@ -126,6 +141,9 @@ layui.use('table',function(){
 		switch(obj.event){
 			case 'rmtab': // 从当前数据包中移除一个数据表格
 			pkgRmTab()
+			break;
+			case 'addField':// 新建字段
+			location.href = "create_field.html?tabid="+container.table.id+"&pkgid="+container.pkg.id
 			break;
 		}
 	})

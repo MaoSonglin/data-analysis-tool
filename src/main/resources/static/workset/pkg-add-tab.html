@@ -13,13 +13,18 @@
 				right: 0;
 				bottom: 0;
 				left: 0;
-				/* box-sizing: border-box; */
 				padding: 20px;
+				display: flex;
+				flex-direction: column;
 			}
-			#wrapper>div{
-				height: 100%;
+			.header{
+				margin-bottom: 20px;
+			}
+			.content{
+				flex-grow: 1;
 				overflow: auto;
-				box-sizing: border-box;
+				display: flex;
+				flex-direction: row;
 			}
 		
 			.pointer{
@@ -29,30 +34,71 @@
 				color: #2D93CA;
 				/* transform: scale(1.2,1.2); */
 			}
+			.tb_name_list{
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+			}
+			.grow{
+				flex-grow: 1;
+				overflow: auto;
+			}
+			.grow ul>li{
+				white-space: nowrap;
+				overflow-x: hidden;
+				text-overflow: ellipsis;
+			}
+			@media screen and (min-width: 998px){
+				div[class^='layui-col-md']{
+					height: 100%;
+					overflow: auto;
+				}
+				
+			}
+			@media screen and(min-width: 640px){
+				div[class^='layui-col-md']{
+					height: 200px ;
+					overflow: auto;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<div id="wrapper">
-			<span class="layui-text">当前位置：</span>
-			<span class="layui-breadcrumb" style="margin-bottom: 15px ;">
-				<a href="#">业务数据集</a>
-				<a href="wp.html">业务数据包</a>
-				<a href="javascript:location.href='pkg-table.html?pkgid='+getParameter('pkg.id')">数据表</a>
-				<a href="#">添加数据表</a>
-			</span>
-			<!-- <button type="button" class="layui-btn layui-btn-sm layui-btn-primary pull-right">返回</button> -->
-			<div class="layui-row layui-col-space15">
-				<div class="layui-col-md4">
-					<div class="layui-text"><a href="#">数据源列表</a></div>
-					<ul>
-						<li v-for="(ds,index) in dsList" class="pointer" @click="loadTables(ds)">
-							<i class="layui-icon layui-icon-tabs"></i>
-							<span v-html="ds.name"></span>
-						</li>
-					</ul>
-				</div>
-				<div class="layui-col-md8">
-					<div id="hoxnglmohxnofgdskf" class="layui-hide" lay-filter="dfw23"></div>
+			<div class="header">
+				<span class="layui-text">当前位置：</span>
+				<span class="layui-breadcrumb">
+					<a href="#">业务数据集</a>
+					<a href="wp.html">业务数据包</a>
+					<a href="javascript:location.href='pkg-table.html?pkgid='+getParameter('pkg.id')">数据表</a>
+					<a href="#">添加数据表</a>
+				</span>
+			</div>
+			<div class="content" style="position: relative;">
+				<div class="grow" >
+					<div class="layui-col-md4">
+						<div class="tb_name_list">
+							<div class="">
+								<div class="layui-form-item">
+									<label class="layui-form-label" style="width: auto;">数据源列表</label>
+									<div class="layui-input-inline">
+										<input class="layui-input" type="text" name="" id="" v-model="filter" />
+									</div>
+								</div>
+							</div>
+							<div class="grow">
+								<ul class="">
+									<li v-for="(ds,index) in dsList" class="pointer" @click="loadTables(ds)">
+										<i class="layui-icon layui-icon-tabs"></i>
+										<span v-html="ds.name"></span>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="layui-col-md8">
+						<div id="hoxnglmohxnofgdskf" class="layui-hide" lay-filter="dfw23"></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -78,7 +124,8 @@
 					vtable : {},// 当前显示的虚拟数据表
 					vtables : [{name:"test"}],// 当前数据包中的虚拟数据表
 					fields : [],
-					isCheck : []
+					isCheck : [],
+					filter : null// 数据表过滤条件
 				},
 				created:function(){
 					// var pkgid = getParameter("pkg.id")
@@ -86,20 +133,23 @@
 					loadPkg(this,getParameter("pkg.id"))
 				},
 				methods:{
-					move:function(table,event){// 将左边数据源中的表移动到右边数据包中
-						
-					},
 					loadTables : function(ds,event){
 						showTables(ds)
-					},
-					save : function(){
-						
-					},
-					choose:function(){
-						
 					}
 				},
 				watch : {
+					"filter" : function(newVal,oldVal){// 当输入框内容改变时进行搜索
+						if(!this.backup){
+							this.backup = this.dsList
+						}
+						if(newVal){
+							this.dsList = this.backup.filter(item=>{
+								return item.name.search(newVal) > -1;
+							})
+						}else{
+							this.dsList = this.backup
+						}
+					}
 				}
 			})
 			
@@ -165,8 +215,9 @@
 					elem: '#hoxnglmohxnofgdskf',
 					toolbar : "#tabtoolbar",
 					LAY_CHECKED : true,
-					title : "数据源“"+ds.name+"”的数据表"
-					,url: basePath + 'pkg/'+getParameter('pkg.id')+'/'+ds.id
+					title : "数据源“"+ds.name+"”的数据表",
+					// data : data,
+					url: basePath + 'pkg/not'
 					,cellMinWidth: 80 //全局定义常规单元格的最小宽度
 					,cols: [[
 						{type:'checkbox'}
@@ -182,9 +233,18 @@
 						return {
 							"code" : res.code,
 							"msg" : res.message,
-							"count" : res.data.length,
+							"count" : res.values.count,
 							"data" : res.data
 						};
+					},
+					page : {
+						limit : 7,
+						limits : [5,10,15,20,25],
+						curr : 1
+					},
+					where : {
+						dsid : ds.id,
+						pkgid : getParameter('pkg.id')
 					}
 				});
 			}
@@ -202,7 +262,7 @@
 					var checkStatus = table.checkStatus(obj.config.id);
 					console.log(checkStatus);
 					switch(obj.event){
-					case 'addCheckedRow':
+					case 'addCheckedRow':// 添加选中的数据表
 						var data = checkStatus.data;
 						// layer.alert(JSON.stringify(data));
 						// delCheckedRow(tableIndex)
@@ -221,6 +281,7 @@
 							closeLoading();
 							if(res.body.code == 1){
 								table.reload('hoxnglmohxnofgdskf')
+								// showTables(ds)
 							}else{
 							}
 							layer.msg(res.body.message)

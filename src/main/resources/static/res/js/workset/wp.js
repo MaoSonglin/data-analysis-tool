@@ -123,8 +123,8 @@ function initPkg(vue){
 		closeLoading()
 		if(res.body.code == 1){
 			Vue.set(vue,'packages',res.body.data.content)
-		}
-		layer.msg(res.body.message)
+		}else
+			layer.msg(res.body.message)
 	},function(error){
 		closeLoading()
 		layer.alert("网络异常")

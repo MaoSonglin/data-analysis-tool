@@ -26,6 +26,7 @@ public class WorkPackageController {
 	@Resource(name="workPackageServiceImpl")
 	private WorkPackageService wpService;
 	
+	
 	private Logger log = Logger.getLogger(getClass());
 	/**
 	 * 根据id返回工作包
@@ -102,15 +103,16 @@ public class WorkPackageController {
 	 * 数据源dsid中pid没有添加的数据表
 	 * @return
 	 */
-	@GetMapping("/{pid}/{dsid}")
-	public Response notAddTable(@PathVariable String pid,@PathVariable String dsid){
-		ExcludeTable excludeTable = new ExcludeTable(pid,dsid);
-		return wpService.getTables(excludeTable);
+	@GetMapping("/not")
+	public Response notAddTable(ExcludeTable excludetable){
+		return wpService.getTables(excludetable);
 	}
 	
 	public static class ExcludeTable{
 		private String pkgid;
 		private String dsid;
+		private Integer page=1;
+		private Integer limit=10;
 		
 		public ExcludeTable() {
 			super();
@@ -132,6 +134,19 @@ public class WorkPackageController {
 		public void setDsid(String dsid) {
 			this.dsid = dsid;
 		}
+		public Integer getPage() {
+			return page;
+		}
+		public void setPage(Integer page) {
+			this.page = page;
+		}
+		public Integer getLimit() {
+			return limit;
+		}
+		public void setLimit(Integer size) {
+			this.limit = size;
+		}
+		
 		
 	}
 

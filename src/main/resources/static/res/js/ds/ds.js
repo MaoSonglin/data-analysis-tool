@@ -6,27 +6,15 @@ var app = new Vue({
 	data : {
 		dsList : dsList,
 		datasource : {},
-		keySet : keySet
+		keySet : keySet,
+		page : {
+			curr : 0,
+			size : 10,
+			search : " ",
+		}
 	},
 	created : function(){
-		Vue.http.get(basePath+"ds/0/1000/%20",{
-			before : openLoading
-		}).then(function(res){
-			if(res.body.code !== 1){
-				layer.msg(res.body.message)
-			}else{
-				app.dsList = res.body.data.content
-				app.datasource = app.dsList.shift()
-				if(app.datasource){
-					app.dsList.unshift(app.datasource)
-				}
-			}
-			closeLoading()
-		},function(error){
-			closeLoading()
-			layer.msg("网络异常")
-			console.log(error)
-		})
+		getDsPage(this.page);
 	},
 	methods : {
 		toUpdate : function(ds,event){ // 弹出修改数据源信息的模态框
@@ -71,10 +59,52 @@ var app = new Vue({
 			}
 			return null;
 		}
+	},
+	watch : {
+		"page.curr" : function(newVal,oldVal){
+			getDsPage(this.page)
+		},
+		"page.size" : function(newVal,oldVal){
+			getDsPage(this.page)
+		}
 	}
 });
 
-
+function getDsPage(page){
+	Vue.http.get(basePath+"ds/"+page.curr+"/"+page.size+"/"+page.search,{
+		before : openLoading
+	}).then(function(res){
+		if(res.body.code !== 1){
+			layer.msg(res.body.message)
+		}else{
+			app.dsList = res.body.data.content
+			app.datasource = app.dsList.shift()
+			if(app.datasource){
+				app.dsList.unshift(app.datasource)
+			}
+			layui.use('laypage',function(){
+				layui.laypage.render({
+					elem:"pageinfo",
+					curr : res.body.data.number+1,
+					limit : res.body.data.size,
+					count : res.body.data.totalElements,
+					layout: ['count', 'prev',  'next', 'skip'],
+					jump:function(obj,first){
+						if(!first){
+							app.page.curr =  obj.curr-1;
+							app.page.size = obj.limit;
+						}
+					}
+				})
+			})
+		}
+		closeLoading()
+	},function(error){
+		closeLoading()
+		layer.msg("网络异常")
+		console.log(error)
+	})
+}
 
 /**
  * 判断一个数据源名称对应的数据源类型
