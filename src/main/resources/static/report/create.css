@@ -1,0 +1,166 @@
+.wrapper{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+.flex-column{
+	display: flex;
+	flex-direction: column;
+}
+.flex-row{
+	display: flex;
+	flex-direction: row;
+}
+.flex-grow{
+	flex-grow: 1;
+}
+.header{
+	min-height: 20px;
+}
+.body{
+	overflow: auto;
+}
+.left{
+	min-width: 140px;
+	background-color: #00FF00;
+	overflow: auto;
+}
+.right{
+	/* background-color: #009E94; */
+}/* 
+.char-list{
+} */
+.content{
+	position: relative;
+	height: 100%;
+	overflow: auto;
+}
+.report{
+	/* border: #009688 2px solid; */
+	background-color: rgba(155,155,0,0.3);
+	/* box-sizing: border-box; */
+	cursor: -webkit-grabbing;   
+	cursor: -moz-grabbing;   
+	cursor: grabbing;
+}
+.capture{
+	border: #393D49 2px dashed;
+	cursor: -webkit-grabbing;   
+	cursor: -moz-grabbing;   
+	cursor: grabbing;   
+}
+.drag{
+	/* cursor: e-resize; */
+}
+
+.north-point{
+	position: absolute;
+	top: -2.5px;
+	left: 50%;
+	right: auto;
+	height: 5px;
+	width: 5px;
+	margin-left: -2.5px;
+	background-color: black;
+	cursor: n-resize;
+}
+
+.northwest-point{
+	position: absolute;
+	top: -2.5px;
+	left : -2.5px;
+	height: 5px;
+	width: 5px;
+	background-color: black;
+	cursor: nw-resize;
+}
+
+.northeast-point{
+	position: absolute;
+	top: -2.5px;
+	right : -2.5px;
+	height: 5px;
+	width: 5px;
+	background-color: black;
+	cursor: ne-resize;
+}
+
+.east-point{
+	position: absolute;
+	top: 50%;
+	right : -2.5px;
+	height: 5px;
+	width: 5px;
+	margin-top: -2.5px;
+	background-color: black;
+	cursor: e-resize;
+}
+
+.southeast-point{
+	position: absolute;
+	right: -2.5px;
+	bottom: -2.5px;
+	height: 5px;
+	width: 5px;
+	background-color: black;
+	cursor: se-resize;
+}
+
+.south-point{
+	position: absolute;
+	bottom: -2.5px;
+	left: 50%;
+	right: auto;
+	height: 5px;
+	width: 5px;
+	margin-left: -2.5px;
+	background-color: black;
+	cursor: s-resize;
+}
+
+.southwest-point{
+	position: absolute;
+	left: -2.5px;
+	bottom: -2.5px;
+	height: 5px;
+	width: 5px;
+	background-color: black;
+	cursor: sw-resize;
+}
+
+.weast-point{
+	position: absolute;
+	top: 50%;
+	left : -2.5px;
+	height: 5px;
+	width: 5px;
+	margin-top: -2.5px;
+	background-color: black;
+	cursor: e-resize;
+}
+.east-point,.north-point,.weast-point,.south-point,.southeast-point,.northeast-point,.northwest-point,.southwest-point{
+	display: none;
+}
+/* .east-point:hover,
+.north-point:hover,
+.weast-point:hover,
+.south-point:hover,
+.southeast-point:hover,
+.northeast-point:hover,
+.northwest-point:hover,
+.southwest-point:hover{
+	display: block;
+} */
+
+.report:hover .east-point,
+.report:hover .north-point,
+.report:hover .weast-point,
+.report:hover .south-point,
+.report:hover .southeast-point,
+.report:hover .northeast-point,
+.report:hover .northwest-point,
+.report:hover .southwest-point{
+	display: block;
+}

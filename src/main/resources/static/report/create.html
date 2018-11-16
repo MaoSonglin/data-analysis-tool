@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>新建报表</title>
+		<link rel="stylesheet" type="text/css" href="../layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="create.css"/>
+	</head>
+	<body>
+		<div class="wrapper flex-column" id="app">
+			<div class="header">
+				
+			</div>
+			<div class="body flex-grow flex-row">
+				<div class="left">
+					<div class="char-list">
+						<ul>
+							<li v-for="i in 9">
+								<img src="../res/images/1.svg" draggable="true" @dragstart="drag(i,$event)">
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="right flex-grow">
+					<div class="content" @drop="drop($event)" @dragover="allowDrop($event)">
+						<template v-for="(pic,index) in pictures">
+							<div class="report" :style="getStyle(pic)" :onmousedown="'capture('+index+',event)'" onmouseup="release(event)" onmousemove="mousemove(event)" >
+								<div class="northwest-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="north-point" :data-index = "index"></div>
+								<div class="northeast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="east-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="southeast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="south-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="southwest-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+								<div class="weast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+							</div>
+						</template>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var app = new Vue({
+				el : "#app",
+				data:{
+					pictures : [],
+					dragedPic : {}
+				},
+				created:function(){
+					
+				},
+				methods:{
+					drag : function(data,event){
+						this.dragedPic = new Picture()
+					},
+					allowDrop : function(event){
+						event.preventDefault()
+					},
+					drop : function(event){
+						event.preventDefault()
+						this.dragedPic.moveToClient(event.offsetX- this.dragedPic.width / 2,event.offsetY- this.dragedPic.height / 2)
+						this.pictures.push(this.dragedPic)
+					},
+					getStyle : function(pic,event){
+						var style = "position:absolute;width:"+pic.width+"px;height:"+pic.height+"px;left:"+pic.left+"px;top:"+pic.top+"px";
+						return style;
+					}
+				}
+			})
+			
+			function drag(event){
+				event.dataTransfer.setData("Text","马小红");
+			}
+			function allowDrop(event){
+				event.preventDefault()
+			}
+			function drop(event){
+				event.preventDefault()
+				var data = event.dataTransfer.getData("Text")
+				alert(data)
+			}
+			
+			function Picture(w,h,top,left){
+				this.width = w ? w :500;
+				this.height = h ? h : 200;
+				this.top = top ? top : 0;
+				this.left = left ? left : 0;
+				this.moveToClient = function(x,y){
+					if(x < 0) x = 0;
+					if(y < 0) y = 0;
+					this.left = x;
+					this.top = y;
+				}
+			}
+			
+			function capture(index,event){
+				event.stopPropagation()
+				// $(event.target).addClass("capture")
+				var pic = app.pictures[index];
+				var oldleft = pic.left ,oldtop = pic.top;
+				$("div.content").bind("mousemove",function(e){
+					console.log(e.target.tagName+"."+e.target.className,e.clientX,e.clientY)
+					pic.moveToClient(oldleft + e.clientX - event.clientX,oldtop + e.clientY - event.clientY)
+					e.stopPropagation()
+				})
+			}
+			function release(event){
+				// $(event.target).removeClass("capture")
+				$("div.content").unbind("mousemove")
+				event.stopPropagation()
+			}
+			
+			// document.onmouseup = release
+			
+			function mousemove(event){
+				// var w = $(event.target).width();
+				// var h = $(event.target).height();
+				var w = event.target.clientWidth;
+				var h = event.target.clientHeight;
+				// console.log(w,h);
+				if(Math.abs(event.offsetX-w)<2){
+					if(Math.abs(event.offsetY-h) < 2 ){
+						$(event.target).css("cursor","es-resize")
+					}else if(Math.abs(h - Math.abs(event.offsetY - h)) < 2){
+						
+					}
+				}
+			}
+			
+			function resizeWidthAndHeight(event){
+				// $(event.target).css("display","block");
+				var ph = event.target.parentNode.clientHeight,pw = event.target.parentNode.clientWidth;
+				event.stopPropagation();
+				var $p = $(event.target);
+				var pic = app.pictures[event.target.dataset.index];
+				$("div.content").bind("mousemove",function(e){
+					if($p.hasClass("southeast-point")){
+						var w = e.clientX - event.clientX;
+						var h = e.clientY - event.clientY;
+					}
+					else if($p.hasClass("northwest-point")){
+						var w = event.clientX - e.clientX;
+						var h = event.clientY - e.clientY;
+					}
+					else if($p.hasClass("northeast-point")){
+						var w = e.clientX - event.clientX;
+						var h = event.clientY - e.clientY;
+					}
+					else if($p.hasClass("southwest-point")){
+						var w = event.clientX - e.clientX;
+						var h = e.clientY - event.clientY;
+					}
+					else if($p.hasClass("west-point")){
+						var w = event.clientX - e.clientX;
+						var h = 0;
+					}
+					else if($p.hasClass("east-point")){
+						var w = e.clientX - event.clientX;
+						var h = 0;
+					}
+					else if($p.hasClass("north-point")){
+						var w = 0;
+						var h = event.clientY - e.clientY;
+					}
+					else if($p.hasClass("south-point")){
+						var w = 0;
+						var h = e.clientY - event.clientY;
+					}
+					else{
+						var w = 0, h = 0;
+					}
+					pic.width = pw + w;
+					pic.height = ph + h;
+					e.stopPropagation()
+				})
+				document.onmouseup = function(e){
+					e.stopPropagation()
+					$("div.content").unbind("mousemove")
+				}
+			}
+			
+		</script>
+	</body>
+</html>
