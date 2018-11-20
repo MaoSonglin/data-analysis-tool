@@ -23,7 +23,7 @@ def get_certain_joke(html):
     return a
   
  
-url_joke = "http://amazeui.org/css/icon#suo-you-tu-biao-lie-biao"
+url_joke = "https://www.topjui.com/document/layout/icon.html"
 html = get_html(url_joke)
 icons = get_certain_joke(html)
 with open("icons.json","w",encoding="utf-8") as f:

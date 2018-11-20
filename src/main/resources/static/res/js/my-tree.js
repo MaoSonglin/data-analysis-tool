@@ -1,4 +1,4 @@
-	Vue.component("tree",{
+	Vue.component("tree2",{
 		props : {
 			list : {
 				type:Array,

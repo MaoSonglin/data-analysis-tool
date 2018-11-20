@@ -7,7 +7,6 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -25,7 +24,7 @@ public class TableColumn implements IdGeneratorable{
 	private String id;
 	
 	 
-	@Column(length=64)
+	@Column
 	private String chinese;
 	
 	 
@@ -71,8 +70,6 @@ public class TableColumn implements IdGeneratorable{
 	@JoinColumn(name="data_table_id",referencedColumnName="id")
 	private DataTable dataTable;
 	
-	@OneToOne(targetEntity=TableColumn.class)
-	private TableColumn referenceColumn;
 	
 	private String addTime;
 	/**
@@ -152,13 +149,13 @@ public class TableColumn implements IdGeneratorable{
 		this.dataTable = dataTable;
 	}
 
-	public TableColumn getReferenceColumn() {
-		return referenceColumn;
-	}
-
-	public void setReferenceColumn(TableColumn referenceColumn) {
-		this.referenceColumn = referenceColumn;
-	}
+//	public TableColumn getReferenceColumn() {
+//		return referenceColumn;
+//	}
+//
+//	public void setReferenceColumn(TableColumn referenceColumn) {
+//		this.referenceColumn = referenceColumn;
+//	}
 
 
 	public String getColumnName() {
@@ -294,8 +291,7 @@ public class TableColumn implements IdGeneratorable{
 				+ ", sqlDataType=" + sqlDataType + ", sqlDatetimeSub="
 				+ sqlDatetimeSub + ", charOctetLength=" + charOctetLength
 				+ ", ordinalPosition=" + ordinalPosition + ", dataTable="
-				+ dataTable + ", referenceColumn=" + referenceColumn
-				+ ", addTime=" + addTime + ", state=" + state + "]";
+				+ dataTable + ", addTime=" + addTime + ", state=" + state + "]";
 	}
 	
 }

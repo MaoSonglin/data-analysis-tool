@@ -103,3 +103,8 @@
 	  }
 	  tabs = tmp
 	});
+	
+	var dom = document.querySelector("#admin-offcanvas")
+	Vue.component("menu",{
+		template:dom.outerHTML
+	})

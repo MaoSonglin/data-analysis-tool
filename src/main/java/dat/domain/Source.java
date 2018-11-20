@@ -96,6 +96,9 @@ public class Source implements IdGeneratorable{
 	}
 
 	public void setChinese(String chinese) {
+		if(null != chinese && chinese.length() > 127){
+			chinese = chinese.substring(0, 126);
+		}
 		this.chinese = chinese;
 	}
 

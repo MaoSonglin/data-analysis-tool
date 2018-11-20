@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
@@ -60,16 +61,16 @@ public class TurnOracleData {
 	}
 	
 	@Test
-//	@Transactional
+	@Transactional
 	public void test() throws Exception {
-		String sql = "select DB_CODE,DB_NAME,DB_DEC from DB_INFO_REG";
+		String sql = "select DB_CODE,DB_NAME,DB_DEC from DB_INFO_REG where rownum < 2";
 		logger.info("execute sql => "+sql);
 		List<Source> sources = runner.query(sql, rs->{
 			List<Source> list = new ArrayList<>();
 			while(rs.next()){
 				Source source = new Source();
 				source.setName(rs.getString("DB_NAME"));
-//				source.setChinese(rs.getString("DB_CN_NAME"));
+				source.setChinese(rs.getString("DB_CN_NAME"));
 				source.setDesc(rs.getString("DB_DEC"));
 				source.setUrl(dataSource.getUrl());
 				source.setDriverClass(dataSource.getDriverClassName());
@@ -81,7 +82,6 @@ public class TurnOracleData {
 				source.generateId();
 				logger.info("get database information ");
 				list.add(source);
-				dataTableRepos.saveAll(source.getTables());
 			}
 			return list;
 		});
@@ -90,7 +90,7 @@ public class TurnOracleData {
 	
 	public List<DataTable> listTables(String db_code) throws SQLException{
 		logger.info("list all the tables in the datasource which DB_CODE is "+db_code);
-		String sql = "select TB_CODE,TB_NAME,TB_CN_NAME,TB_DEC from TB_INFO_REG where DB_CODE = ?";
+		String sql = "select TB_CODE,TB_NAME,TB_CN_NAME,TB_DEC from TB_INFO_REG where DB_CODE = ? ";
 		logger.debug("execute sql "+sql);
 		List<DataTable> query = runner.query(sql, rs->{
 			List<DataTable> list = new LinkedList<>();
@@ -103,12 +103,13 @@ public class TurnOracleData {
 				dataTable.generateId();
 				dataTable.setAddTime(new Date());
 				list.add(dataTable);
-				tableColumnRepos.saveAll(dataTable.getColumns());
+//				tableColumnRepos.saveAll(dataTable.getColumns());
 			}
 			return list;
 		},db_code);
 		
-		return dataTableRepos.saveAll(query);
+		List<DataTable> list = dataTableRepos.saveAll(query);
+		return list;
 	}
 
 	private List<TableColumn> listColumns(String string) throws SQLException {

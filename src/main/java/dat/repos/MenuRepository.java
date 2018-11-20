@@ -9,5 +9,5 @@ import dat.domain.Menu;
 
 public interface MenuRepository extends JpaRepository<Menu, Integer> ,JpaSpecificationExecutor<Menu>{
 
-	List<Menu> findByParentIsNull();
+	List<Menu> findByPidIsNull();
 }

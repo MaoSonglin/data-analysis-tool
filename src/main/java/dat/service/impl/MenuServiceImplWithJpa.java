@@ -25,7 +25,7 @@ public class MenuServiceImplWithJpa implements MenuService {
 		Response response = new Response();
 		if(menuid==null){
 			// 查找出顶级菜单项
-			List<Menu> list = menuRepos.findByParentIsNull();
+			List<Menu> list = menuRepos.findByPidIsNull();
 			// 封装结果
 			response.setCode(Constant.SUCCESS_CODE);
 			response.setMessage("查询成功");
@@ -71,6 +71,18 @@ public class MenuServiceImplWithJpa implements MenuService {
 			return new Response(Constant.ERROR_CODE,"ID不存在",menu);
 		}
 		return new Response(Constant.SUCCESS_CODE,"删除成功");
+	}
+
+	@Override
+	public List<Menu> getChildrenByPid(Integer pid) {
+		List<Menu> menus = menuRepos.findAll((root,query,cb)->{
+			if(pid == null){
+				return cb.isNull(root.get("pid"));
+			}else{
+				return cb.equal(root.get("pid"), pid);
+			}
+		});
+		return menus;
 	}
 
 }

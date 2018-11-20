@@ -1,5 +1,7 @@
 package dat.service;
 
+import java.util.List;
+
 import dat.domain.Menu;
 import dat.domain.Response;
 
@@ -32,5 +34,7 @@ public interface MenuService {
 	 * @return
 	 */
 	Response delete(Integer menu);
+
+	List<Menu> getChildrenByPid(Integer pid);
 	
 }

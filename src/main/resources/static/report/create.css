@@ -17,14 +17,15 @@
 	flex-grow: 1;
 }
 .header{
-	min-height: 20px;
+	/* min-height: 20px; */
+	height: 30px;
+	line-height: 30px;
 }
 .body{
 	overflow: auto;
 }
 .left{
-	min-width: 140px;
-	background-color: #00FF00;
+	width: 140px;
 	overflow: auto;
 }
 .right{
@@ -36,20 +37,20 @@
 	position: relative;
 	height: 100%;
 	overflow: auto;
+	background-color: rgba(222,222,222,0.5);
+	box-sizing: border-box;
+	padding: 15px;
 }
 .report{
 	/* border: #009688 2px solid; */
 	background-color: rgba(155,155,0,0.3);
-	/* box-sizing: border-box; */
-	cursor: -webkit-grabbing;   
+	box-sizing: border-box;
+	/* cursor: -webkit-grabbing;   
 	cursor: -moz-grabbing;   
-	cursor: grabbing;
+	cursor: grabbing; */
 }
 .capture{
 	border: #393D49 2px dashed;
-	cursor: -webkit-grabbing;   
-	cursor: -moz-grabbing;   
-	cursor: grabbing;   
 }
 .drag{
 	/* cursor: e-resize; */
@@ -134,14 +135,13 @@
 	position: absolute;
 	top: 50%;
 	left : -2.5px;
-	height: 5px;
-	width: 5px;
 	margin-top: -2.5px;
 	background-color: black;
 	cursor: e-resize;
 }
 .east-point,.north-point,.weast-point,.south-point,.southeast-point,.northeast-point,.northwest-point,.southwest-point{
-	display: none;
+	height: 5px;
+	width: 5px;
 }
 /* .east-point:hover,
 .north-point:hover,
@@ -162,5 +162,79 @@
 .report:hover .northeast-point,
 .report:hover .northwest-point,
 .report:hover .southwest-point{
-	display: block;
+	/* display: block; */
+}
+
+.report-content{
+	position: absolute;
+	margin: 15px;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+.report-toolbar{
+	position: absolute;
+	top: -15px;
+	left: -15px;
+	right: -15px;
+	z-index: 1000;
+	height: 30px;
+	background-color: rgba(255,255,255,0.3);
+	display: none;
+	line-height: 30px;
+	padding: 0px 25px;
+}
+
+.report-body{
+	height: 100%;
+}
+
+.float-right{
+	float: right;
+	margin-left: 10px;
+}
+.layui-icon:hover{
+	cursor: pointer;
+	color: #1E9FFF;
+}
+.layui-col-space15{
+	margin: 0;
+}
+ul.tree ul {
+	margin-left: 20px;
+}
+ul.tree li{
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+ul.tree li:hover{
+	overflow: visible;
+}
+ul.tree .active{
+	color: #009CDA;
+}
+
+.fix-table{
+	table-layout: fixed;
+}
+.fix-table td,.fix-table th{
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+#dialog{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+.dialog-content{
+	height: 100%;
+}
+.dialog-content > div{
+	height: 100%;
+	overflow: auto;
 }

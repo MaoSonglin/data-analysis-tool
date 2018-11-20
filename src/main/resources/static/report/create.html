@@ -9,14 +9,20 @@
 	<body>
 		<div class="wrapper flex-column" id="app">
 			<div class="header">
-				
+				<span class="layui-breadcrumb">
+					<a href="javascript:;">当前位置：</a>
+					<a href="list.html">报表管理</a>
+					<a href="javascript:;">编辑报表&emsp;&emsp;{{report.name}}</a>
+					<!-- <a href="javascript:;">数据表</a> -->
+				</span>
 			</div>
 			<div class="body flex-grow flex-row">
 				<div class="left">
 					<div class="char-list">
 						<ul>
-							<li v-for="i in 9">
-								<img src="../res/images/1.svg" draggable="true" @dragstart="drag(i,$event)">
+							<li v-for="(image,index) in dragList">
+								<img :src="image.src" width="60px" draggable="true" @dragstart="drag(index,$event)">
+								<span v-html="image.name"></span>
 							</li>
 						</ul>
 					</div>
@@ -24,165 +30,102 @@
 				<div class="right flex-grow">
 					<div class="content" @drop="drop($event)" @dragover="allowDrop($event)">
 						<template v-for="(pic,index) in pictures">
-							<div class="report" :style="getStyle(pic)" :onmousedown="'capture('+index+',event)'" onmouseup="release(event)" onmousemove="mousemove(event)" >
-								<div class="northwest-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="north-point" :data-index = "index"></div>
-								<div class="northeast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="east-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="southeast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="south-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="southwest-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
-								<div class="weast-point" onmousedown="resizeWidthAndHeight(event)" :data-index = "index"></div>
+							<div class="report" :style="getStyle(pic)" onmousedown="capture(event)" onmouseup="release(event)" onmouseover="mouseenter(event)" :data-index = "index" >
+								<div class="report-content" >
+									<div id="" class="report-toolbar">
+										<i class="layui-icon layui-icon-delete float-right" @click="rmGraph(pic,$event)"></i>
+										<i class="layui-icon layui-icon-set-sm float-right" @click="setting(pic,$event)"></i>
+									</div>
+									<div class="report-body" :id="'graph-'+index">
+										<div class="">
+											xhong
+										</div>
+									</div>
+								</div>
 							</div>
 						</template>
 					</div>
 				</div>
 			</div>
 		</div>
+		
+		<!-- 编辑图形 -->
+		<div id="dialog" style="display: none;">
+			<div class="layui-row layui-col-space15 dialog-content">
+				<div class="layui-col-md2 layui-col-sm4">
+					<tree v-bind:asyn="true" v-bind:nodes="nodes" 
+						v-on:loadchildren="loadChildren($event)"
+						v-on:nodeclick="select($event)"
+						v-on:nodedragstart="startDrag($event)" ></tree>
+				</div>
+				<div class="layui-col-md5 layui-col-sm4">
+					<div class="layui-card">
+						<div class="layui-card-header">
+							<h3 class="">分类(x轴)</h3>
+						</div>
+						<div class="layui-card-body">
+							<div style="height: 300px;" @drop="addAxis('xAxis',$event)" ondragover="allowDrop(event)">
+								<table class="layui-table fix-table layui-box">
+									<colgroup>
+										<col width="120">
+										<col width="200">
+										<col width="120"/>
+										<col>
+									</colgroup>
+									<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
+									<tr v-for="(field,index) in graph.xAxis" :id="'tr-'+field.id" :data-id = "field.id">
+										<td v-html="field.id">Data</td>
+										<td v-html="field.chinese?field.chinese:field.name"></td>
+										<td v-html="field.typeName"></td>
+										<td><i class="layui-icon layui-icon-delete" @click="rmAxis('xAxis',field,$event)"></i></td>
+									</tr>
+									<tr>
+										<td colspan="4" align="center">拖动左侧字段到此处</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="layui-col-md5 layui-col-sm4">
+					<div class="layui-card">
+						<div class="layui-card-header">
+							<h3 class="">取值(y轴)</h3>
+						</div>
+						<div class="layui-card-body">
+							<div style="height: 300px;" @drop="addAxis('yAxis',$event)" ondragover="allowDrop(event)">
+								<table class="layui-table fix-table layui-box">
+									<colgroup>
+										<col width="120">
+										<col width="200">
+										<col width="120"/>
+										<col>
+									</colgroup>
+									<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
+									<tr v-for="(field,index) in graph.yAxis" :id="'tr-'+field.id" :data-id = "field.id">
+										<td v-html="field.id">Data</td>
+										<td v-html="field.chinese?field.chinese:field.name"></td>
+										<td v-html="field.typeName"></td>
+										<td><i class="layui-icon layui-icon-delete" @click="rmAxis('yAxis',field,$event)"></i></td>
+									</tr>
+									<tr>
+										<td colspan="4" align="center">拖动左侧字段到此处</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
 		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript">
-			var app = new Vue({
-				el : "#app",
-				data:{
-					pictures : [],
-					dragedPic : {}
-				},
-				created:function(){
-					
-				},
-				methods:{
-					drag : function(data,event){
-						this.dragedPic = new Picture()
-					},
-					allowDrop : function(event){
-						event.preventDefault()
-					},
-					drop : function(event){
-						event.preventDefault()
-						this.dragedPic.moveToClient(event.offsetX- this.dragedPic.width / 2,event.offsetY- this.dragedPic.height / 2)
-						this.pictures.push(this.dragedPic)
-					},
-					getStyle : function(pic,event){
-						var style = "position:absolute;width:"+pic.width+"px;height:"+pic.height+"px;left:"+pic.left+"px;top:"+pic.top+"px";
-						return style;
-					}
-				}
-			})
-			
-			function drag(event){
-				event.dataTransfer.setData("Text","马小红");
-			}
-			function allowDrop(event){
-				event.preventDefault()
-			}
-			function drop(event){
-				event.preventDefault()
-				var data = event.dataTransfer.getData("Text")
-				alert(data)
-			}
-			
-			function Picture(w,h,top,left){
-				this.width = w ? w :500;
-				this.height = h ? h : 200;
-				this.top = top ? top : 0;
-				this.left = left ? left : 0;
-				this.moveToClient = function(x,y){
-					if(x < 0) x = 0;
-					if(y < 0) y = 0;
-					this.left = x;
-					this.top = y;
-				}
-			}
-			
-			function capture(index,event){
-				event.stopPropagation()
-				// $(event.target).addClass("capture")
-				var pic = app.pictures[index];
-				var oldleft = pic.left ,oldtop = pic.top;
-				$("div.content").bind("mousemove",function(e){
-					console.log(e.target.tagName+"."+e.target.className,e.clientX,e.clientY)
-					pic.moveToClient(oldleft + e.clientX - event.clientX,oldtop + e.clientY - event.clientY)
-					e.stopPropagation()
-				})
-			}
-			function release(event){
-				// $(event.target).removeClass("capture")
-				$("div.content").unbind("mousemove")
-				event.stopPropagation()
-			}
-			
-			// document.onmouseup = release
-			
-			function mousemove(event){
-				// var w = $(event.target).width();
-				// var h = $(event.target).height();
-				var w = event.target.clientWidth;
-				var h = event.target.clientHeight;
-				// console.log(w,h);
-				if(Math.abs(event.offsetX-w)<2){
-					if(Math.abs(event.offsetY-h) < 2 ){
-						$(event.target).css("cursor","es-resize")
-					}else if(Math.abs(h - Math.abs(event.offsetY - h)) < 2){
-						
-					}
-				}
-			}
-			
-			function resizeWidthAndHeight(event){
-				// $(event.target).css("display","block");
-				var ph = event.target.parentNode.clientHeight,pw = event.target.parentNode.clientWidth;
-				event.stopPropagation();
-				var $p = $(event.target);
-				var pic = app.pictures[event.target.dataset.index];
-				$("div.content").bind("mousemove",function(e){
-					if($p.hasClass("southeast-point")){
-						var w = e.clientX - event.clientX;
-						var h = e.clientY - event.clientY;
-					}
-					else if($p.hasClass("northwest-point")){
-						var w = event.clientX - e.clientX;
-						var h = event.clientY - e.clientY;
-					}
-					else if($p.hasClass("northeast-point")){
-						var w = e.clientX - event.clientX;
-						var h = event.clientY - e.clientY;
-					}
-					else if($p.hasClass("southwest-point")){
-						var w = event.clientX - e.clientX;
-						var h = e.clientY - event.clientY;
-					}
-					else if($p.hasClass("west-point")){
-						var w = event.clientX - e.clientX;
-						var h = 0;
-					}
-					else if($p.hasClass("east-point")){
-						var w = e.clientX - event.clientX;
-						var h = 0;
-					}
-					else if($p.hasClass("north-point")){
-						var w = 0;
-						var h = event.clientY - e.clientY;
-					}
-					else if($p.hasClass("south-point")){
-						var w = 0;
-						var h = e.clientY - event.clientY;
-					}
-					else{
-						var w = 0, h = 0;
-					}
-					pic.width = pw + w;
-					pic.height = ph + h;
-					e.stopPropagation()
-				})
-				document.onmouseup = function(e){
-					e.stopPropagation()
-					$("div.content").unbind("mousemove")
-				}
-			}
-			
-		</script>
+		<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" src="create.js"></script>
 	</body>
 </html>

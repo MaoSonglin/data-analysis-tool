@@ -1,9 +1,11 @@
 package dat.controller;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +40,11 @@ public class MuneController {
 			response = new Response(Constant.ERROR_CODE,e.getMessage());
 		}
 		return response;
+	}
+	
+	@GetMapping({"/sub/{pid}","/sub"})
+	public List<Menu> sub(@PathVariable(required=false) Integer pid){
+		return menuService.getChildrenByPid(pid);
 	}
 	
 	/**

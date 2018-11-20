@@ -2,12 +2,15 @@ package dat.domain;
 
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name="mune")
@@ -19,21 +22,61 @@ public class Menu {
 	
 	private String text;
 
-    private String link;
+	@Column(name="link")
+    private String url;
 
+	@JsonIgnore
     private String title;
 
     private String cssclass;
 
-    private String icon;
+    @Column(name="icon")
+    private String iconCls;
+    
+    private String state;
 
-    private Integer parent;
+    public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getIconCls() {
+		return iconCls;
+	}
+
+	public void setIconCls(String iconCls) {
+		this.iconCls = iconCls;
+	}
+
+	public String getState() {
+		if(state == null)
+			return "closed";
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public Integer getPid() {
+		return pid;
+	}
+
+	public void setPid(Integer pid) {
+		this.pid = pid;
+	}
+
+	@Column(name="parent")
+    private Integer pid;
 
 //    @ManyToOne(targetEntity=Menu.class,fetch=FetchType.EAGER)
 //    @JoinColumn(name="id")
 //    private Menu father;
     
-    @OneToMany(targetEntity=Menu.class,mappedBy="parent",fetch=FetchType.EAGER)
+    @OneToMany(targetEntity=Menu.class,mappedBy="pid",fetch=FetchType.EAGER)
     private List<Menu> children ;
 
 	public Integer getId() {
@@ -53,11 +96,11 @@ public class Menu {
 	}
 
 	public String getLink() {
-		return link;
+		return url;
 	}
 
 	public void setLink(String link) {
-		this.link = link;
+		this.url = link;
 	}
 
 	public String getTitle() {
@@ -77,19 +120,19 @@ public class Menu {
 	}
 
 	public String getIcon() {
-		return icon;
+		return iconCls;
 	}
 
 	public void setIcon(String icon) {
-		this.icon = icon;
+		this.iconCls = icon;
 	}
 
 	public Integer getParent() {
-		return parent;
+		return pid;
 	}
 
 	public void setParent(Integer parent) {
-		this.parent = parent;
+		this.pid = parent;
 	}
 
 //	public Menu getFather() {
@@ -110,9 +153,9 @@ public class Menu {
 
 	@Override
 	public String toString() {
-		return "Menu [id=" + id + ", text=" + text + ", link=" + link
+		return "Menu [id=" + id + ", text=" + text + ", link=" + url
 				+ ", title=" + title + ", cssclass=" + cssclass + ", icon="
-				+ icon + ", parent=" + parent + "]";
+				+ iconCls + ", parent=" + pid + "]";
 	}
     
     

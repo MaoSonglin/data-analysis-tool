@@ -7,19 +7,224 @@
 	</head>
 	<body>
 		<div class="layui-container">
-			<div class="layui-col-md3">
-				<div id="reportTree">
-					
-				</div>
-			</div>
-			<div class="layui-col-md9">
-				
+			<div class="">
+				<table id="report-list" class="layui-hide" border="" cellspacing="" cellpadding="" lay-filter="reportList">
+					<tr><th>Header</th></tr>
+					<tr><td>Data</td></tr>
+				</table>
 			</div>
 		</div>
+		<div id="addform" style="display: none;margin: 15px;">
+			<form action="#" method="" class="layui-form">
+				<div class="layui-form-item">
+					<label for="reportName" class="layui-form-label">报表名称</label>
+					<div class="layui-input-block">
+						<input class="layui-input" type="text" name="reportName" id="reportName" value=""v-model="report.name" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="reportComment" class="layui-form-label">描述</label>
+					<div class="layui-input-block">
+						<textarea rows="" cols="" class="layui-textarea" v-model="report.comment">
+							
+						</textarea>
+					</div>
+				</div>
+			</form>
+		</div>
+		<script type="text/html" id="toolbarDemo">
+			<form class="layui-form" action="#">
+				<div class="layui-form-item">
+					<div class="layui-inline">
+						<div class="layui-input-inline">
+							<input type="" name="" id="keyword" value="" class="layui-input" lay-event="input" lay-filter="input" />
+						</div>
+						<button type="button" class="layui-btn layui-btn-warm" lay-event="search" lay-filter="search" >查询</button>
+						<button type="button" class="layui-btn layui-btn-primary" lay-event="add">添加</button>
+					</div>
+				</div>
+			</form>
+		</script>
+ 
+		<script type="text/html" id="barDemo">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		
 		<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../assets/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			layui.use("table",function(){
+				var  table = layui.table.render({
+					elem : "#report-list",
+					url : basePath+"report/list",
+					toolbar : "#toolbarDemo",
+					height : 500,
+					cols : [[
+						{field : 'id',width : 180, title : '编号',sort : true,fixed: 'left'},
+						{field : 'name', width : 200, title : '名称',edit:'text'},
+						{field : 'comment', minWidth: 200, title : '描述',edit : 'text'},
+						{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+					]],
+					response : {
+						statusCode : 1
+					},
+					parseData : function(res){
+						return {
+							"code" : res.code,
+							"msg" : res.message,
+							"count" : res.data.totalElements,
+							"data" : res.data.content
+						}
+					},
+					request : {
+						pageName : "curPage",
+						limitName : "pageSize"
+					},
+					page : true,
+					limit : 5,
+					limits : [5,10,15,20,25,30]
+				})
+			
+				layui.table.on("toolbar(reportList)",function(obj){
+					console.log(obj)
+					switch(obj.event){
+						case  'search':
+						var keyword = $("#keyword").val()
+						if(!keyword){
+							layer.msg("请输入报表名称")
+							break;
+						}
+						table.reload({
+							where : {
+								keyword : keyword
+							},
+							done : function(res,curr,cout){
+								$("#keyword").val(keyword)
+							}
+						})
+						break;
+						case 'add' :
+						add(table)
+						break;
+					}
+				})
+				
+				layui.table.on("edit(reportList)",function(obj){
+					$.ajax({
+						url : basePath+"report",
+						method : "post",
+						data : obj.data,
+						success : function(res){
+							if(res.code != 1){
+								layer.alert(res.message,function(index){
+									table.reload()
+									layer.close(index)
+								})
+							}
+						}
+					})
+				})
+				
+				layui.table.on("tool(reportList)",function(obj){
+					switch(obj.event){
+						case 'edit':
+						localStorage['report'] = JSON.stringify(obj.data)
+						location.href = "create.html"
+						break;
+						case 'del':
+						layer.confirm("您确定要删除报表\""+obj.data.name+"\"吗？",{
+							btn : ["确定","取消"]
+						},function(index,layero){
+							layer.close(index)
+							var options = {
+								url : basePath + "report",
+								method : "post",
+								data : obj.data,
+								success : function(res){
+									if(res.code == 1){
+										obj.del()
+									}
+								}
+							}
+							options.data.state = 0
+							$.ajax(options)
+						})
+						break;
+						default:
+						layer.alert("不支持的操作")
+					}
+				})
+				
+			})
+			
+			
+			
+			function add(tableIns){
+				layer.open({
+					type : 1,
+					content : $("#addform"),
+					area : ["500px","300px"],
+					btn : ["提交","取消"],
+					end : function(){$("#addform").hide()},
+					cancel : cancel,
+					btn1 : ok,
+					btn2 : cancel
+				})
+				
+				function ok(index,layero){
+					layer.confirm("您确定要提交吗？",{
+						title : "确认",
+						btn : ["确定","取消"]
+					},function(i,l){
+						layer.close(i)
+						layer.close(index)
+						submit()
+					})
+					
+					function submit(){
+						$.ajax({
+							url : basePath + "report",
+							method : "post",
+							data : vue.report,
+							before : openLoading,
+							complate : closeLoading,
+							success : function(res){
+								if(res.code == 1)
+								tableIns.reload()
+								else{
+									layer.msg(res.message)
+								}
+							}
+						})
+					}
+				}
+				
+				function cancel(index,layero){
+					layer.confirm("您确定要放弃保存吗？",{
+						title : "确认",
+						btn : ["确定","取消"]
+					},function(i,l){
+						layer.close(i)
+						layer.close(index)
+					},function(i,l){
+						return true;
+					})
+					return false;
+				}
+			}
+			
+			var vue = new Vue({
+				el : '#addform',
+				data : {
+					report : {}
+				}
+			})
+			
+			
+		</script>
 	</body>
 </html>
