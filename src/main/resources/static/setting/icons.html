@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>选择图标</title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/font-awesome/css/font-awesome.min.css"/>
+		<style type="text/css">
+			#app{
+				padding: 5px 10px;
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			}
+			.icon-list-item{
+				cursor: pointer;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.icon-list-item:hover{
+				color: #009688;
+			}
+			ul{
+				display: flex;
+				flex-direction: row;
+				flex-wrap: wrap;
+			}
+			li{
+				width: 24px;
+				height: 24px;
+				line-height: 24;
+				margin: auto;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<ul>
+				<li v-for="cls in icons" @click="select(cls,$event)">
+					<i :class="'fa '+cls"></i>
+				</li>
+			</ul>
+		</div>
+	</body>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		new Vue({
+			el : "#app",
+			data : {
+				icons : []
+			},
+			created : function(){
+				this.$http.get("icons.json").then(function(res){
+					this.icons = res.body;
+				})
+			},
+			methods : {
+				select: function(icon, event) {
+					localStorage.icon  = 'fa '+icon
+					var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+					parent.layer.close(index); //再执行关闭        
+				}
+			}
+		})
+	</script>
+</html>

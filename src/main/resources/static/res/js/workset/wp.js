@@ -106,7 +106,7 @@ var app = new Vue({
 			})
 		},
 		toTable : function(pkg,event){// 跳转到显示数据包中数据表的页面
-			location.href = "pkg-table.html?pkgid="+pkg.id
+			window.parent.addParentTab({href:"workset/pkg-table.html?pkgid="+pkg.id,title:'“'+pkg.name+'”中的数据表'})
 			event.preventDefault()
 		}
 	}

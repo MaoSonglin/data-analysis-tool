@@ -104,7 +104,7 @@
 			chooseIcon  : function(icon,event){
 				layer.open({
 					title : "选择图标",
-					content : "../frame/icons.html",
+					content : "icons.html",
 					type : 2,
 					btn : ['取消'],
 					area: ['500px', '300px'],
@@ -234,7 +234,7 @@ function drawForm(){
 	function showIcons(obj){
 		layer.open({
 			title : "选择图标",
-			content : "../frame/icons.html",
+			content : "icons.html",
 			type : 2,
 			btn : ['取消'],
 			area: ['500px', '300px'],
