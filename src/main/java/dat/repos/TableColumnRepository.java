@@ -1,5 +1,6 @@
 package dat.repos;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,11 @@ public interface TableColumnRepository extends JpaRepository<TableColumn, String
 	 */
 	@Query("select s from Source s join DataTable d on s.id=d.source.id join TableColumn c on c.dataTable.id=d.id where c.id=:id")
 	Source findDsById(@Param("id") String id);
+
+	/**
+	 * @param ids
+	 * @return
+	 */
+	@Query("select tc from TableColumn tc where tc.id in (select vc.id from VirtualColumn vc where vc.id in :ids)")
+	List<TableColumn> findByVirtualColumnIds(@Param("ids") Collection<String> ids);
 }

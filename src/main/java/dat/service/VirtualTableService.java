@@ -1,7 +1,10 @@
 package dat.service;
 
-import dat.domain.Response;
+import java.util.List;
+import java.util.Map;
+
 import dat.domain.VirtualTable;
+import dat.vo.Response;
 
 
 /**
@@ -31,4 +34,11 @@ public interface VirtualTableService {
 	 */
 	@Deprecated
 	Response add(VirtualTable table);
+	
+	/**
+	 * 查询虚拟表中的数据
+	 * @param t
+	 * @return
+	 */
+	List<Map<String,String>> getData(VirtualTable t);
 }

@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import dat.domain.Menu;
-import dat.domain.Response;
 import dat.service.MenuService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @RestController
 @RequestMapping("/menu")

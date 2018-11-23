@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.Response;
-import dat.domain.TableColumnPagingBean;
 import dat.service.TableColumnService;
+import dat.vo.Response;
+import dat.vo.TableColumnPagingBean;
 
 @RestController
 @RequestMapping("/col")

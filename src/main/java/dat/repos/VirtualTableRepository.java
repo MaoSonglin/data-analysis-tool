@@ -1,5 +1,6 @@
 package dat.repos;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,5 +21,9 @@ public interface VirtualTableRepository extends JpaRepository<VirtualTable, Stri
 	 */
 	@Query("select c from VirtualColumn c join VirtualTable v on c.table.id=v.id where v.id=:id and c.state=1")
 	List<VirtualColumn> getColumnsWithId(@Param("id") String id);
+
+	
+	@Query("select t from VirtualTable t join VirtualColumn c on c.table.id=t.id where c.id in :ids")
+	List<VirtualTable> queryByColumnIdIn(@Param("ids") Collection<String> ids);
 
 }

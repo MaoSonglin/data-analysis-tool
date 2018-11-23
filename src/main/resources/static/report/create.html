@@ -65,11 +65,11 @@
 						</div>
 						<div class="layui-card-body">
 							<div style="height: 300px;" @drop="addAxis('xAxis',$event)" ondragover="allowDrop(event)">
-								<table class="layui-table fix-table layui-box">
+								<table class="layui-table fix-table layui-box" lay-size="sm">
 									<colgroup>
 										<col width="120">
-										<col width="200">
-										<col width="120"/>
+										<col width="120">
+										<col width="100"/>
 										<col>
 									</colgroup>
 									<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
@@ -94,11 +94,11 @@
 						</div>
 						<div class="layui-card-body">
 							<div style="height: 300px;" @drop="addAxis('yAxis',$event)" ondragover="allowDrop(event)">
-								<table class="layui-table fix-table layui-box">
+								<table class="layui-table fix-table layui-box" lay-size="sm">
 									<colgroup>
 										<col width="120">
-										<col width="200">
-										<col width="120"/>
+										<col width="120">
+										<col width="100"/>
 										<col>
 									</colgroup>
 									<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
@@ -116,6 +116,20 @@
 						</div>
 					</div>
 				</div>
+				<div class="layui-col-sm10 layui-col-sm-offset1">
+					<div class="layui-card">
+						<div class="layui-header">
+							<h3>数据预览</h3>
+						</div>
+						<div class="layui-body">
+							<div class="" style="overflow-x: auto;width: 100%;">
+								<table class="layui-table" border="" cellspacing="" cellpadding="" lay-size="sm">
+									<tr></tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		
@@ -127,6 +141,49 @@
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/graphdrawer.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript" src="create.js"></script>
 	</body>
 </html>
+<!-- 
+select 
+	generatedAlias0 
+from 
+	dat.domain.TableColumn as generatedAlias0, 
+	dat.domain.VirtualColumn as generatedAlias1 
+inner join 
+	generatedAlias1.refColumns as generatedAlias2 
+where 
+	generatedAlias0.id in (generatedAlias2.id=:param0) 
+    select
+        tablecolum0_.id as id1_8_,
+        tablecolum0_.add_time as add_time2_8_,
+        tablecolum0_.buffer_length as buffer_l3_8_,
+        tablecolum0_.char_octet_length as char_oct4_8_,
+        tablecolum0_.chinese as chinese5_8_,
+        tablecolum0_.column_def as column_d6_8_,
+        tablecolum0_.column_name as column_n7_8_,
+        tablecolum0_.column_size as column_s8_8_,
+        tablecolum0_.data_table_id as data_ta22_8_,
+        tablecolum0_.data_type as data_typ9_8_,
+        tablecolum0_.decimal_digits as decimal10_8_,
+        tablecolum0_.is_foregin_key as is_fore11_8_,
+        tablecolum0_.is_primary_key as is_prim12_8_,
+        tablecolum0_.is_unique as is_uniq13_8_,
+        tablecolum0_.nullable as nullabl14_8_,
+        tablecolum0_.num_prec_radix as num_pre15_8_,
+        tablecolum0_.ordinal_position as ordinal16_8_,
+        tablecolum0_.remarks as remarks17_8_,
+        tablecolum0_.sql_data_type as sql_dat18_8_,
+        tablecolum0_.sql_datetime_sub as sql_dat19_8_,
+        tablecolum0_.state as state20_8_,
+        tablecolum0_.type_name as type_na21_8_ 
+    from
+        table_column tablecolum0_ cross 
+    join
+        virtual_column virtualcol1_ 
+    where
+        virtualcol1_.id in (
+            ?
+        )
+ -->

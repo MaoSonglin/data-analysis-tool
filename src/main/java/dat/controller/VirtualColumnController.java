@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.Response;
 import dat.domain.VirtualColumn;
 import dat.service.VirtualColumnService;
+import dat.vo.Response;
 
 @RestController
 @RequestMapping("/vc")

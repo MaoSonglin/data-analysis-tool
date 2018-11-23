@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import dat.domain.Response;
 import dat.domain.User;
 import dat.repos.UserRepository;
 import dat.service.UserService;
 import dat.util.Constant;
 import dat.util.Md5Util;
 import dat.util.StrUtil;
+import dat.vo.Response;
 
 @Service
 @Transactional

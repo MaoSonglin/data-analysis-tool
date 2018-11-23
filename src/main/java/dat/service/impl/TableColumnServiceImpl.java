@@ -15,15 +15,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import dat.domain.DataTable;
-import dat.domain.Response;
 import dat.domain.Source;
 import dat.domain.TableColumn;
-import dat.domain.TableColumnPagingBean;
 import dat.repos.DataTableRepository;
 import dat.repos.TableColumnRepository;
 import dat.service.TableColumnService;
 import dat.util.Constant;
 import dat.util.StrUtil;
+import dat.vo.Response;
+import dat.vo.TableColumnPagingBean;
 
 @Service
 public class TableColumnServiceImpl implements TableColumnService {

@@ -47,6 +47,10 @@ public class VirtualTable implements IdGeneratorable{
 	@JsonIgnore
 	private List<WorkPackage> packages;
 
+	/*@OneToMany(fetch=FetchType.LAZY,cascade=CascadeType.REMOVE,mappedBy="table")
+	@JsonIgnore
+	private List<Association> assocs;*/
+	
 	public String getId() {
 		return id;
 	}
@@ -111,5 +115,11 @@ public class VirtualTable implements IdGeneratorable{
 				+ chinese + "]";
 	}
 
-	
+	/*public List<Association> getAssocs() {
+		return assocs;
+	}
+
+	public void setAssocs(List<Association> assocs) {
+		this.assocs = assocs;
+	}*/
 }

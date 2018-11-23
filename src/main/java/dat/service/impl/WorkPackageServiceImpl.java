@@ -20,8 +20,6 @@ import org.springframework.util.StringUtils;
 
 import dat.controller.WorkPackageController.ExcludeTable;
 import dat.domain.DataTable;
-import dat.domain.PkgPageBean;
-import dat.domain.Response;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
@@ -33,6 +31,8 @@ import dat.repos.VirtualTableRepository;
 import dat.repos.WorkPackageRepository;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
+import dat.vo.PkgPageBean;
+import dat.vo.Response;
 
 @Service
 public class WorkPackageServiceImpl implements WorkPackageService {

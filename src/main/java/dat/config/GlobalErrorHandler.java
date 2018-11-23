@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import dat.domain.Response;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @ControllerAdvice
 public class GlobalErrorHandler {

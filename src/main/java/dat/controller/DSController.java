@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.PagingBean;
-import dat.domain.Response;
 import dat.domain.Source;
 import dat.service.DataSourceService;
+import dat.vo.PagingBean;
+import dat.vo.Response;
 
 @RestController
 @RequestMapping("/ds")

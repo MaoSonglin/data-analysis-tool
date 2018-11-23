@@ -7,7 +7,7 @@
     <meta name="renderer" content="webkit">
     <meta name="keywords" content='easyui,jui,jquery easyui,easyui demo,easyui中文'/>
     <meta name="description" content='TopJUI前端框架，基于最新版EasyUI前端框架构建，纯HTML调用功能组件，不用写JS代码的EasyUI，专注你的后端业务开发！'/>
-    <title>TopJUI前端框架 - 用户登录</title>
+    <title>鑫翼BI工具集 - 用户登录</title>
     <!-- 浏览器标签图片 -->
     <link rel="shortcut icon" href="./topjui//images/favicon.ico"/>
     <link rel="stylesheet" href="./static/plugins/bootstrap/css/bootstrap.min.css">
@@ -18,7 +18,7 @@
         }
 
         .box {
-            background: url("/topjui//images/loginBg.jpg") no-repeat center center;
+            background: url(res/images/loginBg.jpg) no-repeat center center;
             background-size: cover;
 
             margin: 0 auto;
@@ -123,7 +123,7 @@
         <div class="login-title text-center">
             <span class="flag"><i class="fa fa-user"></i> 用户登陆</span>
             <h1>
-                <small>TopJUI前端框架</small>
+                <small>鑫翼 BI数据工具系统</small>
             </h1>
         </div>
         <div class="login-content ">
@@ -190,7 +190,7 @@
             navigator.appVersion.split(";")[1].replace(/[ ]/g, "") == "MSIE7.0" ||
             navigator.appVersion.split(";")[1].replace(/[ ]/g, "") == "MSIE8.0")
     ) {
-        alert("您的浏览器版本过低，请使用360安全浏览器的极速模式或IE9.0以上版本的浏览器");
+        alert("您的浏览器版本过低，请使用谷歌浏览器或IE9.0以上版本的浏览器");
     }
 </script>
 <script>
@@ -231,7 +231,7 @@
                 };
                 $.ajax({
                     type: 'POST',
-                    url: '/json/response/login.json',
+                    url: '/user/login',
                     contentType: "application/json; charset=utf-8",
                     data: JSON.stringify(formData),
                     success: function (data) {

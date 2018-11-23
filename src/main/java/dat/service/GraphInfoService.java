@@ -1,7 +1,7 @@
 package dat.service;
 
 import dat.domain.GraphInfo;
-import dat.domain.Response;
+import dat.vo.Response;
 
 public interface GraphInfoService {
 
@@ -11,4 +11,5 @@ public interface GraphInfoService {
 
 	Response delete(String id);
 
+	Response getData(GraphInfo g) throws Exception;
 }

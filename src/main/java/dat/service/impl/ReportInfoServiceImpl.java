@@ -19,12 +19,12 @@ import org.springframework.util.StringUtils;
 
 import dat.domain.GraphInfo;
 import dat.domain.ReportInfo;
-import dat.domain.ReportPagingBean;
-import dat.domain.Response;
 import dat.repos.GraphInfoRepository;
 import dat.repos.ReportInfoRepository;
 import dat.service.ReportInfoService;
 import dat.util.Constant;
+import dat.vo.ReportPagingBean;
+import dat.vo.Response;
 
 @Service
 public class ReportInfoServiceImpl implements ReportInfoService {

@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.Response;
 import dat.domain.User;
 import dat.service.UserService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @RestController
 @RequestMapping("/user")

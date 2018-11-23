@@ -11,10 +11,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import dat.domain.Response;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.repos.VirtualColumnRepository;
+import dat.vo.Response;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest

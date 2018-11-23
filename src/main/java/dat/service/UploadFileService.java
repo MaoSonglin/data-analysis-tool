@@ -1,7 +1,7 @@
 package dat.service;
 
-import dat.domain.Response;
 import dat.domain.UploadFile;
+import dat.vo.Response;
 
 public interface UploadFileService {
 

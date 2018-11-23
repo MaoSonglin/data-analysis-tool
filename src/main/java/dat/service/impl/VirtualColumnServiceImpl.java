@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import dat.domain.Response;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.repos.TableColumnRepository;
@@ -20,6 +19,7 @@ import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @Service
 public class VirtualColumnServiceImpl implements VirtualColumnService {

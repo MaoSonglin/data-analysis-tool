@@ -87,28 +87,51 @@ var app = new Vue({
 				x.dispose()
 			}
 			for(var i in this.pictures){
+				var graph = this.pictures[i];
 				var dom = document.querySelector("#graph-"+i)
 				var myChart = echarts.init(dom)
-				var option = {
-					title: {
-						text: this.pictures[i].title
-					},
-					tooltip: {},
-					legend: {
-						data:['销量']
-					},
-					xAxis: {
-						data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
-					},
-					yAxis: {},
-					series: [{
-						name: '销量',
-						type: 'bar',
-						data: [5, 20, 36, 10, 10, 20]
-					}]
-				};
-				myChart.setOption(option)
-				this.charts.push(myChart)
+				this.$http.get(basePath+"graph/data",{params:tile(graph)}).then(function(res){
+					var data = res.body;
+					var option = {
+						title: {
+							text: this.pictures[i].title
+						},
+						tooltip: {},
+						legend: {
+							data:getLegends(graph)
+						},
+						xAxis: {
+							name : graph.xAxis.pop(),
+							data: data.values.x.pop()
+						},
+						yAxis: {},
+						series:getSeries(data.values.y,getLegends(graph)) /* [{
+						}] */
+					};
+					console.log(option)
+					myChart.setOption(option)
+					this.charts.push(myChart)
+					function getLegends(graph){
+						var a = new Array();
+						for(var index in graph.yAxis){
+							a.push(graph.yAxis[index].chinese?graph.yAxis[index].chinese:graph.yAxis[index].name)
+						}
+						return a
+					}
+					// var legends = getLegends(this.pictures[i]);
+					function getSeries(y,legends){
+						var array = []
+						for(var index =0; index<y.length; index++){
+							obj = {
+								name : legends[index],
+								type : graph.type,
+								data : y[index]
+							}
+							array.push(obj)
+						}
+						return array;
+					}
+				})
 			}
 		},
 		rmGraph : function(pic,event){

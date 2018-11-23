@@ -71,6 +71,11 @@ public class TableColumn implements IdGeneratorable{
 	private DataTable dataTable;
 	
 	
+	/*@JsonIgnore
+	@ManyToMany(targetEntity=TableColumn.class,fetch=FetchType.LAZY)
+	@JoinColumn(name="assoc_column_id",referencedColumnName="id")
+	private List<TableColumn> assoc;*/
+	
 	private String addTime;
 	/**
 	 * 删除状态
@@ -92,6 +97,7 @@ public class TableColumn implements IdGeneratorable{
 		String id = StrUtil.generatorId();
 		setId("FD"+id.substring(2));
 	}
+
 
 	public String getId() {
 		return id;
@@ -293,5 +299,38 @@ public class TableColumn implements IdGeneratorable{
 				+ ", ordinalPosition=" + ordinalPosition + ", dataTable="
 				+ dataTable + ", addTime=" + addTime + ", state=" + state + "]";
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TableColumn other = (TableColumn) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
+
+	/*public List<TableColumn> getAssoc() {
+		return assoc;
+	}
+
+	public void setAssoc(List<TableColumn> assoc) {
+		this.assoc = assoc;
+	}*/
 	
 }

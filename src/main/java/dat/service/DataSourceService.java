@@ -1,8 +1,10 @@
 package dat.service;
 
-import dat.domain.PagingBean;
-import dat.domain.Response;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import dat.domain.Source;
+import dat.vo.PagingBean;
+import dat.vo.Response;
 
 public interface DataSourceService {
 
@@ -38,4 +40,10 @@ public interface DataSourceService {
 	 */
 	Response getTablesById(String id);
 
+	/**
+	 * 获取操作数据源的jdbcTemplate对象
+	 * @param source
+	 * @return
+	 */
+	JdbcTemplate getTemplate(Source source);
 }

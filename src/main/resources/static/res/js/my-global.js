@@ -176,4 +176,8 @@ function showModalDialog(title,selector,callback,destory){
 		return null;
 	} 
 
-
+var f = "0"
+if(f)
+console.log("true")
+else
+console.log("false")

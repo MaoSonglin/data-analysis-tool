@@ -1,4 +1,4 @@
-package dat.domain;
+package dat.vo;
 
 import java.util.List;
 

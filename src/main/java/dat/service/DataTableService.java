@@ -1,7 +1,13 @@
 package dat.service;
 
-import dat.domain.DataTablePaingBean;
-import dat.domain.Response;
+import java.util.List;
+import java.util.Map;
+
+import dat.domain.DataTable;
+import dat.domain.TableColumn;
+import dat.vo.DataTablePaingBean;
+import dat.vo.Response;
+import dat.vo.TableData;
 
 public interface DataTableService {
 
@@ -33,4 +39,14 @@ public interface DataTableService {
 	 */
 	Response getTables(String id);
 
+	List<Map<String,String>> getValues(TableData td);
+
+	/**
+	 * 获取数据表中的数据
+	 * @param table
+	 * @return
+	 */
+	List<Map<String,String>> getValues(DataTable table);
+	
+	List<Map<String,String>> getValues(DataTable table,List<TableColumn> columns);
 }

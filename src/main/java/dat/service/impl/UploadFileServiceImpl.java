@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import dat.domain.Response;
 import dat.domain.UploadFile;
 import dat.repos.UploadFileRepos;
 import dat.service.UploadFileService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @Service
 public class UploadFileServiceImpl implements UploadFileService {

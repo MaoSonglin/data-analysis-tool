@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import dat.domain.Response;
 import dat.domain.UploadFile;
 import dat.service.UploadFileService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 /**
  * @author MaoSonglin

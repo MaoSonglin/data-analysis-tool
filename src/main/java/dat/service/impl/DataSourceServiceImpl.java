@@ -10,18 +10,23 @@ import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.alibaba.druid.pool.DruidDataSource;
+
 import dat.domain.DataTable;
-import dat.domain.PagingBean;
-import dat.domain.Response;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.repos.CustomerSpecs;
@@ -34,12 +39,16 @@ import dat.util.Constant;
 import dat.util.MetaDataParser;
 import dat.util.MetaDataParser.SourceMetaDataException;
 import dat.util.StrUtil;
+import dat.vo.PagingBean;
+import dat.vo.Response;
 
 @Service
 public class DataSourceServiceImpl implements DataSourceService {
 	
-	private static Logger log = Logger.getLogger(DataSourceServiceImpl.class);
+	private static Logger logger = Logger.getLogger(DataSourceServiceImpl.class);
 	
+	@Autowired
+	private ConfigurableApplicationContext  context;
 	/**
 	 * DataSource没有标记为删除
 	 */
@@ -61,7 +70,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	EntityManager entityManager;
 	
 	public Response list(PagingBean pagingBean) {
-		log.debug(pagingBean);
+		logger.debug(pagingBean);
 		// 构建条件查询接口
 		Specification<Source> spec = CustomerSpecs.byKeyWord(Source.class,entityManager, pagingBean.getKeyword());
 		// 连接状态查询条件，过滤掉已经标记为删除状态的数据
@@ -71,7 +80,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 		// 调用jpa接口查询
 		Page<Source> page = dsRepos.findAll(specification,pageRequest);
 //		List<Source> findAll = dsRepos.findAll(specification);
-		log.debug("查询到记录条数："+page.getNumberOfElements());
+		logger.debug("查询到记录条数："+page.getNumberOfElements());
 		// 返回数据类型
 		Response res = new Response(Constant.SUCCESS_CODE,"查询成功",page);
 		return res;
@@ -85,7 +94,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 			// 检查数据源的属性是否存在冲突
 			checkAttribute(source);
 		} catch (Exception e) {
-			log.info(e.getMessage());
+			logger.info(e.getMessage());
 			return new Response(Constant.ERROR_CODE,e.getMessage(),e);
 		}
 		// 为数据源设置新的ID
@@ -102,7 +111,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 			// 保存数据源中的表格和字段
 			saveTableAndColumn(sourceMetaData);
 		} catch (SourceMetaDataException e) {
-			log.info(e.getMessage());
+			logger.info(e.getMessage());
 			response.put("tableInfo", e.getMessage());
 		}
 		// TODO 2. 读取数据表之间的关联关系
@@ -224,4 +233,32 @@ public class DataSourceServiceImpl implements DataSourceService {
 		}
 	}
 
+	public JdbcTemplate getTemplate(Source source) {
+		JdbcTemplate jdbcTemplate;
+		String beanName = source.getName()+"jdbcTemplate";
+		try {
+			jdbcTemplate = (JdbcTemplate) context.getBean(beanName);
+		} catch (Exception e) {
+			String driverClass = source.getDriverClass();
+			String url = source.getUrl();
+			String username = source.getUsername();
+			String password = source.getPassword();
+			if(logger.isDebugEnabled()){
+				logger.debug("jdbcTemplate instance named '"+beanName+"' is not exist, attempt created new one");
+				logger.debug("get database connection with url "+url+" and username="+username+" and password="+password);
+			}
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(JdbcTemplate.class);
+			DruidDataSource ds = new DruidDataSource();
+			ds.setDriverClassName(driverClass);
+			ds.setUrl(url);
+			ds.setUsername(username);
+			ds.setPassword(password);
+			beanDefinitionBuilder.addConstructorArgValue(ds);
+			AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
+			BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) context.getBeanFactory();
+			beanFactory.registerBeanDefinition(beanName, beanDefinition);
+			jdbcTemplate = context.getBean(beanName, JdbcTemplate.class);
+		}
+		return jdbcTemplate;
+	}
 }

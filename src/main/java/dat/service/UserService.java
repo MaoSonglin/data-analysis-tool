@@ -2,8 +2,8 @@ package dat.service;
 
 import java.util.List;
 
-import dat.domain.Response;
 import dat.domain.User;
+import dat.vo.Response;
 
 public interface UserService {
 	

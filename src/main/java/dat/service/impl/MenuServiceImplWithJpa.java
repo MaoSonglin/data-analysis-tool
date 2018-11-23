@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dat.domain.Menu;
-import dat.domain.Response;
 import dat.repos.MenuRepository;
 import dat.service.MenuService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 @Service
 @Transactional

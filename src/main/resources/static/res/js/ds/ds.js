@@ -17,6 +17,9 @@ var app = new Vue({
 		getDsPage(this.page);
 	},
 	methods : {
+		tableInfo : function(datasource){
+			return "javascript:window.parent.addParentTab({href:'datasource/ds-tables.html?dsid="+datasource.id+"',title:'"+datasource.name+"'})";
+		},
 		toUpdate : function(ds,event){ // 弹出修改数据源信息的模态框
 			addForm.ds = ds;			// 设置要修改的数据
 			showDialog("修改数据源")

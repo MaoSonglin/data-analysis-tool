@@ -4,8 +4,8 @@ import java.util.List;
 
 import dat.domain.GraphInfo;
 import dat.domain.ReportInfo;
-import dat.domain.ReportPagingBean;
-import dat.domain.Response;
+import dat.vo.ReportPagingBean;
+import dat.vo.Response;
 
 public interface ReportInfoService {
 

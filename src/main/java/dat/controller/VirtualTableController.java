@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.Response;
 import dat.domain.VirtualTable;
 import dat.service.VirtualTableService;
+import dat.vo.Response;
 
 /**
  * @author MaoSonglin

@@ -1,7 +1,7 @@
 package dat.service;
 
-import dat.domain.Response;
-import dat.domain.TableColumnPagingBean;
+import dat.vo.Response;
+import dat.vo.TableColumnPagingBean;
 
 public interface TableColumnService {
 

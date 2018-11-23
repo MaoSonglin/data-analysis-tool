@@ -3,7 +3,7 @@ package dat.service;
 import java.util.List;
 
 import dat.domain.Menu;
-import dat.domain.Response;
+import dat.vo.Response;
 
 public interface MenuService {
 

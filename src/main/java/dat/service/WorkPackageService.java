@@ -1,9 +1,9 @@
 package dat.service;
 
 import dat.controller.WorkPackageController.ExcludeTable;
-import dat.domain.PkgPageBean;
-import dat.domain.Response;
 import dat.domain.WorkPackage;
+import dat.vo.PkgPageBean;
+import dat.vo.Response;
 
 public interface WorkPackageService {
 

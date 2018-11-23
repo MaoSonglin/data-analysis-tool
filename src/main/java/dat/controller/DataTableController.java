@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.domain.DataTablePaingBean;
-import dat.domain.Response;
 import dat.service.DataTableService;
+import dat.vo.DataTablePaingBean;
+import dat.vo.Response;
 
 @RestController @RequestMapping("/tab")
 public class DataTableController {

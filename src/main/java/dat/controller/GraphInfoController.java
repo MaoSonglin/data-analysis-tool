@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dat.domain.GraphInfo;
-import dat.domain.Response;
 import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.util.Constant;
+import dat.vo.Response;
 
 /**
  * @author MaoSonglin
@@ -138,5 +138,10 @@ public class GraphInfoController {
 		}
 		Response response = graphInfoService.save(graphInfo);
 		return response;
+	}
+	
+	@GetMapping("/data")
+	public Response getData(GraphInfo g) throws Exception{
+		return graphInfoService.getData(g);
 	}
 }
