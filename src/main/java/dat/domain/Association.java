@@ -2,18 +2,19 @@ package dat.domain;
 
 import java.io.Serializable;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 /**
  * @author MaoSonglin
  * 表与表，字段与字段之前的关联关系
  */
-//@Entity
-//@Table(name="assoc_info")
+@Entity
+@Table(name="table_assoc_info")
 public class Association implements Serializable {
 
 	public static final long serialVersionUID = 4583658216833662296L;
@@ -33,20 +34,17 @@ public class Association implements Serializable {
 	private Integer type;
 	
 	@ManyToOne  @JoinColumn(referencedColumnName="id")
-	private VirtualTable table;
+	private VirtualTable pkTable;
 	
-	@OneToOne(targetEntity=DataTable.class) @JoinColumn(referencedColumnName="id")
-	private DataTable pkTable;
+	@ManyToOne  @JoinColumn(referencedColumnName="id")
+	private VirtualTable fkTable;
 	
-	@OneToOne  @JoinColumn(referencedColumnName="id")
+	@ManyToOne  @JoinColumn(referencedColumnName="id")
 	private TableColumn pkColumn;
 	
-	@OneToOne  @JoinColumn(referencedColumnName="id")
-	private DataTable fkTable;
-	
-	@OneToOne  @JoinColumn(referencedColumnName="id")
+	@ManyToOne  @JoinColumn(referencedColumnName="id")
 	private TableColumn fkColumn;
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -72,36 +70,15 @@ public class Association implements Serializable {
 		this.type = type;
 	}
 
-	public VirtualTable getTable() {
-		return table;
-	}
+	
+	
 
-	public void setTable(VirtualTable table) {
-		this.table = table;
-	}
-
-	public DataTable getPkTable() {
+	public VirtualTable getPkTable() {
 		return pkTable;
 	}
 
-	public void setPkTable(DataTable pkTable) {
+	public void setPkTable(VirtualTable pkTable) {
 		this.pkTable = pkTable;
-	}
-
-	public TableColumn getPkColumn() {
-		return pkColumn;
-	}
-
-	public void setPkColumn(TableColumn pkColumn) {
-		this.pkColumn = pkColumn;
-	}
-
-	public DataTable getFkTable() {
-		return fkTable;
-	}
-
-	public void setFkTable(DataTable fkTable) {
-		this.fkTable = fkTable;
 	}
 
 	public TableColumn getFkColumn() {
@@ -112,7 +89,20 @@ public class Association implements Serializable {
 		this.fkColumn = fkColumn;
 	}
 
+	public TableColumn getPkColumn() {
+		return pkColumn;
+	}
 
-	
+	public void setPkColumn(TableColumn pkColumn) {
+		this.pkColumn = pkColumn;
+	}
+
+	public VirtualTable getFkTable() {
+		return fkTable;
+	}
+
+	public void setFkTable(VirtualTable fkTable) {
+		this.fkTable = fkTable;
+	}
 	
 }

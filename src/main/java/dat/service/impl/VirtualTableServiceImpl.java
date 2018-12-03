@@ -3,6 +3,11 @@ package dat.service.impl;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,12 +17,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 
+import dat.data.VirtualTableConnManager;
+import dat.data.VirtualTableQueryHandler;
 import dat.domain.DataTable;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
@@ -54,6 +63,22 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	public Response getById(String id) {
 		try {
 			VirtualTable virtualTable = vtRepos.getOne(id);
+			Class<? extends VirtualTable> cls = virtualTable.getClass();
+			if(logger.isDebugEnabled()){
+				String name = cls.getName();
+				System.err.println("virtual table instance class name is "+name);
+				Field[] declaredFields = cls.getDeclaredFields();
+				System.err.println("******************************************************");
+				for (Field field : declaredFields) {
+					String typeName = field.getType().getName();
+					System.err.println(field.getName()+":"+typeName);
+				}
+				Method[] declaredMethods = cls.getDeclaredMethods();
+				for (Method method : declaredMethods) {
+					System.err.println(method.getName());
+				}
+				System.err.println("******************************************************");
+			}
 			return new Response(Constant.SUCCESS_CODE,"查询成功",virtualTable);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -62,7 +87,18 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	}
 
 	public Response getVirtualColumns(String id) {
-		List<VirtualColumn> virtualColumns = vtRepos.getColumnsWithId(id);
+//		List<VirtualColumn> virtualColumns = vtRepos.getColumnsWithId(id);
+		
+		List<VirtualColumn> virtualColumns = virtualColumnRepos.findAll((root,query,cb)->{
+			Path<String> path = root.get("table").get("id");
+			Predicate equal = cb.equal(path, id);
+			Predicate equal2 = cb.equal(root.get("state"), Constant.ACTIVATE_SATE);
+			return cb.and(equal,equal2);
+		});
+		if(logger.isDebugEnabled() && !virtualColumns.isEmpty()){
+			String simpleName = virtualColumns.get(0).getClass().getName();
+			logger.debug(simpleName);
+		}
 		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",virtualColumns);
 		response.put("virtualTableId", id);
 		return response;
@@ -92,7 +128,50 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		return null;
 	}
 
+	public Map<String, List<String>> getData(VirtualTable table,List<VirtualColumn> columns,int offset,int limit) {
+		// 构建SQL语句
+		String sql = constructSQL(table, columns);
+		Map<String,List<String>> map = new HashMap<>();
+		for (VirtualColumn virtualColumn : columns) {
+			map.put(virtualColumn.getName(), new ArrayList<>(limit));
+		}
+		logger.debug("在虚拟数据表上执行SQL语句："+sql);
+		try (Connection conn = VirtualTableConnManager.getConnection(table);
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()){
+			rs.absolute(offset);	
+			while(rs.next() && limit-- > 0){
+				Set<Entry<String,List<String>>> entrySet = map.entrySet();
+				for (Entry<String, List<String>> entry : entrySet) {
+					entry.getValue().add(rs.getString(entry.getKey()));
+				}
+			}
+			logger.debug("查询成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.debug("查询失败");
+		}
+		return map;
+	}
+
+	/**
+	 * @param table
+	 * @param columns
+	 * @return 
+	 */
+	private String constructSQL(VirtualTable table, List<VirtualColumn> columns) {
+		StringBuffer sb = new StringBuffer("select ");
+		for (VirtualColumn virtualColumn : columns) {
+			sb.append(virtualColumn.getName()).append(',');
+		}
+		sb.deleteCharAt(sb.length()-1);
+		sb.append(" from ");
+		sb.append(table.getName());
+		String sql = sb.toString();
+		return sql;
+	}
 	
+	@Deprecated
 	public List<Map<String,String>> getData(VirtualTable t){
 		List<VirtualColumn> vcolumns = t.getColumns();
 		if(vcolumns == null || vcolumns.isEmpty()){
@@ -151,7 +230,6 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		vcolumns.forEach(elem->{
 			ids.add(elem.getId());
 		});
-		List<TableColumn> columns = tableColumnRepos.findByVirtualColumnIds(ids);
 		
 		// 遍历虚拟数据表中的虚拟字段
 		vcolumns.forEach(elem->{
@@ -170,7 +248,26 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		});
 		return map;
 	}
+	public Map<DataTable, Set<TableColumn>> getQueryField2(
+			List<VirtualColumn> vcolumns) {
+		Map<DataTable,Set<TableColumn>> map = new HashMap<>();
+		Set<String> ids = new HashSet<>();
+		vcolumns.forEach(elem->{
+			ids.add(elem.getId());
+		});
+		/*List<TableColumn> columns = tableColumnRepos.findByVirtualColumnIds(ids);
+		for (TableColumn tableColumn : columns) {
+			
+		}*/
+		return map;
+	}
 
+	/**
+	 * 将多张表的数据连接成一张表的数据
+	 * @param m
+	 * @param t
+	 * @return
+	 */
 	private List<Map<String,String>>  join(Map<DataTable, List<Map<String, String>>> m,
 			VirtualTable t) {
 		// TODO 待修改，这里只是默认所有数据都来自一个表
@@ -179,5 +276,16 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			return entry.getValue();
 		}
 		return null;
+	}
+
+	public Map<String, List<String>> listData(VirtualTable t) {
+		VirtualTable table = vtRepos.findById(t.getId()).get();
+		VirtualTableQueryHandler queryHandler = new VirtualTableQueryHandler(table);
+		try {
+			Map<String, List<String>> list = queryHandler.list();
+			return list;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

@@ -32,10 +32,11 @@ var app = new Vue({
 		Vue.http.get(basePath+"report/graphs/"+this.report.id).then((res)=>{
 			if(res.body.code == 1){
 				for(var i in res.body.data)
-					this.pictures.push(new Graph(res.body.data[i]))
+					var g = new Graph(res.body.data[i]);
+					this.pictures.push(g)
 			}else{
 				layer.msg(res.body.message)
-			}
+			} 
 		})
 	},
 	methods:{
@@ -90,47 +91,31 @@ var app = new Vue({
 				var graph = this.pictures[i];
 				var dom = document.querySelector("#graph-"+i)
 				var myChart = echarts.init(dom)
-				this.$http.get(basePath+"graph/data",{params:tile(graph)}).then(function(res){
-					var data = res.body;
+				if(!graph.options){
 					var option = {
-						title: {
-							text: this.pictures[i].title
-						},
-						tooltip: {},
-						legend: {
-							data:getLegends(graph)
-						},
-						xAxis: {
-							name : graph.xAxis.pop(),
-							data: data.values.x.pop()
-						},
-						yAxis: {},
-						series:getSeries(data.values.y,getLegends(graph)) /* [{
-						}] */
-					};
-					console.log(option)
+						title : {text : graph.title},
+						tooltip : {},
+						xAxis: {type: 'category'},
+						yAxis : {},
+						series : [
+							{
+								type : graph.type
+							}
+						]
+					}
+					graph.options = JSON.stringify(option)
+				}
+				var option = JSON.parse(graph.options);
+				myChart.setOption(option);
+				this.$http.get(basePath+"graph/data",{params:tile(graph)}).then(function(res){
+					var response = res.body;
+					var option = {
+						dataset : {
+							source : response.data
+						}
+					}
 					myChart.setOption(option)
 					this.charts.push(myChart)
-					function getLegends(graph){
-						var a = new Array();
-						for(var index in graph.yAxis){
-							a.push(graph.yAxis[index].chinese?graph.yAxis[index].chinese:graph.yAxis[index].name)
-						}
-						return a
-					}
-					// var legends = getLegends(this.pictures[i]);
-					function getSeries(y,legends){
-						var array = []
-						for(var index =0; index<y.length; index++){
-							obj = {
-								name : legends[index],
-								type : graph.type,
-								data : y[index]
-							}
-							array.push(obj)
-						}
-						return array;
-					}
 				})
 			}
 		},
@@ -163,6 +148,7 @@ var app = new Vue({
 				content : $("#dialog"),
 				area : ['700px','500px'],
 				maxmin : true,
+				btn : ["保存","取消"],
 				cancel : function(index,layero){
 					/* layer.confirm("您确定要关闭吗？",{
 						btn : ['确定','取消']
@@ -174,6 +160,19 @@ var app = new Vue({
 				},
 				end : function(){
 					$("#dialog").hide()
+				},
+				btn1 : function(index,layero){
+					layer.close(index);
+					var i=layer.load(1)
+					Vue.http.post(basePath+"graph",tile(pic)).then(function(res){
+						layer.close(i);
+						if(res.body.code != 1){
+							layer.msg(res.body.message)
+						}
+					},function(error){
+						layer.close(i)
+						layer.msg("网络异常")
+					})
 				}
 			})
 			layer.full(index)
@@ -198,6 +197,8 @@ var app = new Vue({
 		}
 	}
 })
+
+
 
 
 function absolute(graph,w,h){
@@ -320,6 +321,14 @@ function capture(event){
 		pic.moveToClient(oldleft + e.clientX - event.clientX,oldtop + e.clientY - event.clientY)
 		e.stopPropagation()
 	})
+	var $target = $(event.currentTarget)
+	$(document).bind("mouseup",function(e){
+		$target.trigger("mouseup")
+	})
+	$target.bind("mouseup",function(e){
+		release(event)
+		e.stopPropagation()
+	})
 }
 function release(event){
 	$("div.content").unbind("mousemove")
@@ -378,11 +387,12 @@ function resizeWidthAndHeight(event){
 		pic.height = ph + h;
 		e.stopPropagation()
 	})
-	document.onmouseup = function(e){
-		e.stopPropagation()
+	$(document).bind("mouseup",function(e){
 		$("div.content").unbind("mousemove")
 		saveGraph(pic);
-	}
+		e.stopPropagation()
+		$(document).unbind("mouseup")
+	}) 
 }
 
 function saveGraph(graph){
@@ -531,11 +541,18 @@ var dialog = new Vue({
 		},
 		addAxis : function(index,event){
 			if(!this.dragTarget) return;
-			var layerIndex = layer.load(1);
+			if(this.graph[index])
+				this.graph[index].push(this.dragTarget)
+			else
+				Vue.set(this.graph,index,[this.dragTarget])
+			/* var layerIndex = layer.load(1);
 			this.$http.get(basePath+"graph/"+this.graph.id+"/"+this.dragTarget.id+"/"+index).then(function(res){
 				layer.close(layerIndex)
 				if(res.body.code == 1){
-					this.graph[index].push(this.dragTarget)
+					if(this.graph[index])
+						this.graph[index].push(this.dragTarget)
+					else
+						Vue.set(this.graph,index,[this.dragTarget])
 				}
 				else{
 					layer.msg(res.body.message)
@@ -543,7 +560,7 @@ var dialog = new Vue({
 			},function(error){
 				layer.close(layerIndex)
 				layer.msg("网络错误")
-			})
+			}) */
 		},
 		rmAxis : function(axis,field,event){
 			// this.$http.delete(basePath+"graph/"+this.graph.id+"/"+field.id+"")
@@ -591,3 +608,6 @@ var dialog = new Vue({
 dialog.$on("loadChildren",function(event){
 	alert(2)
 })
+
+
+/* */

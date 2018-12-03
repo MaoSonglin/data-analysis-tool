@@ -30,7 +30,7 @@
 				<div class="right flex-grow">
 					<div class="content" @drop="drop($event)" @dragover="allowDrop($event)">
 						<template v-for="(pic,index) in pictures">
-							<div class="report" :style="getStyle(pic)" onmousedown="capture(event)" onmouseup="release(event)" onmouseover="mouseenter(event)" :data-index = "index" >
+							<div class="report" :style="getStyle(pic)" onmousedown="capture(event)" onmouseover="mouseenter(event)" :data-index = "index" >
 								<div class="report-content" >
 									<div id="" class="report-toolbar">
 										<i class="layui-icon layui-icon-delete float-right" @click="rmGraph(pic,$event)"></i>
@@ -51,6 +51,15 @@
 		
 		<!-- 编辑图形 -->
 		<div id="dialog" style="display: none;">
+			<div class="layui-form">
+				<div class="layui-form-item">
+					<label class="layui-form-label">报表名称</label>
+					<div class="layui-input-inline">
+						<input type="text" class="layui-input" name="name" id="name" v-model="graph.title" />
+					</div>
+					<!-- <button type="button" class="layui-btn" style="float: right;">保存</button> -->
+				</div>
+			</div>
 			<div class="layui-row layui-col-space15 dialog-content">
 				<div class="layui-col-md2 layui-col-sm4">
 					<tree v-bind:asyn="true" v-bind:nodes="nodes" 
@@ -59,6 +68,7 @@
 						v-on:nodedragstart="startDrag($event)" ></tree>
 				</div>
 				<div class="layui-col-md5 layui-col-sm4">
+					
 					<div class="layui-card">
 						<div class="layui-card-header">
 							<h3 class="">分类(x轴)</h3>

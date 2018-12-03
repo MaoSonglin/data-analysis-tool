@@ -1,7 +1,6 @@
 package dat.domain;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -22,7 +21,6 @@ public class VirtualColumnTest {
 	public void test() {
 		Set<String> s = new HashSet<>();
 		s.add("12323");
-		List<TableColumn> x = repos.findByVirtualColumnIds(s);
 	}
 
 }

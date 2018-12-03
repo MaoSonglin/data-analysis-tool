@@ -47,6 +47,21 @@ var container = new Vue({
 		addTable:function(pkg,event){// 添加数据表格
 			location.href = "pkg-add-tab.html?pkg.id="+this.pkg.id;
 			event.preventDefault()
+		},
+		getRelation : function(field){
+			if(field.relation){
+				var relation = field.relation;
+				if(relation.chinese) return relation.chinese
+				return relation.name;
+			}
+		},
+		findFieldById : function(id){
+			for(var i = 0; i < this.fields.length; i++){
+				if(this.fields[i].id == id){
+					return this.fields[i];
+				}
+			}
+			return null;
 		}
 	},
 	watch : {
@@ -65,16 +80,27 @@ var container = new Vue({
 			}else{
 				this.tables = this.tablesBackup
 			}
+		},
+		"table" : function(newVal,oldVal){
+			this.fieldUpdated = true;
 		}
 	},
 	updated : function(){
-		layuiTable.init('kjix12312',{
-			page : {
-				limit : 5,
-				limits : [5,10,15,20,25],
-				curr : 1
-			}
-		})
+		if(this.fieldUpdated){
+			// 跟新数据表格的内容
+			layuiTable.init('kjix12312',{
+				"url" : basePath+"vc/list",
+				page : {
+					limit : 5,
+					limits : [5,10,15,20,25],
+					curr : 1
+				},
+				where : {
+					tableId : this.table.id
+				}
+			})
+			this.fieldUpdated = false
+		}
 	}
 })
 
@@ -82,54 +108,46 @@ var layuiTable = null;
 layui.use('table',function(){
 	layuiTable = layui.table
 	layuiTable.on('edit(kjix12312)',function(obj){
-		var value = obj.value //得到修改后的值
-		,data = obj.data //得到所在行所有键值
-		,field = obj.field; //得到字段
-		// alert('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
-		var index = data.index - 1;
-		var tmp = container.fields[index][field];// 保存原来的值
-		container.fields[index][field] = value;
-		Vue.http.put(basePath+"vc",container.fields[index]).then(function(res){
-			if(res.body.code != 1){
-				container.fields[index][field] = tmp;
-				obj.value = tmp;
-				layer.msg(res.body.message);
-			}
-		},function(error){
-			container.fields[index][field] = tmp;
-			layer.msg("网络异常，修改失败")
-		})
-		console.log(obj)
+		update(obj)
 	})
 	
 	layuiTable.on("tool(kjix12312)",function(obj){
-		console.log(obj)
 		switch(obj.event){
 			case "edit":
 				
 			break;
 			case "del":
-				layer.confirm("你确定要删除该字段吗？",{
-					title : "提示",
-					btn : ['确定','取消']
-				},function(index,layer0){
+				del(obj)
+			break;
+			case 'setRelation':
+			localStorage.pkg = JSON.stringify(container.pkg)
+			layer.open({
+				title : "编辑关联关系",
+				type : 2,
+				content : "addRelation.html",
+				area : ["500px","350px"],
+				btn : ["确定","取消"],
+				btn1 : function(index,layero){
 					layer.close(index)
-					var x = container.fields[obj.data.index-1];
-					x.state = 0;
-					// TODO  请求后台删除
-					Vue.http.put(basePath+"vc",x).then(function(res){
-						if(res.body.code != 1){
-							layer.msg(res.body.message)
-							x.state = 1;
+					var field = container.findFieldById(obj.data.id)
+					var old = field.relation;
+					Vue.set(field,"relation",JSON.parse(localStorage.relation))
+					Vue.http.put(basePath+"vc",tile(field)).then(function(res){
+						if(res.body.code == 1){
+							field = res.body.data
+							obj.data.relation = container.getRelation(field);
 						}else{
-							container.fields = container.fields.filter((item)=>{return x != item;})
-							obj.del()
+							field.relation = old;
+							layer.msg(res.body.message)
 						}
-					},function(error){
-						layer.msg("网络异常，删除失败")
-					})
-				},function(index,layero){
-				})
+					},function(error){layer.msg("网络异常")})
+				},
+				success : function(){
+					
+				},
+				end : function(){delete localStorage.relationId}
+			})
+			
 			break;
 		}
 	})
@@ -164,6 +182,51 @@ layui.use('table',function(){
 			})
 		},function(index,layero){
 			return true;
+		})
+	}
+	
+	function update(obj){
+		var value = obj.value //得到修改后的值
+		,data = obj.data //得到所在行所有键值
+		,field = obj.field; //得到字段
+		var index = data.index - 1;
+		var column =  container.findFieldById(obj.data.id)
+		var tmp = column[field];// 保存原来的值
+		column[field] = value;
+		Vue.http.put(basePath+"vc",tile(column)).then(function(res){
+			if(res.body.code != 1){
+				column[field] = tmp;
+				obj.value = tmp;
+				layer.msg(res.body.message);
+			}else{
+				obj.update()
+			}
+		},function(error){
+			column[field] = tmp;
+			layer.msg("网络异常，修改失败")
+		})
+	}
+	
+	function del(obj){
+		layer.confirm("你确定要删除该字段吗？",{
+			title : "提示",
+			btn : ['确定','取消']
+		},function(index,layer0){
+			layer.close(index)
+			var x = container.findFieldById(obj.data.id)
+			x.state = 0;
+			// TODO  请求后台删除
+			Vue.http.put(basePath+"vc",tile(x)).then(function(res){
+				if(res.body.code != 1){
+					layer.msg(res.body.message)
+					x.state = 1;
+				}else{
+					container.fields = container.fields.filter((item)=>{return x != item;})
+					obj.del()
+				}
+			},function(error){
+				layer.msg("网络异常，删除失败")
+			})
 		})
 	}
 })

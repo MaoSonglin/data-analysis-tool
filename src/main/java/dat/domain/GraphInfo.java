@@ -1,5 +1,6 @@
 package dat.domain;
 
+import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -14,7 +15,12 @@ import dat.util.Constant;
 import dat.util.StrUtil;
 
 @Entity
-public class GraphInfo implements IdGeneratorable{
+public class GraphInfo implements IdGeneratorable,Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7380042617493135574L;
+
 	{
 		this.state = Constant.ACTIVATE_SATE;
 	}
@@ -61,6 +67,9 @@ public class GraphInfo implements IdGeneratorable{
 	private Float left;
 	
 	private String type;
+	
+	@Column(length=800)
+	private String options;
 	
 	private Integer state;
 	
@@ -168,19 +177,23 @@ public class GraphInfo implements IdGeneratorable{
 		this.yAxis = yAxis;
 	}
 
-	@Override
-	public String toString() {
-		if(this.getClass().getName().equals(GraphInfo.class.getName()))
-		return "GraphInfo [id=" + id + ", title=" + title + ", width=" + width
-				+ ", height=" + height + ", top=" + top + ", left=" + left
-				+ ", type=" + type + ", state=" + state
-				+ ", xAxis=" + xAxis + ", yAxis=" + yAxis + "]";
-		else
-			return "GraphInfo [id=" + id + ", title=" + title + ", width=" + width
-					+ ", height=" + height + ", top=" + top + ", left=" + left
-					+ "]";
+	
+	
+	
+	public String getOptions() {
+		return options;
 	}
 
-	
-	
+	public void setOptions(String options) {
+		this.options = options;
+	}
+
+	@Override
+	public String toString() {
+		return "GraphInfo [id=" + id + ", title=" + title + ", width=" + width
+				+ ", height=" + height + ", top=" + top + ", left=" + left
+				+ ", type=" + type + ", options=" + options + ", state="
+				+ state + ", report=" + report.getName() + ", xAxis.size=" + xAxis.size()
+				+ ", yAxis.size=" + yAxis.size() + "]";
+	}
 }

@@ -1,7 +1,10 @@
 package dat.service;
 
+import java.util.List;
+
 import dat.domain.VirtualColumn;
 import dat.vo.Response;
+import dat.vo.VirtualColumnParam;
 
 public interface VirtualColumnService {
 
@@ -20,5 +23,9 @@ public interface VirtualColumnService {
 	 * @return
 	 */
 	Response createField(VirtualColumn vt);
+
+	VirtualColumn getById(String id);
+
+	List<VirtualColumn> getByPage(VirtualColumnParam param);
 
 }

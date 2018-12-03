@@ -26,4 +26,7 @@ public interface VirtualTableRepository extends JpaRepository<VirtualTable, Stri
 	@Query("select t from VirtualTable t join VirtualColumn c on c.table.id=t.id where c.id in :ids")
 	List<VirtualTable> queryByColumnIdIn(@Param("ids") Collection<String> ids);
 
+
+	VirtualTable findByName(String tableName);
+
 }

@@ -12,6 +12,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
@@ -21,7 +22,13 @@ import dat.util.StrUtil;
  * 数据包中的虚拟表实体类对象
  */
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class VirtualTable implements IdGeneratorable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3562126732729766303L;
 
 	@Id	
 	private String id;
@@ -38,6 +45,9 @@ public class VirtualTable implements IdGeneratorable{
 	@OneToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY,mappedBy="table",cascade={CascadeType.REMOVE})
 	@JsonIgnore
 	private List<VirtualColumn> columns;
+	
+	@OneToMany(targetEntity=Association.class,fetch=FetchType.LAZY,mappedBy="pkTable")
+	private List<Association> foreigns;
 	
 	/**
 	 * 该虚拟表所属的数据包
@@ -109,10 +119,43 @@ public class VirtualTable implements IdGeneratorable{
 		this.packages = packages;
 	}
 
+	public List<Association> getForeigns() {
+		return foreigns;
+	}
+
+	public void setForeigns(List<Association> foreigns) {
+		this.foreigns = foreigns;
+	}
+
 	@Override
 	public String toString() {
 		return "VirtualTable [id=" + id + ", name=" + name + ", chinese="
 				+ chinese + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VirtualTable other = (VirtualTable) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 
 	/*public List<Association> getAssocs() {

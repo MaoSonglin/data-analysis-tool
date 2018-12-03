@@ -54,4 +54,10 @@ public class VirtualTableController {
 		return vtService.add(table);
 	}
 	
+	@RequestMapping("/value")
+	public Object values(VirtualTable table){
+//		Map<String, List<String>> data = vtService.listData(table);
+		return vtService.getData(table);
+	}
+	
 }

@@ -111,6 +111,7 @@ public class DataTableServiceImpl implements DataTableService {
 	 * @param id
 	 * @return
 	 */
+	@Deprecated
 	public List<Map<String,String>> getValues(TableData tInfo){
 		// 获取数据表
 		DataTable tb = tabRepos.findById(tInfo.getId()).get();
@@ -140,6 +141,7 @@ public class DataTableServiceImpl implements DataTableService {
 	 * @param columns
 	 * @return
 	 */
+	@Deprecated
 	public List<Map<String, String>> queryValues(RowSelection selection, DataTable tb,
 			Source source, List<TableColumn> columns) {
 		

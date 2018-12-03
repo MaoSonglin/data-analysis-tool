@@ -8,6 +8,9 @@ import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -20,6 +23,7 @@ import dat.repos.VirtualTableRepository;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
 import dat.vo.Response;
+import dat.vo.VirtualColumnParam;
 
 @Service
 public class VirtualColumnServiceImpl implements VirtualColumnService {
@@ -47,7 +51,7 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 	public Response save(VirtualColumn column) {
 		Response response = null;
 		try {
-			// 根据column的ID查找出数据库中的对象
+			/*// 根据column的ID查找出数据库中的对象
 			VirtualColumn vc = vcRepos.findById(column.getId()).get();
 			
 			// 跟新数据库中对象的相关属性
@@ -56,9 +60,9 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 			vc.setName(column.getName());
 			vc.setState(column.getState());
 			vc.setTypeName(column.getTypeName());
-			vc.setRemask(column.getRemask());
-			vcRepos.save(vc);
-			response = new Response(Constant.SUCCESS_CODE,"修改成功",vc);
+			vc.setRemask(column.getRemask());*/
+			VirtualColumn save = vcRepos.save(column);
+			response = new Response(Constant.SUCCESS_CODE,"修改成功",save);
 		} catch (NoSuchElementException e) {
 			// 如果捕获这个异常，说明column在数据库中不存在，那么执行插入操作
 			VirtualColumn save = vcRepos.save(column);
@@ -140,6 +144,39 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 				}
 			}
 		}
+	}
+
+	@Override
+	public VirtualColumn getById(String id) {
+		VirtualColumn virtualColumn = vcRepos.findById(id).get();
+		return virtualColumn;
+	}
+
+	// 分页查询
+	public List<VirtualColumn> getByPage(VirtualColumnParam param) {
+		try{
+			// 构造查询条件
+			Specification<VirtualColumn> spec = (root,query,cb)->{
+				// 连接table表，比较表格
+				Predicate equal = cb.equal(root.get("table").get("id"), param.getTableId());
+				// 不能是标志为删除的数据
+				Predicate notEqual = cb.notEqual(root.get("state"), Constant.DELETE_STATE);
+				return cb.and(equal,notEqual);
+			};
+			// 获取查询结果
+			Page<VirtualColumn> page = vcRepos.findAll(spec,PageRequest.of(param.getPage()-1, param.getLimit()));
+			// 列表
+			List<VirtualColumn> content = page.getContent();
+			param.setData(content);
+			// 获取元素总个数
+			long totalElements = page.getTotalElements();
+			param.setCount((int) totalElements);
+			param.setCode(0);
+			return content;
+		}catch(Exception e){
+			param.setMsg(e.getMessage());
+		}
+		return null;
 	}
 
 	

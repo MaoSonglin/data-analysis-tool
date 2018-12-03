@@ -144,24 +144,25 @@
 							<thead>
 								<tr>
 									<th lay-data="{type:'checkbox',fixed: 'left'}">ID</th>
-									<th lay-data="{field:'index', width:60}">编号</th>
+									<th lay-data="{field:'id', width:160}">编号</th>
 									<th lay-data="{field:'name',edit:'text',minWidth:120}">名称</th>
-									<th lay-data="{field:'chinese',edit:'text',minWidth:100}">中文名称</th>
+									<th lay-data="{field:'chinese',edit:'text',minWidth:140}">中文名称</th>
 									<th lay-data="{field:'typeName',width:120}">类型名称</th>
+									<th lay-data="{field:'rela',width:120,event:'setRelation'}">关联字段</th>
 									<th lay-data="{field:'remask',edit:'text',width:100}">备注</th>
-									<th lay-data="{fixed: 'right',  toolbar: '#barDemo', width:120}">操作</th>
+									<th lay-data="{fixed:'right',  toolbar: '#barDemo', width:120}">操作</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(field,index) in fields">
+								<!-- <tr v-for="(field,index) in fields">
 									<td></td>
 									<td v-html="index+1"></td>
-									<!-- <td class="layui-hide" v-html="field.id"></td> -->
 									<td v-html="field.name"></td>
 									<td v-html="field.chinese"></td>
 									<td v-html="field.typeName"></td>
+									<td v-html="getRelation(field)"></td>
 									<td v-html="field.remask"></td>
-								</tr>
+								</tr> -->
 							</tbody>
 						</table>
 					</div>
@@ -185,5 +186,6 @@
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/workset/pkg-table.js" type="text/javascript" charset="utf-8"></script>
+		
 	</body>
 </html>

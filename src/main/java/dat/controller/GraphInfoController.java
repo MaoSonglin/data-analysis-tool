@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.jboss.logging.Logger;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import dat.domain.GraphInfo;
 import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.util.Constant;
+import dat.vo.GraphDataQueryBean;
 import dat.vo.Response;
 
 /**
@@ -24,7 +26,7 @@ import dat.vo.Response;
 @RestController
 @RequestMapping("/graph")
 public class GraphInfoController {
-	
+	private static Logger logger = Logger.getLogger(GraphInfoController.class);
 	@Resource(name="graphInfoServiceImpl")
 	private GraphInfoService graphInfoService;
 	
@@ -37,6 +39,12 @@ public class GraphInfoController {
 	public Response get(@PathVariable String id){
 		// 调用服务层接口查找图表
 		GraphInfo graphInfo = graphInfoService.getById(id);
+		if (logger.isDebugEnabled()) {
+			List<VirtualColumn> getxAxis = graphInfo.getxAxis();
+			List<VirtualColumn> getyAxis = graphInfo.getyAxis();
+			logger.debug(getxAxis);
+			logger.debug(getyAxis);
+		}
 		if(graphInfo != null){// 查找成功
 			return new Response(Constant.SUCCESS_CODE,"查询成功",graphInfo);
 		}
@@ -144,4 +152,10 @@ public class GraphInfoController {
 	public Response getData(GraphInfo g) throws Exception{
 		return graphInfoService.getData(g);
 	}
+	
+	@GetMapping("/dataset")
+	public Object getDataset(GraphDataQueryBean id){
+		return graphInfoService.getGraphDataById(id);
+	}
+	
 }

@@ -9,6 +9,11 @@ import dat.util.StrUtil;
 @Entity
 public class UploadFile implements IdGeneratorable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5513948156395874556L;
+
 	@Id
 	private String id;
 

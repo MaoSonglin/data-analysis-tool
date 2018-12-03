@@ -20,6 +20,12 @@ import dat.util.StrUtil;
 @Entity
 public class TableColumn implements IdGeneratorable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5234868668420594840L;
+
+
 	@Id
 	private String id;
 	

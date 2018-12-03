@@ -1,5 +1,6 @@
 package dat.domain;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -20,8 +22,13 @@ import dat.util.StrUtil;
  * 数据包中的数据表包含的虚拟字段类
  */ 
 @Entity
-public class VirtualColumn {
+public class VirtualColumn implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8263945867735514210L;
+
 	@Id 
 	private String id;
 	
@@ -40,6 +47,11 @@ public class VirtualColumn {
 	 */
 	private String remask;
 	
+	
+	@OneToOne(fetch=FetchType.EAGER,targetEntity=VirtualColumn.class)
+	@JoinColumn(referencedColumnName="id")
+	private VirtualColumn relation;
+	
 	/**
 	 * 该虚拟字段相关联的实际字段
 	 */
@@ -53,8 +65,9 @@ public class VirtualColumn {
 	 */
 	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.LAZY,cascade={CascadeType.PERSIST,CascadeType.REFRESH/*,CascadeType.MERGE*/})
 	@JoinColumn(referencedColumnName="id")
-	@JsonIgnore
+//	@JsonIgnore
 	private VirtualTable table;
+
 	public String getId() {
 		return id;
 	}
@@ -86,10 +99,6 @@ public class VirtualColumn {
 	public String getChinese() {
 		return chinese;
 	}
-
-	
-
-	
 
 	public VirtualTable getTable() {
 		return table;
@@ -170,6 +179,23 @@ public class VirtualColumn {
 		this.remask = remask;
 	}
 
+	public VirtualColumn getRelation() {
+		return relation;
+	}
+
+	public void setRelation(VirtualColumn relation) {
+		this.relation = relation;
+	}
 	
-	
+	public String getRela(){
+		VirtualColumn column = getRelation();
+		if(column != null){
+			VirtualTable virtualTable = column.getTable();
+			String tableChineseName = virtualTable.getChinese();
+			String tableName = tableChineseName== null ? virtualTable.getName():tableChineseName;
+			String columnChinese = column.getChinese();
+			return tableName + "." + (columnChinese == null ? virtualTable.getName() : columnChinese);
+		}
+		return null;
+	}
 }

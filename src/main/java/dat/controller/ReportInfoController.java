@@ -32,8 +32,8 @@ public class ReportInfoController {
 	 * @param id
 	 * @return
 	 */
-	@GetMapping("/{id}")
-	public Response get(@PathVariable String id){
+	@GetMapping()
+	public Response get(String id){
 		if(!id.matches("^RP\\d{16}$")){
 			return new Response(Constant.ERROR_CODE,"ID格式错误",id);
 		}
@@ -62,6 +62,12 @@ public class ReportInfoController {
 	public Response getGraphs(@PathVariable String id){
 		// 根据报表ID查询出报表信息
 		List<GraphInfo> graphs = reportInfoService.getGraphs(id);
+		if(logger.isDebugEnabled()){
+			for (GraphInfo graphInfo : graphs) {
+				logger.debug(graphInfo.getxAxis());
+				logger.debug(graphInfo.getyAxis());
+			}
+		}
 		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",graphs);
 		return response;
 	}

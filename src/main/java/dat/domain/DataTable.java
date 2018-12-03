@@ -1,5 +1,6 @@
 package dat.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -21,7 +22,12 @@ import dat.util.StrUtil;
  * 数据表实体类，该实体类对应某个数据源中实际存在的数据表，表中的数据字段与该实体类中的属性一一对应
  */
 @Entity
-public class DataTable implements IdGeneratorable{
+public class DataTable implements IdGeneratorable,Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4532397303906592014L;
 
 	@Id
 	private String id;
@@ -30,12 +36,12 @@ public class DataTable implements IdGeneratorable{
 	
 	private String chinese;
 	
-	@ManyToOne(targetEntity=Source.class,fetch=FetchType.LAZY)
+	@ManyToOne(targetEntity=Source.class,fetch=FetchType.EAGER)
 	@JoinColumn(name="data_source_id",referencedColumnName="id")
 	@JsonIgnore
 	private Source source;
 	
-	@OneToMany(targetEntity=TableColumn.class,fetch=FetchType.LAZY,mappedBy="dataTable")
+	@OneToMany(targetEntity=TableColumn.class,fetch=FetchType.EAGER,mappedBy="dataTable")
 	@JsonIgnore
 	private List<TableColumn> columns;
 	
