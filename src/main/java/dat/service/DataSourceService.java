@@ -1,7 +1,11 @@
 package dat.service;
 
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.vo.PagingBean;
 import dat.vo.Response;
@@ -46,4 +50,6 @@ public interface DataSourceService {
 	 * @return
 	 */
 	JdbcTemplate getTemplate(Source source);
+
+	Set<Source> findSourceContain(List<DataTable> quoteTable);
 }

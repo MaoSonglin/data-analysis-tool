@@ -21,6 +21,7 @@ import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 
+@Deprecated
 public class VirtualTableQueryHandler implements JoinHandler,Serializable {
 	
 	private static final long serialVersionUID = 7420357338798441118L;

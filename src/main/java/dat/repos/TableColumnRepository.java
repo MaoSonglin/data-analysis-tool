@@ -2,6 +2,7 @@ package dat.repos;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -37,4 +38,7 @@ public interface TableColumnRepository extends JpaRepository<TableColumn, String
 	 */
 	@Query("select tc from TableColumn tc where tc.id in (select vc.id from VirtualColumn vc where vc.id in :ids)")
 	List<TableColumn> findByVirtualColumnIds(@Param("ids") Collection<String> ids);
+
+	Set<TableColumn> findByIdIn(List<String> idset);
+	
 }

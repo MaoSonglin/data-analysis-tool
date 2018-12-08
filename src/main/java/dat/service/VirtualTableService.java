@@ -3,6 +3,7 @@ package dat.service;
 import java.util.List;
 import java.util.Map;
 
+import dat.domain.DataTable;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.vo.Response;
@@ -74,4 +75,25 @@ public interface VirtualTableService {
 	default Map<String, List<String>> getData(VirtualTable table,List<VirtualColumn> columns) {
 		return getData(table,columns,0,1000);
 	}
+
+	/**
+	 * 获取虚拟数据表table底层引用的实体数据表
+	 * @param table
+	 * @return
+	 */
+	List<DataTable> getQuoteTable(VirtualTable table);
+	
+	/**
+	 * 获取虚拟表table中占主导地位的实体表
+	 * @param table
+	 * @return
+	 */
+	DataTable getMainTable(VirtualTable table);
+
+	/**
+	 * 获取虚拟数据表table底层的实体数据表的关联树
+	 * @param table
+	 * @return
+	 */
+	DataTable getTableTree(VirtualTable table);
 }

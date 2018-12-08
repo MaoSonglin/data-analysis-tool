@@ -1,22 +1,28 @@
 package dat.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
+import dat.domain.VirtualColumn;
 import dat.repos.DataTableRepository;
 import dat.repos.TableColumnRepository;
 import dat.service.TableColumnService;
@@ -27,13 +33,15 @@ import dat.vo.TableColumnPagingBean;
 
 @Service
 public class TableColumnServiceImpl implements TableColumnService {
-	
+	private static Logger logger = LoggerFactory.getLogger(TableColumnServiceImpl.class);
 	@Resource(name="tableColumnRepository")
 	TableColumnRepository colRepos;
 	
 	@Resource(name="dataTableRepository")
 	DataTableRepository tabRepos;
 	
+	@Resource(name="jdbcTemplate")
+	private JdbcTemplate jdbcTemplate;
 	@Override
 	public Response search(TableColumnPagingBean pageBean) {
 		
@@ -108,6 +116,40 @@ public class TableColumnServiceImpl implements TableColumnService {
 		// 根据id查询出所属的数据源
 		Source source = this.colRepos.findDsById(id);
 		return new Response(Constant.SUCCESS_CODE,"查询成功",source);
+	}
+
+	@Override
+	public List<TableColumn> getColumnsByVirtualColumns(
+			List<VirtualColumn> columns) {
+		// 保存虚拟字段的id的集合
+		Set<String> ids  = new HashSet<>();
+		columns.forEach(virtualColumn->{
+			String id = virtualColumn.getId();
+			ids.add(id);
+		});
+		String sql ="\nselect \n"+
+			    "    tablecolum1_.id as id \n"+
+			    "from \n"+
+			    "    virtual_column_ref_columns refcolumns0_ \n"+ 
+			    "inner join \n"+
+			    "    table_column tablecolum1_ \n"+ 
+			    "        on refcolumns0_.ref_columns_id=tablecolum1_.id \n"+ 
+			    "where \n"+
+			    "    refcolumns0_.virtual_column_id in \n";
+		StringBuffer sb = new StringBuffer(sql);
+		sb.append('(');
+		ids.forEach(elem->{
+			sb.append('?').append(',');
+		});
+		sb.deleteCharAt(sb.length()-1);
+		sb.append(')');
+		logger.debug(sb+ids.toString());
+		List<String> list = jdbcTemplate.query(sb.toString(), (rs,i)->{
+			return rs.getString("id");
+		}, ids.toArray());
+		// 待查询的底层实体字段
+		Set<TableColumn> tableColumns = colRepos.findByIdIn(list);
+		return new ArrayList<>(tableColumns);
 	}
 
 }

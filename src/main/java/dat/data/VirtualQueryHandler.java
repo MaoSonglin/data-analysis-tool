@@ -241,7 +241,7 @@ public class VirtualQueryHandler implements QueryHandler {
 
 
 }
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") @Deprecated
 class VirtualTableJoinHandler extends VirtualQueryHandler implements JoinHandler{
 
 	/**

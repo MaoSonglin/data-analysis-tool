@@ -10,7 +10,7 @@ import java.sql.DriverManager;
 import dat.domain.DataTable;
 import dat.domain.Source;
 
-@SuppressWarnings("unused")
+@Deprecated @SuppressWarnings("unused")
 public class EntityTableConnManager implements InvocationHandler,Serializable {
 	
 	private static final long serialVersionUID = 8812351482502679655L;

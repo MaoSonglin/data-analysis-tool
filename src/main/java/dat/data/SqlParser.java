@@ -2,6 +2,7 @@ package dat.data;
 
 import java.util.List;
 
+@Deprecated
 public interface SqlParser {
 
 	default List<Renameable> getColumns(){return null;}

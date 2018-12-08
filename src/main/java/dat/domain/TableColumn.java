@@ -1,5 +1,7 @@
 package dat.domain;
 
+import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -7,6 +9,11 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -20,26 +27,17 @@ import dat.util.StrUtil;
 @Entity
 public class TableColumn implements IdGeneratorable{
 
-	/**
-	 * 
-	 */
+	private static Logger logger = LoggerFactory.getLogger(TableColumn.class);
+	
 	private static final long serialVersionUID = 5234868668420594840L;
-
 
 	@Id
 	private String id;
-	
 	 
 	@Column
 	private String chinese;
 	
-	 
-	 
-	private Boolean isPrimaryKey;
 	
-	private Boolean isForeginKey;
-	
-	private Boolean isUnique;
 	/******************************************************/
 	private String columnName;
 	
@@ -59,15 +57,27 @@ public class TableColumn implements IdGeneratorable{
 	
 	private String remarks;
 	
-	private String columnDef;
+	/**
+	 * 当前字段作为外键，参考其他表的信息
+	 */
+	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.LAZY)
+	@JsonIgnore
+	private ForeignKey foreignKey;
 	
-	private Integer sqlDataType;
+	/**
+	 * 引用当前字段的外键
+	 */
+	@OneToMany(targetEntity=ForeignKey.class,mappedBy="primaryColumn",fetch=FetchType.LAZY)
+	@JsonIgnore
+	private List<ForeignKey> quote;
+	
+	/*private Integer sqlDataType;
 	
 	private Integer sqlDatetimeSub;
 	
 	private Integer charOctetLength;
 	
-	private Integer ordinalPosition;
+	private Integer ordinalPosition;*/
 	
 	/******************************************************/
 	
@@ -121,37 +131,6 @@ public class TableColumn implements IdGeneratorable{
 	public void setChinese(String chinese) {
 		this.chinese = chinese;
 	}
-
-	 
-
-	 
-
-	 
-	public Boolean getIsPrimaryKey() {
-		return isPrimaryKey;
-	}
-
-	public void setIsPrimaryKey(Boolean isPrimaryKey) {
-		this.isPrimaryKey = isPrimaryKey;
-	}
-
-	public Boolean getIsForeginKey() {
-		return isForeginKey;
-	}
-
-	public void setIsForeginKey(Boolean isForeginKey) {
-		this.isForeginKey = isForeginKey;
-	}
-
-	public Boolean getIsUnique() {
-		return isUnique;
-	}
-
-	public void setIsUnique(Boolean isUnique) {
-		this.isUnique = isUnique;
-	}
-
-	
 
 	public DataTable getDataTable() {
 		return dataTable;
@@ -242,45 +221,6 @@ public class TableColumn implements IdGeneratorable{
 		this.remarks = remarks;
 	}
 
-	public String getColumnDef() {
-		return columnDef;
-	}
-
-	public void setColumnDef(String columnDef) {
-		this.columnDef = columnDef;
-	}
-
-	public Integer getSqlDataType() {
-		return sqlDataType;
-	}
-
-	public void setSqlDataType(Integer sqlDataType) {
-		this.sqlDataType = sqlDataType;
-	}
-
-	public Integer getSqlDatetimeSub() {
-		return sqlDatetimeSub;
-	}
-
-	public void setSqlDatetimeSub(Integer sqlDatetimeSub) {
-		this.sqlDatetimeSub = sqlDatetimeSub;
-	}
-
-	public Integer getCharOctetLength() {
-		return charOctetLength;
-	}
-
-	public void setCharOctetLength(Integer charOctetLength) {
-		this.charOctetLength = charOctetLength;
-	}
-
-	public Integer getOrdinalPosition() {
-		return ordinalPosition;
-	}
-
-	public void setOrdinalPosition(Integer ordinalPosition) {
-		this.ordinalPosition = ordinalPosition;
-	}
 
 	public String getAddTime() {
 		return addTime;
@@ -290,23 +230,33 @@ public class TableColumn implements IdGeneratorable{
 		this.addTime = addTime;
 	}
 
-	@Override
-	public String toString() {
-		return "TableColumn [id=" + id + ", chinese=" + chinese
-				+ ", isPrimaryKey=" + isPrimaryKey + ", isForeginKey="
-				+ isForeginKey + ", isUnique=" + isUnique + ", columnName="
-				+ columnName + ", dataType=" + dataType + ", typeName="
-				+ typeName + ", columnSize=" + columnSize + ", bufferLength="
-				+ bufferLength + ", decimalDigits=" + decimalDigits
-				+ ", numPrecRadix=" + numPrecRadix + ", nullable=" + nullable
-				+ ", remarks=" + remarks + ", columnDef=" + columnDef
-				+ ", sqlDataType=" + sqlDataType + ", sqlDatetimeSub="
-				+ sqlDatetimeSub + ", charOctetLength=" + charOctetLength
-				+ ", ordinalPosition=" + ordinalPosition + ", dataTable="
-				+ dataTable + ", addTime=" + addTime + ", state=" + state + "]";
+	
+	public ForeignKey getForeignKey() {
+		return foreignKey;
 	}
 
-	@Override
+	public void setForeignKey(ForeignKey foreignKey) {
+		logger.debug("设置该字段的外键");
+		this.foreignKey = foreignKey;
+	}
+
+	/**
+	 * 获取引用该字段的外键
+	 * @return
+	 */
+	public List<ForeignKey> getQuote() {
+		return quote;
+	}
+
+	/**
+	 * 设置引用该字段的外键信息
+	 * @param quote
+	 */
+	public void setQuote(List<ForeignKey> quote) {
+		logger.debug("设置引用该字段的外键");
+		this.quote = quote;
+	}
+
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -331,12 +281,16 @@ public class TableColumn implements IdGeneratorable{
 		return true;
 	}
 
-	/*public List<TableColumn> getAssoc() {
-		return assoc;
+	@Override
+	public String toString() {
+		return "TableColumn [id=" + id + ", chinese=" + chinese
+				+ ", columnName=" + columnName + ", dataType=" + dataType
+				+ ", typeName=" + typeName + ", columnSize=" + columnSize
+				+ ", bufferLength=" + bufferLength + ", decimalDigits="
+				+ decimalDigits + ", numPrecRadix=" + numPrecRadix
+				+ ", nullable=" + nullable + ", remarks=" + remarks
+				+ ", addTime=" + addTime + ", state=" + state + "]";
 	}
 
-	public void setAssoc(List<TableColumn> assoc) {
-		this.assoc = assoc;
-	}*/
-	
+
 }

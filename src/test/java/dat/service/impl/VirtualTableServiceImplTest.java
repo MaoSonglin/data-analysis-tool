@@ -16,6 +16,7 @@ import dat.vo.TableData;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
+@SuppressWarnings("all")
 public class VirtualTableServiceImplTest {
 
 	@Autowired

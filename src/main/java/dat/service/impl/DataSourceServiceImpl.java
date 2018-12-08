@@ -1,11 +1,14 @@
 package dat.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
@@ -260,5 +263,20 @@ public class DataSourceServiceImpl implements DataSourceService {
 			jdbcTemplate = context.getBean(beanName, JdbcTemplate.class);
 		}
 		return jdbcTemplate;
+	}
+
+
+
+	@Override
+	public Set<Source> findSourceContain(List<DataTable> quoteTable) {
+		Set<String> ids = new HashSet<>();
+		quoteTable.forEach(elem->{ids.add(elem.getId());});
+		Specification<Source> spec = (root,query,cb)->{
+			Join<Source, DataTable> join = root.join("tables");
+			Predicate predicate = join.get("id").in(ids);
+			return predicate;
+		};
+		List<Source> list = dsRepos.findAll(spec);
+		return new HashSet<>(list);
 	}
 }

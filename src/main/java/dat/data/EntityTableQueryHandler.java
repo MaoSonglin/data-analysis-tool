@@ -26,6 +26,7 @@ import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.util.DialectUtil;
 
+@Deprecated
 public class EntityTableQueryHandler implements QueryHandler {
 	
 	/**
@@ -175,7 +176,7 @@ public class EntityTableQueryHandler implements QueryHandler {
 	}
 
 }
-
+@Deprecated
 class X extends EntityTableQueryHandler implements JoinHandler{
 	/**
 	 * 

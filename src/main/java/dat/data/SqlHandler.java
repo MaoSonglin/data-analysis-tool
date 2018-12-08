@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@Deprecated
 public class SqlHandler implements SqlParser {
 	public static void main(String[] args) {
 		String sql = "select * , xong ,name 2d from table t1 join tables t2 on x=y where 1=1 and x <= 14 limit 23,234";
@@ -320,7 +321,7 @@ class ColumnAliasStateMachine extends GetColumnName{
 	
 }
 
-
+@Deprecated
 class ColumnRenameAble implements Renameable{
 	String name;
 	String alias;
@@ -342,7 +343,7 @@ class ColumnRenameAble implements Renameable{
 		return conjunction;
 	}
 }
-
+@Deprecated
 class TableRenameable implements Renameable{
 	String name;
 	String alias;
@@ -476,7 +477,7 @@ class TwentySeven extends TwentyFive{
 		handler.size = size;
 	}
 } 
-
+@Deprecated
 class TwoElementOperation implements FilterCondition{
 
 	String left;

@@ -23,6 +23,11 @@ import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 
+/**
+ * @author MaoSonglin
+ * 虚拟数据表连接管理类，该类已经废弃，请使用QueryHelper
+ */
+@Deprecated
 public class VirtualTableConnManager implements InvocationHandler,Serializable {
 	
 
@@ -92,7 +97,6 @@ public class VirtualTableConnManager implements InvocationHandler,Serializable {
 		throw new Exception("The method "+name+" with parameter "+Arrays.toString(args)+" is not implemented!");
 	}
 
-	@SuppressWarnings("deprecation")
 	public PreparedStatement prepareStatement(String sql) throws Exception {
 		tableColumnMap.clear();
 		// SQL语句解析器
@@ -357,7 +361,7 @@ public class VirtualTableConnManager implements InvocationHandler,Serializable {
  * 	[columnName|columnAlias....][tableName|tableAlias][table.column=table.column]
  * 	[where][offset,size]
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 class MySqlParser implements dat.data.SqlParser{
 	
 	private String sql;
@@ -444,7 +448,7 @@ class MySqlParser implements dat.data.SqlParser{
 	}
 	
 }
-
+@Deprecated
 class ColumnName implements Renameable{
 
 	String columnName;

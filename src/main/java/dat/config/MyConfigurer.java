@@ -27,6 +27,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.alibaba.druid.pool.DruidDataSource;
 
 import dat.config.ConstantConfig.Cors;
+import dat.data.QueryHelper;
 import dat.web.AddUserServlet;
 import dat.web.ImageServlet;
 import dat.web.IsLoginFilter;
@@ -148,6 +149,11 @@ public class MyConfigurer implements WebMvcConfigurer {
 		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
 		multipartResolver.setMaxUploadSize(1024*1024*10);
 		return multipartResolver;
+	}
+	
+	@Bean
+	public QueryHelper queryHelper(){
+		return new QueryHelper();
 	}
 
 }

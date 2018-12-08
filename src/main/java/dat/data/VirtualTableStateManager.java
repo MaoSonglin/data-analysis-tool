@@ -13,7 +13,7 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
-
+@Deprecated
 public class VirtualTableStateManager implements InvocationHandler {
 	private static Logger logger = Logger.getLogger(VirtualTableStateManager.class);
 	VirtualTableConnManager tableConnManager;

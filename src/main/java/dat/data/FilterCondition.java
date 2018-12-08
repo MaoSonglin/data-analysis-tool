@@ -1,5 +1,6 @@
 package dat.data;
 
+@Deprecated
 public interface FilterCondition {
 
 	String getLeft();

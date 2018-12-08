@@ -5,12 +5,10 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,12 +19,15 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 
-import dat.data.VirtualTableConnManager;
-import dat.data.VirtualTableQueryHandler;
+import dat.data.DataAdapter;
+import dat.data.QueryHelper;
 import dat.domain.DataTable;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
@@ -36,6 +37,7 @@ import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.service.DataTableService;
+import dat.service.TableColumnService;
 import dat.service.VirtualTableService;
 import dat.util.Constant;
 import dat.vo.Response;
@@ -59,6 +61,15 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	
 	@Resource(name="tableColumnRepository")
 	private TableColumnRepository tableColumnRepos;
+
+	@Resource(name="tableColumnServiceImpl")
+	private TableColumnService tableColumnService;
+	
+	@Autowired
+	private ApplicationContext context;
+
+	@Resource(name="jdbcTemplate")
+	private JdbcTemplate jdbcTemplate;
 	
 	public Response getById(String id) {
 		try {
@@ -128,164 +139,144 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		return null;
 	}
 
+	@Override
 	public Map<String, List<String>> getData(VirtualTable table,List<VirtualColumn> columns,int offset,int limit) {
-		// 构建SQL语句
-		String sql = constructSQL(table, columns);
-		Map<String,List<String>> map = new HashMap<>();
-		for (VirtualColumn virtualColumn : columns) {
-			map.put(virtualColumn.getName(), new ArrayList<>(limit));
-		}
-		logger.debug("在虚拟数据表上执行SQL语句："+sql);
-		try (Connection conn = VirtualTableConnManager.getConnection(table);
-				PreparedStatement ps = conn.prepareStatement(sql);
-				ResultSet rs = ps.executeQuery()){
-			rs.absolute(offset);	
-			while(rs.next() && limit-- > 0){
-				Set<Entry<String,List<String>>> entrySet = map.entrySet();
-				for (Entry<String, List<String>> entry : entrySet) {
-					entry.getValue().add(rs.getString(entry.getKey()));
+		table = vtRepos.findById(table.getId()).get();
+		// 存放查询结果的map
+		Map<String, List<String>> m = getEmptyResultMap(columns);
+		// 查询助手
+		QueryHelper queryHelper = context.getBean(QueryHelper.class);
+		// 查询开始
+		try (DataAdapter dataAdapter = queryHelper.query(table, columns);) {
+			// 设置分页
+			dataAdapter.limit(offset, limit);
+			
+			// 遍历查询结果
+			dataAdapter.forEach(map->{
+				// 当前行的数据
+				Set<Entry<String,String>> entrySet = map.entrySet();
+				for (Entry<String,String> entry : entrySet) {
+					String key = entry.getKey();
+					String value = entry.getValue();
+					m.get(key).add(value);
 				}
-			}
-			logger.debug("查询成功");
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.debug("查询失败");
-		}
-		return map;
-	}
-
-	/**
-	 * @param table
-	 * @param columns
-	 * @return 
-	 */
-	private String constructSQL(VirtualTable table, List<VirtualColumn> columns) {
-		StringBuffer sb = new StringBuffer("select ");
-		for (VirtualColumn virtualColumn : columns) {
-			sb.append(virtualColumn.getName()).append(',');
-		}
-		sb.deleteCharAt(sb.length()-1);
-		sb.append(" from ");
-		sb.append(table.getName());
-		String sql = sb.toString();
-		return sql;
-	}
-	
-	@Deprecated
-	public List<Map<String,String>> getData(VirtualTable t){
-		List<VirtualColumn> vcolumns = t.getColumns();
-		if(vcolumns == null || vcolumns.isEmpty()){
-			vcolumns = virtualColumnRepos.findAll((root,query,cb)->{
-				return cb.equal(root.get("table").get("id"), t.getId());
 			});
-			System.err.println(vcolumns.size());
+		} catch (Exception e1) {
+			e1.printStackTrace();
 		}
-		
-		// 待查询的数据表目录，key代表要查询的实际数据表格，value代表待查询的表格中需要检索的字段
-		Map<DataTable, Set<TableColumn>> map = getQueryField(vcolumns);
-		
-		Map<DataTable, List<Map<String, String>>> m = toQuery(map);
-		
-		List<Map<String,String>> values = new ArrayList<>(m.size());
-		// TODO 把多个表连接成一个表
-		List<Map<String,String>> xx = join(m,t);
-		for (Map<String, String> map2 : xx) {
-			Map<String,String> row = new HashMap<>();
-			for (VirtualColumn vc : vcolumns) {
-				// TODO 按照公式计算虚拟字段的值，这里默认将虚拟字段和真实字段一一对应了
-				String columnName = vc.getName();//tableColumn.getColumnName();
-				String v = map2.get(columnName);
-				row.put(vc.getName(), v);
-			}
-			values.add(row);
-		}
-		
-		return values;
-	}
-
-	/**
-	 * @param map
-	 * @return
-	 */
-	public Map<DataTable, List<Map<String, String>>> toQuery(
-			Map<DataTable, Set<TableColumn>> map) {
-		Map<DataTable,List<Map<String,String>>> m = new HashMap<>();
-		// 遍历查询每一张表
-		map.forEach((key,value)->{
-			// 查询出一张表的数据
-			List<Map<String,String>> values = dataTableService.getValues(key, new ArrayList<>(value));
-			m.put(key, values);
-		});
 		return m;
 	}
-
-	/**
-	 * @param vcolumns
-	 * @return
-	 */
-	public Map<DataTable, Set<TableColumn>> getQueryField(
-			List<VirtualColumn> vcolumns) {
-		Map<DataTable,Set<TableColumn>> map = new HashMap<>();
-		Set<String> ids = new HashSet<>();
-		vcolumns.forEach(elem->{
-			ids.add(elem.getId());
-		});
-		
-		// 遍历虚拟数据表中的虚拟字段
-		vcolumns.forEach(elem->{
-			// 遍历虚拟字段引用的实际字段
-			elem.getRefColumns().forEach(column->{
-				// 获取实际字段所在的数据表 TODO 待优化
-				DataTable dataTable = column.getDataTable();
-				// 将数据表和字段添加到待查询的目录中
-				Set<TableColumn> s = map.get(dataTable);
-				if(s == null){
-					s = new HashSet<>();
-					map.put(dataTable, s);
-				}
-				s.add(column);
-			});
-		});
-		return map;
-	}
-	public Map<DataTable, Set<TableColumn>> getQueryField2(
-			List<VirtualColumn> vcolumns) {
-		Map<DataTable,Set<TableColumn>> map = new HashMap<>();
-		Set<String> ids = new HashSet<>();
-		vcolumns.forEach(elem->{
-			ids.add(elem.getId());
-		});
-		/*List<TableColumn> columns = tableColumnRepos.findByVirtualColumnIds(ids);
-		for (TableColumn tableColumn : columns) {
-			
-		}*/
-		return map;
-	}
-
-	/**
-	 * 将多张表的数据连接成一张表的数据
-	 * @param m
-	 * @param t
-	 * @return
-	 */
-	private List<Map<String,String>>  join(Map<DataTable, List<Map<String, String>>> m,
-			VirtualTable t) {
-		// TODO 待修改，这里只是默认所有数据都来自一个表
-		Set<Entry<DataTable,List<Map<String,String>>>> entrySet = m.entrySet();
-		for (Entry<DataTable, List<Map<String, String>>> entry : entrySet) {
-			return entry.getValue();
-		}
-		return null;
-	}
-
-	public Map<String, List<String>> listData(VirtualTable t) {
-		VirtualTable table = vtRepos.findById(t.getId()).get();
-		VirtualTableQueryHandler queryHandler = new VirtualTableQueryHandler(table);
-		try {
-			Map<String, List<String>> list = queryHandler.list();
+	
+	@Override
+	public List<Map<String,String>> getData(VirtualTable t){
+		QueryHelper queryHelper = context.getBean(QueryHelper.class);
+		try(DataAdapter adapter = queryHelper.query(t, t.getColumns())){
+			List<Map<String,String>> list = new LinkedList<>();
+			for (Map<String, String> map : adapter) {
+				list.add(map);
+			}
 			return list;
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public Map<String, List<String>> listData(VirtualTable t) {
+		QueryHelper helper = context.getBean(QueryHelper.class);
+		VirtualTable table = vtRepos.findById(t.getId()).get();
+		List<VirtualColumn> columns = table.getColumns();
+		// 获取一个空存放查询结果映射集合
+		Map<String, List<String>> resultMap = getEmptyResultMap(columns);
+		try (DataAdapter dataAdapter = helper.query(table, columns)) {
+			// 遍历查询结果
+			for (Map<String, String> map : dataAdapter) {
+				Set<Entry<String,String>> entrySet = map.entrySet();
+				for (Entry<String, String> entry : entrySet) {
+					resultMap.get(entry.getKey()).add(entry.getValue());
+				}
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		return resultMap;
+	}
+
+	/**
+	 * @param columns
+	 * @return
+	 */
+	private Map<String, List<String>> getEmptyResultMap(
+			List<VirtualColumn> columns) {
+		Map<String, List<String>> resultMap = new HashMap<>();
+		for(VirtualColumn column : columns){
+			resultMap.put(column.getName(), new LinkedList<>());
+		}
+		return resultMap;
+	}
+	
+	@Override
+	public List<DataTable> getQuoteTable(VirtualTable table) {
+		// 待查询的虚拟字段
+		List<VirtualColumn> columns = table.getColumns();
+		
+		List<TableColumn> tableColumns = tableColumnService.getColumnsByVirtualColumns(columns);
+		Set<String> ids = new HashSet<>();
+		tableColumns.forEach(tableColumn->{ ids.add(tableColumn.getId());});
+		List<DataTable> dataTables = dataTableRepos.findAll((root,query,cb)->{
+			Predicate in = root.join("columns").get("id").in(ids);
+			return in;
+		});
+		HashSet<DataTable> hashSet = new HashSet<>(dataTables);
+		return new ArrayList<>(hashSet);
+	}
+
+
+	public DataTable getMainTable(VirtualTable table) {
+		String sql = "\nSELECT \n" + 
+			"	count(tb.id) count, \n" + 
+			"	tb.id id \n" +
+			"FROM \n" +
+			"	data_table tb \n" +
+			"JOIN table_column tc ON tb.id = tc.data_table_id \n" +
+			"JOIN virtual_column_ref_columns vcrc ON tc.id = vcrc.ref_columns_id \n" +
+			"JOIN virtual_column vc ON vcrc.virtual_column_id = vc.id \n" +
+			"JOIN virtual_table vt ON vt.id = vc.table_id \n" +
+			"WHERE \n" +
+			"	vt.id = ? \n" +
+			"GROUP BY tb.id \n" +
+			"ORDER BY count desc \n";
+		logger.debug(sql);
+		String tableId = jdbcTemplate.query(sql, new Object[]{table.getId()}, (rs)->{
+			while(rs.next()){
+				String id = rs.getString("id");
+				return id;
+			}
+			return null;
+		});
+		DataTable dataTable = dataTableRepos.findById(tableId).orElse(null);
+		return dataTable;
+	}
+
+	@Override
+	public DataTable getTableTree(VirtualTable table) {
+		/*DataTable dataTable = getMainTable(table);
+		List<DataTable> quoteTable = getQuoteTable(table);
+		List<DataTable> backList = new ArrayList<>(quoteTable);
+		if(!quoteTable.contains(dataTable)){
+			throw new IllegalArgumentException();
+		}else{
+			int size = quoteTable.size();
+			if(size == 1) return dataTable;
+			else{
+				removeFrom(quoteTable,dataTable);
+				if(quoteTable.isEmpty()) return dataTable;
+				backList.removeAll(quoteTable);
+				
+			}
+		}*/
+		
+//		return null;
+		throw new UnsupportedOperationException("method dat.service.impl.VirtualTableServiceImpl.getTableTree(VirtualTable) is not implemented !");
 	}
 }

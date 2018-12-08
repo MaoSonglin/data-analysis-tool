@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public interface QueryHandler extends Serializable {
 	
 	Map<String,List<String>> list() throws Exception;

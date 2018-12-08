@@ -136,11 +136,11 @@ public class OracleSourceMetaData implements MetaDataParser{
 		tableColumn.setNumPrecRadix(rs.getInt("NUM_PREC_RADIX"));
 		tableColumn.setNullable(rs.getBoolean("NULLABLE"));
 		tableColumn.setRemarks(rs.getString("REMARKS"));
-		tableColumn.setColumnDef(rs.getString("COLUMN_DEF"));
-		tableColumn.setSqlDataType(rs.getInt("SQL_DATA_TYPE"));
-		tableColumn.setSqlDatetimeSub(rs.getInt("SQL_DATETIME_SUB"));
-		tableColumn.setCharOctetLength(rs.getInt("CHAR_OCTET_LENGTH"));
-		tableColumn.setOrdinalPosition(rs.getInt("ORDINAL_POSITION"));
+//		tableColumn.setColumnDef(rs.getString("COLUMN_DEF"));
+//		tableColumn.setSqlDataType(rs.getInt("SQL_DATA_TYPE"));
+//		tableColumn.setSqlDatetimeSub(rs.getInt("SQL_DATETIME_SUB"));
+//		tableColumn.setCharOctetLength(rs.getInt("CHAR_OCTET_LENGTH"));
+//		tableColumn.setOrdinalPosition(rs.getInt("ORDINAL_POSITION"));
 		tableColumn.setAddTime(StrUtil.currentTime());
 		tableColumn.generateId();
 		return tableColumn;

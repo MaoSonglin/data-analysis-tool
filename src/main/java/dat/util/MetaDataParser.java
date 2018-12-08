@@ -288,11 +288,11 @@ class MySQLSourceMetaData implements MetaDataParser{
 		tableColumn.setNumPrecRadix(columns.getInt("NUM_PREC_RADIX"));
 		tableColumn.setNullable(columns.getBoolean("NULLABLE"));
 		tableColumn.setRemarks(columns.getString("REMARKS"));
-		tableColumn.setColumnDef(columns.getString("COLUMN_DEF"));
-		tableColumn.setSqlDataType(columns.getInt("SQL_DATA_TYPE"));
-		tableColumn.setSqlDatetimeSub(columns.getInt("SQL_DATETIME_SUB"));
-		tableColumn.setCharOctetLength(columns.getInt("CHAR_OCTET_LENGTH"));
-		tableColumn.setOrdinalPosition(columns.getInt("ORDINAL_POSITION"));
+//		tableColumn.setColumnDef(columns.getString("COLUMN_DEF"));
+//		tableColumn.setSqlDataType(columns.getInt("SQL_DATA_TYPE"));
+//		tableColumn.setSqlDatetimeSub(columns.getInt("SQL_DATETIME_SUB"));
+//		tableColumn.setCharOctetLength(columns.getInt("CHAR_OCTET_LENGTH"));
+//		tableColumn.setOrdinalPosition(columns.getInt("ORDINAL_POSITION"));
 		tableColumn.setAddTime(StrUtil.currentTime());
 		
 		return tableColumn;

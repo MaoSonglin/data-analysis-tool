@@ -1,5 +1,9 @@
 package dat.service;
 
+import java.util.List;
+
+import dat.domain.TableColumn;
+import dat.domain.VirtualColumn;
 import dat.vo.Response;
 import dat.vo.TableColumnPagingBean;
 
@@ -33,4 +37,6 @@ public interface TableColumnService {
 	 */
 	Response getSourceById(String id);
 
+	
+	List<TableColumn> getColumnsByVirtualColumns(List<VirtualColumn> columns);
 }

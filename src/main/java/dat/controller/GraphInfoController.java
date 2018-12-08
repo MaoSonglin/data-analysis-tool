@@ -16,7 +16,6 @@ import dat.domain.GraphInfo;
 import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.util.Constant;
-import dat.vo.GraphDataQueryBean;
 import dat.vo.Response;
 
 /**
@@ -152,10 +151,4 @@ public class GraphInfoController {
 	public Response getData(GraphInfo g) throws Exception{
 		return graphInfoService.getData(g);
 	}
-	
-	@GetMapping("/dataset")
-	public Object getDataset(GraphDataQueryBean id){
-		return graphInfoService.getGraphDataById(id);
-	}
-	
 }

@@ -2,6 +2,8 @@ package dat.data;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,12 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,190 +21,101 @@ import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
-import dat.util.Classify;
+import dat.service.VirtualTableService;
 import dat.util.DialectUtil;
+import dat.util.FormulaParser;
 
-
-public class QueryHelper implements Serializable{
+ 
+public class QueryHelper implements Serializable,ApplicationContextAware{
+	
 	public static void main(String[] args) {
-		List<String> segments = FilterUtils.getSegments("name like 2 ");
-		System.out.println(segments);
+		String tmpdir = System.getProperty("java.io.tmpdir");
+		String userdir = System.getProperty("user.dir");
+		Path path = Paths.get(userdir);
+		Path fileName = path.getFileName();
+		System.out.println(path);
+		System.out.println(fileName);
+		System.out.println(Paths.get(tmpdir, fileName.toString()));
 	}
 	
 	private static final long serialVersionUID = -5188110890420853846L;
 	
-	private VirtualTable table;
+	private static Logger logger = LoggerFactory.getLogger(QueryHelper.class);
 
-	private ArrayList<DataTable> dataTables;
-	
-	
-	public DataAdapter query(List<VirtualColumn> columns){
-		boolean b = table.getColumns().containsAll(columns);
-		if(!b){
-			throw new IllegalArgumentException("query list contains one or more columns not included in table \""+table.getName()+"\"");
+	private ApplicationContext context;
+
+	public DataAdapter query(VirtualTable table,List<VirtualColumn> columns){
+		if(logger.isDebugEnabled()){
+			logger.debug("查询数据表："+table);
+			columns.forEach(virtualColumn->{
+				logger.debug(virtualColumn.getName());
+			});
 		}
-		// 获取主表
-		DataTable table = findPrimaryDataTable();
-		// 如果不包含其他的表
-		if(dataTables.isEmpty()){
-			List<TableColumn> clst = retriveColumnInVirtualTable(columns,table);
-			return new SingleTableDataAdapter(table,clst);
-		}else{
-			// 遍历其他的表
-			for (DataTable dataTable : dataTables) {
-				// 获取两个数据表之前的关联关系
-				List<TableColumn[]> relation = getRelation(table, dataTable);
-				if(relation.isEmpty()){// 没有关联关系
-					
-				}else{	// 存在一个或者多个关联的字段
-					
-				}
-			}
+		VirtualTableService virtualTableService = context.getBean(VirtualTableService.class);
+		List<DataTable> quoteTable = virtualTableService.getQuoteTable(table);
+		// 虚拟表中占主导地位的实体表
+//		DataTable mainTable = virtualTableService.getMainTable(table);
+//		boolean b = quoteTable.remove(mainTable);
+		// 从引用表数组中移除主体表
+		if(quoteTable.size() == 1) {
+			DataTable mainTable = quoteTable.remove(0);
+			return new SingleTableDataAdapter(mainTable, columns,mainTable.getColumns());
 		}
-		return null;
+		else{
+			SingleSourceDataAdapter dataAdapter = new SingleSourceDataAdapter(context);
+			dataAdapter.setColumns(columns);
+			dataAdapter.setDataTables(quoteTable);
+			return dataAdapter;
+		}
 	}
 	
-	private List<TableColumn> retriveColumnInVirtualTable(
-			List<VirtualColumn> columns, DataTable table2) {
-		List<TableColumn> c = new ArrayList<>();
-		for (VirtualColumn virtualColumn : columns) {
-			List<TableColumn> refColumns = virtualColumn.getRefColumns();
-			for (TableColumn tableColumn : refColumns) {
-				if(tableColumn.getDataTable().equals(table2)){
-					c.add(tableColumn);
-				}
-			}
-		}
-		return c;
-	}
 
-	/**
-	 * 找到虚拟数据表中应用字段最多的那个数据表
-	 * @return
-	 */
-	protected DataTable findPrimaryDataTable(){
-		List<VirtualColumn> columns = table.getColumns();
-		Map<DataTable,Integer> map = new HashMap<>();
-		// 遍历所有字段
-		for (VirtualColumn virtualColumn : columns) {
-			List<TableColumn> refColumns = virtualColumn.getRefColumns();
-			// 遍历该字段引用的实体字段
-			for (TableColumn tableColumn : refColumns) {
-				// 获取数据表
-				DataTable dataTable = tableColumn.getDataTable();
-				// 记录数据表应应用的次数
-				Integer integer = map.get(dataTable);
-				if(integer==null){
-					map.put(dataTable, 1);
-				}else{
-					map.put(dataTable, integer+1);
-				}
-			}
-		}
-		dataTables = new ArrayList<DataTable>(map.keySet());
-		dataTables.sort((a,b)->{
-			return map.get(a) > map.get(b) ? 0 : 1;
-		});
-		return dataTables.remove(0);
-	}
-
-
-	protected List<TableColumn[]> getRelation(DataTable t1,DataTable t2){
-		Map<Integer, Set<TableColumn>> map = getCategory(t1.getColumns(), t2.getColumns());
-		Set<Entry<Integer,Set<TableColumn>>> entrySet = map.entrySet();
-		List<TableColumn[]> list = new ArrayList<>();
-		for (Entry<Integer, Set<TableColumn>> entry : entrySet) {
-			Set<TableColumn> value = entry.getValue();
-			ArrayList<TableColumn> arrayList = new ArrayList<>(value);
-			int size = arrayList.size();
-			for(int i = 0; i < size-1; i++){
-				for(int j = i+1; j< size; j++){
-					TableColumn c1 = arrayList.get(i);
-					TableColumn c2 = arrayList.get(j);
-					boolean f = t1.getColumns().contains(c1) && t2.getColumns().contains(c2);
-					if(f){
-						TableColumn[] relation = new TableColumn[2];
-						relation[0] = c1;
-						relation[1] = c2;
-						list.add(relation);
-					}
-					f = t2.getColumns().contains(c1) && t1.getColumns().contains(c2);
-					if(f){
-						TableColumn[] relation = new TableColumn[2];
-						relation[0] = c2;
-						relation[1] = c1;
-						list.add(relation);
-					}
-				}
-			}
-		}
-		return list;
-	}
-
-	/**
-	 * @param columns
-	 * @param columns2
-	 * @return
-	 */
-	private Map<Integer, Set<TableColumn>> getCategory(
-			List<TableColumn> columns, List<TableColumn> columns2) {
-		Map<Integer,Set<TableColumn>> map = new HashMap<>();
-		classify(columns, map);
-		classify(columns2,map);
-		return map;
-	}
-
-	/**
-	 * @param columns
-	 * @param map
-	 */
-	private void classify(List<TableColumn> columns,
-			Map<Integer, Set<TableColumn>> map) {
-		Classify classify = new Classify();
-		for (TableColumn tableColumn : columns) {
-			classify.setCnName(tableColumn.getChinese());
-			classify.setEnName(tableColumn.getColumnName());
-			classify.setDataType(tableColumn.getTypeName());
-			Integer category = classify.getCategory();
-			Set<TableColumn> set = map.get(category);
-			if(set == null){
-				set = new HashSet<>();
-				map.put(category, set);
-			}
-			set.add(tableColumn);
-		}
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
+		this.context = applicationContext;
 	}
 	
 	
 }
 
-class SingleTableDataAdapter implements DataAdapter{
+class SingleTableDataAdapter implements DataAdapter,Iterator<Map<String,String>>{
 	private static Logger logger = LoggerFactory.getLogger(SingleTableDataAdapter.class);
 	private Connection conn;
 	private PreparedStatement ps;
-	private ResultSet rs;
 	private List<TableColumn> columns;
+	private List<VirtualColumn> virtualColumns;
 	private List<String> filters;
 	private LimitHandler limitHandler;
 	private RowSelection selection;
 	private DataTable dataTable;
+	private List<String> columnNames;
+	private ResultSet rs;
+	private Map<String, String> next;
 	
-	public SingleTableDataAdapter(DataTable dataTable,List<TableColumn> columns) {
+	public SingleTableDataAdapter(DataTable dataTable,List<VirtualColumn> virtualColumns,List<TableColumn> columns) {
 		super();
 		// 数据源
 		filters = new ArrayList<>();
 		Source source = dataTable.getSource();
 		limitHandler = DialectUtil.getDialect(source.getDatabaseName()).getLimitHandler();
+		this.virtualColumns = virtualColumns;
 		this.columns = columns;
 		this.dataTable = dataTable;
 		try {
-			Class.forName(source.getDriverClass());
+			String driverClass = source.getDriverClass();
+			logger.debug("加载数据库驱动程序："+driverClass);
+			Class.forName(driverClass);
+			logger.debug("获取数据库连接:"+source.getUrl()+",username:"+source.getUsername());
 			// 数据源连接
 			conn = DriverManager.getConnection(source.getUrl(), source.getUsername(), source.getPassword());
 		} catch (ClassNotFoundException | SQLException e) {
@@ -214,7 +124,7 @@ class SingleTableDataAdapter implements DataAdapter{
 		
 	}
 	private void toQuery() throws SQLException{
-		if(rs == null){
+		if(ps == null){
 			initQuery();
 		}
 	}
@@ -225,9 +135,8 @@ class SingleTableDataAdapter implements DataAdapter{
 		String sql = constructSql(dataTable, columns);
 		logger.debug(sql);
 		ps = conn.prepareStatement(sql);
-		if(selection!=null)
+		if(selection != null)
 			limitHandler.bindLimitParametersAtEndOfQuery(selection, ps, 1);
-		rs = ps.executeQuery();
 	}
 
 	/**
@@ -236,10 +145,12 @@ class SingleTableDataAdapter implements DataAdapter{
 	 * @return
 	 */
 	private String constructSql(DataTable dataTable, List<TableColumn> columns) {
+		columnNames = new ArrayList<>();
 		StringBuffer sb = new StringBuffer("select ");
 		for (TableColumn tableColumn : columns) {
 			String columnName = tableColumn.getColumnName();
 			sb.append(columnName).append(',');
+			columnNames.add(columnName);
 		}
 		sb.deleteCharAt(sb.length()-1);
 		sb.append(" from ");
@@ -252,62 +163,36 @@ class SingleTableDataAdapter implements DataAdapter{
 	}
 
 	public Iterator<Map<String, String>> iterator() {
-		return this;
-	}
-
-	public boolean hasNext() {
 		try {
 			toQuery();
-			boolean last = rs.isLast();
-			return last;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	public Map<String, String> next() {
-		try {
-			toQuery();
-			while(rs.next()){// 获取结果集中的下一行数据
-				// 存放数据的map集合
-				Map<String,String> map = new HashMap<>();
-				// 遍历要查询的列
-				for (TableColumn tableColumn : columns) {
-					String columnName = tableColumn.getColumnName();
-					String value = rs.getString(columnName);
-					map.put(columnName, value);
-				}
-				boolean f = false;
-				// 遍历过滤条件
-				for(String filter : filters){
-					f =  FilterUtils.satisfy(filter, map);
-					if(f){
-						break;
-					}
-				}
-				// 如果满足过滤条件，则重新获取数据
-				if(f)
-					continue;
-				return map;
-			}
-			return null;
+			rs = ps.executeQuery();
+			return this;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	
+
 	public void close() throws IOException {
-		try {
-			if(rs != null )
+		if (rs != null)
+			try {
 				rs.close();
-			if(ps != null)
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		if (ps != null)
+			try {
 				ps.close();
-			if(conn != null)
+			} catch (SQLException e) {
+				throw new IOException(e);
+			}
+		if (conn != null)
+			try {
 				conn.close();
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 	}
 
 	public void filter(String where) {
@@ -320,13 +205,97 @@ class SingleTableDataAdapter implements DataAdapter{
 		return size;
 	}
 
-	@Override
 	public void limit(int offset, int size) {
 		selection = new RowSelection();
 		selection.setFirstRow(offset);
-		selection.setMaxRows(size+1);
+		selection.setMaxRows(size);
+	}
+	@Override
+	public boolean hasNext() {
+		try {
+			if(next == null)
+				next = readrow();
+			return next != null;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	@Override
+	public Map<String, String> next() {
+		try {
+			if(next == null)
+				return readrow();
+			else{
+				Map<String,String> x = next;
+				next = null;
+				return x;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * @return 
+	 * @throws SQLException
+	 */
+	private Map<String, String> readrow() throws SQLException {
+		while(rs.next()){
+			Map<String,String> map = new HashMap<>();
+			for (VirtualColumn vc : virtualColumns) {
+				String formula = vc.getFormula();
+				// 虚拟字段应用的实体字段和实体字段的值的映射
+				Map<String, String> tmpMap = getValue(rs,formula,columns);
+				// 公式解析器
+				FormulaParser parser = new FormulaParser(formula,tmpMap);
+				// 获取虚拟字段的值
+				String value = parser.getValue();
+				// 保存虚拟字段和值的映射关系
+				map.put(vc.getName(), value);
+			}
+			boolean f = false;
+			// 遍历过滤条件
+			for(String filter : filters){
+				f =  FilterUtils.satisfy(filter, map);
+				if(f){
+					break;
+				}
+			}
+			// 如果满足过滤条件，则重新获取数据
+			if(f)
+				continue;
+			return map;
+		}
+		return null;
+	}
+	/**
+	 * @param rs 
+	 * @param formula
+	 * @return
+	 * @throws SQLException
+	 */
+	static Map<String, String> getValue(ResultSet rs, String formula,List<TableColumn> columns) throws SQLException {
+		Map<String,String> tmpMap = new HashMap<>();
+		Pattern compile = Pattern.compile("FD\\d{16}");
+		Matcher matcher = compile.matcher(formula);
+		while(matcher.find()){
+			int start = matcher.start();
+			int end = matcher.end();
+			String id = formula.substring(start, end);
+			for (TableColumn column : columns) {
+				if(column.getId().equals(id)){
+					String value = rs.getString(column.getColumnName());
+					tmpMap.put(id, value);
+					break;
+				}
+			}
+		}
+		return tmpMap;
 	}
 }
+
+
 
 class FilterUtils{
 	public static boolean satisfy(String filter,Map<String,String> map){

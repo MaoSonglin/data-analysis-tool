@@ -33,7 +33,7 @@ import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.util.FormulaParser;
 
-
+@Deprecated
 public class VirtualTableResultSetAdapter extends ResultSetAdapter implements ResultSetMetaData{
 	private static Logger logger = Logger.getLogger(VirtualTableResultSetAdapter.class);
 	private List<ResultSet> resultSetList = new ArrayList<>();

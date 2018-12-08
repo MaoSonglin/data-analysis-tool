@@ -1,5 +1,6 @@
 package dat.data;
 
+@Deprecated
 public interface Renameable {
 
 	default String getName(){ return null;}
