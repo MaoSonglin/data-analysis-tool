@@ -1,5 +1,24 @@
 Vue.http.options.emulateJSON=true
 Vue.http.options.withCredentials=true
+
+var graphTypes = [
+	{
+		name : '条形图',
+		src : '../res/images/bar-chart1.png',
+		type : 'bar'
+	},
+	{
+		name : '折线图',
+		src : '../res/images/line-chart1.png',
+		type : "line"
+	},
+	{
+		name : '饼状图',
+		src : '../res/images/pie-chart1.png',
+		type : "pie"
+	}
+]
+
 var app = new Vue({
 	el : "#app",
 	data:{
@@ -7,25 +26,10 @@ var app = new Vue({
 		pictures : [],	// 报表中包含的所有图片
 		dragedPic : {},	// 当前操作的图片对象
 		charts : []		,// echarts对象数组
-		dragList : [
-			{
-				name : '条形图',
-				src : '../res/images/bar-chart1.png',
-				type : 'bar'
-			},
-			{
-				name : '折线图',
-				src : '../res/images/line-chart1.png',
-				type : 'line'
-			},
-			{
-				name : '饼状图',
-				src : '../res/images/pie-chart1.png',
-				type  : 'pie'
-			}
-		]
+		dragList : null
 	},
 	created:function(){
+		this.dragList = graphTypes
 		this.report = JSON.parse(localStorage['report'])
 		setWidthAndHeight(this.report);
 		this.pictures = [];
@@ -45,25 +49,16 @@ var app = new Vue({
 			this.dragedPic.title = this.dragList[data].name
 			this.dragedPic.type = this.dragList[data].type
 			this.dragedPic.report = this.report
+			this.dragedPic.options = this.dragList[data].option;
 		},
 		allowDrop : function(event){ // 允许
 			event.preventDefault()
 		},
 		drop : function(event){
-			event.preventDefault()
-			var dom = document.querySelector("div.content");
-			
-			// 生成一个默认的图表title
-			for(var i =0; i < this.pictures.length ; i++){
-				if(this.dragedPic.title ==  this.pictures[i].title){
-					var j = 1;
-					while(this.dragedPic.title + j == this.pictures[i].title){
-						j++
-					}
-					this.dragedPic.title = this.dragedPic.title + j;
-				}
-			}
+			event.preventDefault() 
+			// 设置图表位置 
 			this.dragedPic.moveToClient(event.offsetX- this.dragedPic.width / 2,event.offsetY- this.dragedPic.height / 2)
+			// 保存图表
 			Vue.http.post(basePath+"graph",tile(this.dragedPic)).then((res)=>{
 				if(res.body.code==1){
 					var graph = new Graph(res.body.data)
@@ -73,9 +68,7 @@ var app = new Vue({
 				}
 			},function(error){
 				layer.msg("网络错误")
-			})
-			// this.dragedPic.moveToClient(event.offsetX- this.dragedPic.width / 2,event.offsetY- this.dragedPic.height / 2)
-			// this.pictures.push(this.dragedPic)
+			}) 
 		},
 		getStyle : function(pic,event){
 			var style = "position:absolute;width:"+pic.width+"px;height:"+pic.height+"px;left:"+pic.left+"px;top:"+pic.top+"px";
@@ -86,36 +79,26 @@ var app = new Vue({
 			console.log("绘制图形")
 			while(x=this.charts.pop()){
 				x.dispose()
-			}
+			} 
 			for(var i in this.pictures){
 				var graph = this.pictures[i];
 				var dom = document.querySelector("#graph-"+i)
 				var myChart = echarts.init(dom)
-				if(!graph.options){
-					var option = {
-						title : {text : graph.title},
-						tooltip : {},
-						xAxis: {type: 'category'},
-						yAxis : {},
-						series : [
-							{
-								type : graph.type
-							}
-						]
-					}
-					graph.options = JSON.stringify(option)
-				}
-				var option = JSON.parse(graph.options);
-				myChart.setOption(option);
-				this.$http.get(basePath+"graph/data",{params:tile(graph)}).then(function(res){
-					var response = res.body;
-					var option = {
+				var option = JSON.parse(graph.options)
+				console.log(option)
+				myChart.setOption(option)
+				myChart.showLoading();
+				myChart.on("click",function(param){
+					console.log(param)
+				})
+				this.$http.get(basePath+"graph/data/"+graph.id+"/0/1000").then(function(res){
+					myChart.hideLoading()
+					myChart.setOption({
 						dataset : {
-							source : response.data
+							source : res.body.data
 						}
-					}
-					myChart.setOption(option)
-					this.charts.push(myChart)
+					})
+					this.charts.push(myChart) 
 				})
 			}
 		},
@@ -149,30 +132,12 @@ var app = new Vue({
 				area : ['700px','500px'],
 				maxmin : true,
 				btn : ["保存","取消"],
-				cancel : function(index,layero){
-					/* layer.confirm("您确定要关闭吗？",{
-						btn : ['确定','取消']
-					},function(i,l){
-						layer.close(i)
-						layer.close(index);
-					}) */
-					return true;
-				},
 				end : function(){
 					$("#dialog").hide()
 				},
 				btn1 : function(index,layero){
 					layer.close(index);
-					var i=layer.load(1)
-					Vue.http.post(basePath+"graph",tile(pic)).then(function(res){
-						layer.close(i);
-						if(res.body.code != 1){
-							layer.msg(res.body.message)
-						}
-					},function(error){
-						layer.close(i)
-						layer.msg("网络异常")
-					})
+					dialog.saveGraph(pic)
 				}
 			})
 			layer.full(index)
@@ -229,7 +194,7 @@ function setWidthAndHeight(report){
 	$.ajax({
 		url : basePath+"report",
 		method : "post",
-		data : report,
+		data : tile(report),
 		success : function(res){
 			if(res.code == 0){
 				layer.msg(res.message)
@@ -277,6 +242,140 @@ function Graph(g){
 	this.Picture(g.width,g.height,g.top,g.left)
 }
 
+function load(target){
+	alert(JSON.stringify(target))
+}
+
+
+
+/******************************************************/
+
+
+var dialog = new Vue({
+	el : "#dialog",
+	data : {
+		nodes : [],
+		xFields: [],// 当前已添加的x轴上的字段
+		yFields : [] ,// 当前已添加的y轴上的字段
+		graph : {}
+	},
+	methods:{
+		select : function(node){
+			alert("select a node")
+		},
+		loadChildren : function(event){
+			// alert("loadChildren")
+			var indexs = event.id.search(/\d+/)
+			var x = event.id.substring(0,indexs)
+			var url = null;
+			switch(x){
+				case "PKG":
+				url = basePath+"pkg/tab/"+event.id
+				break;
+				case "VT":
+				url = basePath+"vt/vc/"+event.id
+				break;
+				case "VC":
+				event.children = null;
+				return;
+			}
+			this.$http.get(url).then(function(res){
+				for(var i in res.body.data){
+					var elem = res.body.data[i]
+					if(elem.chinese) elem.name= elem.chinese ;//+ "("+elem.name+")";
+					if(elem.typeName) elem.name+= ":("+elem.typeName+")"
+					event.children.push(elem)
+				}
+				event.spread = true;
+			});
+		},
+		addAxis : function(event){
+			if(!this.dragTarget) return;
+			if(this.graph.columns)
+				this.graph.columns.push(this.dragTarget)
+			else
+				Vue.set(this.graph,"columns",[this.dragTarget])
+			this.saveGraph(this.graph)
+		},
+		rmAxis : function(field,event){
+			// this.$http.delete(basePath+"graph/"+this.graph.id+"/"+field.id+"")
+			layer.confirm("您确定要移除字段"+(field.chinese?field.chinese:field.name)+"吗?",{
+				title : "确认",
+				btn : ["确定","取消"]
+			},(index,layero)=>{
+				this.graph["columns"] = this.graph["columns"].filter(elem => {return elem.id != field.id})
+				this.saveGraph(this.graph)
+				layer.close(index)
+			},function(index,layero){})
+		},
+		startDrag : function(event){
+			this.dragTarget = event.nodeData.id.startsWith("VC") ?  event.nodeData : null;
+			event.stopPropagation()
+		},
+		getGraph : function(id){
+			this.$http.get(basePath+"graph/"+id).then(function(res){
+				this.graph = res.body.data;
+			})
+		},
+		saveGraph : function(graph){
+			this.beforeSave(graph)
+			this.$http.post(basePath+"graph",tile(graph)).then(function(res){
+				if(res.body.code == 0){
+					layer.msg(res.body.message)
+				}
+			},function(error){
+				layer.msg("网络错误")
+			})
+		},
+		beforeSave : function(graph){
+			var series = new Array();
+			for(var i = 1,columns = graph.columns; columns && i < columns.length; i++){
+				series.push({type:'bar',seriesLayoutBy:'row'})
+			}
+			if(!graph.options) graph.options = JSON.stringify({title:{text:graph.title}, legend:{}, tooltip:{}})
+			var option = JSON.parse(graph.options)
+			option.series = series
+			if(!option.xAxis){
+				option.xAxis = {}
+			}
+			if(!option.yAxis){
+				option.yAxis = {}
+			}
+			graph.options = JSON.stringify(option)
+		}
+	},
+	created:function(){
+		var report = JSON.parse(localStorage['report'])
+		this.nodes = [report['pkg']]
+	},
+	updated : function(){
+		layui.use("form",function(){
+			layui.form.render()
+		})
+	}
+})
+
+// var zTreeObj = null;
+// $(document).ready(function(){
+// 	$.ajax({
+// 		url : basePath+"pkg",
+// 		method : "get",
+// 		success : function(res){
+// 			for(var i in res.data.content){
+// 				res.data.content[i].iconOpen = basePath+"/img/open.gif", res.data.content[i].iconClose="/img/close.gif"
+// 			}
+// 			zTreeNodes = {name:"数据包", children:res.data.content};
+// 			zTreeObj = $.fn.zTree.init($("#ztree"),{},zTreeNodes)
+// 		}
+// 	})
+// 	zTreeObj = $.fn.zTree.init($("#ztree"),{},{})
+// })
+
+
+/* */
+
+
+
 /**
  * 当鼠标指针进入报表元素中时，显示调节大小的8个点
  */
@@ -322,6 +421,7 @@ function capture(event){
 		e.stopPropagation()
 	})
 	var $target = $(event.currentTarget)
+	$target.children().hide()
 	$(document).bind("mouseup",function(e){
 		$target.trigger("mouseup")
 	})
@@ -332,8 +432,10 @@ function capture(event){
 }
 function release(event){
 	$("div.content").unbind("mousemove")
-	var index = event.currentTarget.dataset.index
+	var index = event.target.dataset.index
 	var pic = app.pictures[index];
+	var $target = $(event.target)
+	$target.children().show()
 	saveGraph(pic);
 	event.stopPropagation()
 }
@@ -411,13 +513,7 @@ function saveGraph(graph){
 	})
 }
 
-function load(target){
-	alert(JSON.stringify(target))
-}
 
-
-
-/******************************************************/
 Vue.component("tree",{
 	template : '<ul class="tree">'
 				+'		<li class="tree-node" v-for="node in nodes" @dragstart="dragstart(node,$event)">'
@@ -499,115 +595,3 @@ Vue.component("tree",{
 	}
 })
 
-
-
-var dialog = new Vue({
-	el : "#dialog",
-	data : {
-		nodes : [],
-		xFields: [],// 当前已添加的x轴上的字段
-		yFields : [] ,// 当前已添加的y轴上的字段
-		graph : {}
-	},
-	methods:{
-		select : function(node){
-			alert("select a node")
-		},
-		loadChildren : function(event){
-			// alert("loadChildren")
-			var indexs = event.id.search(/\d+/)
-			var x = event.id.substring(0,indexs)
-			var url = null;
-			switch(x){
-				case "PKG":
-				url = basePath+"pkg/tab/"+event.id
-				break;
-				case "VT":
-				url = basePath+"vt/vc/"+event.id
-				break;
-				case "VC":
-				event.children = null;
-				return;
-			}
-			this.$http.get(url).then(function(res){
-				for(var i in res.body.data){
-					var elem = res.body.data[i]
-					if(elem.chinese) elem.name= elem.chinese ;//+ "("+elem.name+")";
-					if(elem.typeName) elem.name+= ":("+elem.typeName+")"
-					event.children.push(elem)
-				}
-				event.spread = true;
-			});
-		},
-		addAxis : function(index,event){
-			if(!this.dragTarget) return;
-			if(this.graph[index])
-				this.graph[index].push(this.dragTarget)
-			else
-				Vue.set(this.graph,index,[this.dragTarget])
-			/* var layerIndex = layer.load(1);
-			this.$http.get(basePath+"graph/"+this.graph.id+"/"+this.dragTarget.id+"/"+index).then(function(res){
-				layer.close(layerIndex)
-				if(res.body.code == 1){
-					if(this.graph[index])
-						this.graph[index].push(this.dragTarget)
-					else
-						Vue.set(this.graph,index,[this.dragTarget])
-				}
-				else{
-					layer.msg(res.body.message)
-				}
-			},function(error){
-				layer.close(layerIndex)
-				layer.msg("网络错误")
-			}) */
-		},
-		rmAxis : function(axis,field,event){
-			// this.$http.delete(basePath+"graph/"+this.graph.id+"/"+field.id+"")
-			layer.confirm("您确定要移除字段"+(field.chinese?field.chinese:field.name)+"吗?",{
-				title : "确认",
-				btn : ["确定","取消"]
-			},(index,layero)=>{
-				this.graph[axis] = this.graph[axis].filter(elem => {return elem.id != field.id})
-				this.saveGraph(this.graph)
-				layer.close(index)
-			},function(index,layero){})
-		},
-		startDrag : function(event){
-			this.dragTarget = event.nodeData.id.startsWith("VC") ?  event.nodeData : null;
-			event.stopPropagation()
-		},
-		getGraph : function(id){
-			this.$http.get(basePath+"graph/"+id).then(function(res){
-				this.graph = res.body.data;
-			})
-		},
-		saveGraph : function(graph){
-			this.$http.post(basePath+"graph",tile(graph)).then(function(res){
-				if(res.body.code == 0){
-					layer.msg(res.body.message)
-				}
-			},function(error){
-				layer.msg("网络错误")
-			})
-		}
-	},
-	created:function(){
-		this.$http.get(basePath+"pkg").then(function(res){
-			this.nodes = res.body.data.content;
-			for(var i in res.body.data.content){
-				res.body.data.content[i].icon = {
-					open : "layui-icon layui-icon-cart-simple",
-					close : "layui-icon layui-icon-cart"
-				}
-			}
-		})
-	}
-})
-
-dialog.$on("loadChildren",function(event){
-	alert(2)
-})
-
-
-/* */

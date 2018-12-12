@@ -109,6 +109,9 @@
 								</ul>
 							</div>
 						</div>
+						<div class="layui-inline" v-if="pkg.modify">
+							<button type="button" class="layui-btn" @click="updateIndex(pkg.id,$event)">更新索引</button>
+						</div>
 						<!-- <div class="layui-inline">
 							<i class="layui-icon layui-icon-search"></i>
 						</div>
@@ -125,7 +128,7 @@
 			</div>
 			<div class="layui-card">
 				<div class="layui-card-header">
-					<h2>“{{pkg.name}}”.“{{table.chinese}}({{table.name}})”</h2>
+					<h2>数据包名称&nbsp;:&nbsp;{{pkg.name}}</h2>
 				</div>
 				<div class="layui-card-body layui-row layui-col-space15">
 					<div class="layui-col-md3" style="max-height: 362px;overflow: auto;">

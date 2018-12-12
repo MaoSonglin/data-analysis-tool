@@ -1,5 +1,6 @@
 package dat.util;
 
+
 public interface Constant {
 	/**
 	 * 请求失败

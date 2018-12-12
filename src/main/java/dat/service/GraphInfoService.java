@@ -2,6 +2,7 @@ package dat.service;
 
 import dat.domain.GraphInfo;
 import dat.vo.Response;
+import dat.vo.TableDataPagingBean;
 
 public interface GraphInfoService {
 
@@ -32,5 +33,5 @@ public interface GraphInfoService {
 	 * @return
 	 * @throws Exception
 	 */
-	Response getData(GraphInfo g) throws Exception;
+	Response getData(TableDataPagingBean g) throws Exception;
 }

@@ -99,6 +99,14 @@ public class WorkPackageController {
 		return wpService.remove(pid,tid);
 	}
 	
+	
+	@GetMapping("/extractor/{id}")
+	public Response extractor(@PathVariable String id){
+		Response res = wpService.updateIndex(id);
+		return res;
+	}
+	
+	
 	/**
 	 * 数据源dsid中pid没有添加的数据表
 	 * @return

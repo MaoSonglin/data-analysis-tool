@@ -1,7 +1,5 @@
 package dat.controller;
 
-import java.util.List;
-
 import javax.annotation.Resource;
 
 import org.jboss.logging.Logger;
@@ -17,6 +15,7 @@ import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.util.Constant;
 import dat.vo.Response;
+import dat.vo.TableDataPagingBean;
 
 /**
  * @author MaoSonglin
@@ -39,10 +38,6 @@ public class GraphInfoController {
 		// 调用服务层接口查找图表
 		GraphInfo graphInfo = graphInfoService.getById(id);
 		if (logger.isDebugEnabled()) {
-			List<VirtualColumn> getxAxis = graphInfo.getxAxis();
-			List<VirtualColumn> getyAxis = graphInfo.getyAxis();
-			logger.debug(getxAxis);
-			logger.debug(getyAxis);
 		}
 		if(graphInfo != null){// 查找成功
 			return new Response(Constant.SUCCESS_CODE,"查询成功",graphInfo);
@@ -96,7 +91,7 @@ public class GraphInfoController {
 	 * @return	
 	 * @throws Exception
 	 */
-	@GetMapping("/{gpid}/{vcid}/{axis}")
+	@GetMapping("/{gpid}/{vcid}")
 	public Response addx(@PathVariable String gpid,
 			@PathVariable String vcid,@PathVariable String axis) throws Exception{
 		// 根据ID获取待编辑的图表
@@ -108,12 +103,7 @@ public class GraphInfoController {
 		// 字段
 		VirtualColumn vc = new VirtualColumn();
 		vc.setId(vcid);
-		if("xAxis".equals(axis)) // 添加到x轴
-			graphInfo.getxAxis().add(vc);
-		else if("yAxis".equals(axis))// 添加到y轴
-			graphInfo.getyAxis().add(vc);
-		else
-			throw new IllegalArgumentException("axis should be one of xAxis or yAxis, not "+axis);
+		graphInfo.getColumns().add(vc);
 		// 保存图表信息
 		Response save = graphInfoService.save(graphInfo);
 		return save;
@@ -126,29 +116,38 @@ public class GraphInfoController {
 	 * @param axis
 	 * @return
 	 */
-	@DeleteMapping("/{pgid}/{vcid}/{axis}")
+	@DeleteMapping("/{pgid}/{vcid}")
 	public Response rmAxis(@PathVariable String pgid,
 			@PathVariable String vcid,@PathVariable String axis){
+		// 根据ID获取待编辑的图表
 		GraphInfo graphInfo = graphInfoService.getById(pgid);
-		List<VirtualColumn> list = null;
-		if("xAxis".equals(axis)) {
-			list = graphInfo.getxAxis();
-		} else if("yAxis".equals(axis)) {
-			list = graphInfo.getyAxis();
-		} else
-			throw new IllegalArgumentException("axis should be one of xAxis or yAxis, not "+axis);
-		boolean b = list.removeIf(elem -> {
+		if(graphInfo == null){
+			// 图表不存在
+			return new Response(Constant.ERROR_CODE,"ID为"+pgid+"的图表不存在");
+		}
+		graphInfo.getColumns().removeIf(elem->{
 			return elem.getId().equals(vcid);
 		});
-		if(!b){
-			return new Response(Constant.ERROR_CODE,"ID为"+vcid+"的字段不存在于图表中");
-		}
-		Response response = graphInfoService.save(graphInfo);
-		return response;
+		Response save = graphInfoService.save(graphInfo);
+		return save;
 	}
 	
-	@GetMapping("/data")
-	public Response getData(GraphInfo g) throws Exception{
-		return graphInfoService.getData(g);
+	@GetMapping("/data/{graphId}/{curPage}/{pageSize}")
+	public Response getData(@PathVariable String graphId,
+			@PathVariable Integer curPage,
+			@PathVariable Integer pageSize) throws Exception{
+		TableDataPagingBean pagingBean = new TableDataPagingBean();
+		pagingBean.setCurPage(curPage);
+		pagingBean.setPageSize(pageSize);
+		GraphInfo graph = new GraphInfo();
+		graph.setId(graphId);
+		pagingBean.setGraph(graph);
+		logger.debug(pagingBean);
+		return graphInfoService.getData(pagingBean);
+	}
+	
+	@RequestMapping("/types")
+	public Response getGraphTypes(){
+		return null;
 	}
 }

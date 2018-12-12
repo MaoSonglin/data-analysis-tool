@@ -62,6 +62,15 @@ var container = new Vue({
 				}
 			}
 			return null;
+		},
+		updateIndex : function(id,event){
+			openLoading()
+			this.$http.get(basePath+"pkg/extractor/"+id).then(function(res){
+				layer.msg(res.body.message)
+				if(res.body.code == 1)
+					this.pkg = res.body.data
+				closeLoading()
+			},closeLoading)
 		}
 	},
 	watch : {
@@ -216,7 +225,7 @@ layui.use('table',function(){
 			var x = container.findFieldById(obj.data.id)
 			x.state = 0;
 			// TODO  请求后台删除
-			Vue.http.put(basePath+"vc",tile(x)).then(function(res){
+			Vue.http.delete(basePath+"vc/"+x.id).then(function(res){
 				if(res.body.code != 1){
 					layer.msg(res.body.message)
 					x.state = 1;

@@ -7,7 +7,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
@@ -77,12 +76,8 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	private ReportInfo report;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
-	@JoinColumn(table="graph_x_axis")
-	private List<VirtualColumn> xAxis;
+	private List<VirtualColumn> columns;
 	
-	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
-	@JoinColumn(table="graph_y_axis")
-	private List<VirtualColumn> yAxis;
 	
 	public Float getHeight() {
 		return height;
@@ -161,25 +156,14 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		this.left = left;
 	}
 
-	public List<VirtualColumn> getxAxis() {
-		return xAxis;
+	public List<VirtualColumn> getColumns() {
+		return columns;
 	}
 
-	public void setxAxis(List<VirtualColumn> xAxis) {
-		this.xAxis = xAxis;
+	public void setColumns(List<VirtualColumn> columns) {
+		this.columns = columns;
 	}
 
-	public List<VirtualColumn> getyAxis() {
-		return yAxis;
-	}
-
-	public void setyAxis(List<VirtualColumn> yAxis) {
-		this.yAxis = yAxis;
-	}
-
-	
-	
-	
 	public String getOptions() {
 		return options;
 	}
@@ -193,7 +177,6 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		return "GraphInfo [id=" + id + ", title=" + title + ", width=" + width
 				+ ", height=" + height + ", top=" + top + ", left=" + left
 				+ ", type=" + type + ", options=" + options + ", state="
-				+ state + ", report=" + report.getName() + ", xAxis.size=" + xAxis.size()
-				+ ", yAxis.size=" + yAxis.size() + "]";
+				+ state + "]";
 	}
 }

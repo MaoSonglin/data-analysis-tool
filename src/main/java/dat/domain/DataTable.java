@@ -36,12 +36,12 @@ public class DataTable implements IdGeneratorable,Serializable{
 	
 	private String chinese;
 	
-	@ManyToOne(targetEntity=Source.class,fetch=FetchType.EAGER)
+	@ManyToOne(targetEntity=Source.class,fetch=FetchType.LAZY)
 	@JoinColumn(name="data_source_id",referencedColumnName="id")
 	@JsonIgnore
 	private Source source;
 	
-	@OneToMany(targetEntity=TableColumn.class,fetch=FetchType.EAGER,mappedBy="dataTable")
+	@OneToMany(targetEntity=TableColumn.class,fetch=FetchType.LAZY,mappedBy="dataTable")
 	@JsonIgnore
 	private List<TableColumn> columns;
 	

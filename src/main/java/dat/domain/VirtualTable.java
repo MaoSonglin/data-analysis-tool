@@ -46,9 +46,6 @@ public class VirtualTable implements IdGeneratorable{
 	@JsonIgnore
 	private List<VirtualColumn> columns;
 	
-	@OneToMany(targetEntity=Association.class,fetch=FetchType.LAZY,mappedBy="pkTable")
-	private List<Association> foreigns;
-	
 	/**
 	 * 该虚拟表所属的数据包
 	 */
@@ -57,10 +54,23 @@ public class VirtualTable implements IdGeneratorable{
 	@JsonIgnore
 	private List<WorkPackage> packages;
 
-	/*@OneToMany(fetch=FetchType.LAZY,cascade=CascadeType.REMOVE,mappedBy="table")
-	@JsonIgnore
-	private List<Association> assocs;*/
+	public VirtualTable() {
+		super();
+	}
+
+	public VirtualTable(String id) {
+		super();
+		this.id = id;
+	}
 	
+
+	public VirtualTable(String id, String name, String chinese) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.chinese = chinese;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -119,14 +129,7 @@ public class VirtualTable implements IdGeneratorable{
 		this.packages = packages;
 	}
 
-	public List<Association> getForeigns() {
-		return foreigns;
-	}
-
-	public void setForeigns(List<Association> foreigns) {
-		this.foreigns = foreigns;
-	}
-
+	 
 	@Override
 	public String toString() {
 		return "VirtualTable [id=" + id + ", name=" + name + ", chinese="
@@ -158,11 +161,5 @@ public class VirtualTable implements IdGeneratorable{
 		return true;
 	}
 
-	/*public List<Association> getAssocs() {
-		return assocs;
-	}
-
-	public void setAssocs(List<Association> assocs) {
-		this.assocs = assocs;
-	}*/
+	 
 }

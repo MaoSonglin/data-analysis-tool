@@ -7,8 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
@@ -19,6 +21,7 @@ import dat.util.StrUtil;
  * 实例对象关联的虚拟数据表，但是删除该对象的实例对象不会进行级联删除
  */
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class WorkPackage {
 	
 	@Id 
@@ -26,11 +29,17 @@ public class WorkPackage {
 	
 	private String name;
 	
+	private Boolean modify = true;
+	
 	private Integer state = Constant.ACTIVATE_SATE;
 	
 	@ManyToMany(targetEntity=VirtualTable.class,mappedBy="packages",fetch=FetchType.LAZY)
 	@JsonIgnore
 	private List<VirtualTable> tables;
+	
+	@OneToMany(targetEntity=ReportInfo.class,mappedBy="pkg",fetch=FetchType.LAZY)
+	@JsonIgnore
+	private List<ReportInfo> reports;
 
 	public String getId() {
 		return id;
@@ -71,6 +80,14 @@ public class WorkPackage {
 		this.tables = tables;
 	}
 
+	public Boolean getModify() {
+		return modify;
+	}
+
+	public void setModify(Boolean modify) {
+		this.modify = modify;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -94,6 +111,14 @@ public class WorkPackage {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public List<ReportInfo> getReports() {
+		return reports;
+	}
+
+	public void setReports(List<ReportInfo> reports) {
+		this.reports = reports;
 	}
 
 	@Override

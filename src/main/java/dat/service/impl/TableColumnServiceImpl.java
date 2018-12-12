@@ -127,6 +127,7 @@ public class TableColumnServiceImpl implements TableColumnService {
 			String id = virtualColumn.getId();
 			ids.add(id);
 		});
+		
 		String sql ="\nselect \n"+
 			    "    tablecolum1_.id as id \n"+
 			    "from \n"+
@@ -143,7 +144,7 @@ public class TableColumnServiceImpl implements TableColumnService {
 		});
 		sb.deleteCharAt(sb.length()-1);
 		sb.append(')');
-		logger.debug(sb+ids.toString());
+		logger.debug(sb.toString());
 		List<String> list = jdbcTemplate.query(sb.toString(), (rs,i)->{
 			return rs.getString("id");
 		}, ids.toArray());

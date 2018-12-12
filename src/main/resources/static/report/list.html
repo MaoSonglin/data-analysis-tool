@@ -14,23 +14,38 @@
 				</table>
 			</div>
 		</div>
-		<div id="addform" style="display: none;margin: 15px;">
-			<form action="#" method="" class="layui-form">
-				<div class="layui-form-item">
-					<label for="reportName" class="layui-form-label">报表名称</label>
-					<div class="layui-input-block">
-						<input class="layui-input" type="text" name="reportName" id="reportName" value=""v-model="report.name" />
+		<div id="dialog" style="display: ;">
+			<div id="addform" style="display: none;margin: 15px;">
+				<form action="#" method="" class="layui-form">
+					<div class="layui-form-item">
+						<label for="reportName" class="layui-form-label">报表名称</label>
+						<div class="layui-input-block">
+							<input class="layui-input" type="text" name="reportName" id="reportName" value=""v-model="report.name" />
+						</div>
 					</div>
-				</div>
-				<div class="layui-form-item">
-					<label for="reportComment" class="layui-form-label">描述</label>
-					<div class="layui-input-block">
-						<textarea rows="" cols="" class="layui-textarea" v-model="report.comment">
-							
-						</textarea>
+					<div class="layui-form-item">
+						<label for="pkgName" class="layui-form-label">业务集</label>
+						<div class="layui-input-block">
+							<select name="" id="pkgName" class="layui-select" lay-filter="pkgfilter">
+								<option v-for="(pkg,index) in pkgs" v-bind:value="index" v-html="pkg.name"></option>
+							</select>
+						</div>
 					</div>
-				</div>
-			</form>
+					<div class="layui-form-item">
+						<label for="reportComment" class="layui-form-label">描述</label>
+						<div class="layui-input-block">
+							<textarea rows="" cols="" class="layui-textarea" v-model="report.comment">
+								
+							</textarea>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div id="changePkg">
+				<form action="#" method="" class="layui-form">
+					
+				</form>
+			</div>
 		</div>
 		<script type="text/html" id="toolbarDemo">
 			<form class="layui-form" action="#">
@@ -66,6 +81,7 @@
 					cols : [[
 						{field : 'id',width : 180, title : '编号',sort : true,fixed: 'left'},
 						{field : 'name', width : 200, title : '名称',edit:'text'},
+						{field : 'pkgName', width : 200, title : '数据包', event:'setPkg'},
 						{field : 'comment', minWidth: 200, title : '描述',edit : 'text'},
 						{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
 					]],
@@ -88,11 +104,10 @@
 					limit : 5,
 					limits : [5,10,15,20,25,30]
 				})
-			
-				layui.table.on("toolbar(reportList)",function(obj){
-					console.log(obj)
+				// 工具栏事件
+				layui.table.on("toolbar(reportList)",function(obj){ 
 					switch(obj.event){
-						case  'search':
+						case  'search': // 搜索事件
 						var keyword = $("#keyword").val()
 						if(!keyword){
 							layer.msg("请输入报表名称")
@@ -107,17 +122,20 @@
 							}
 						})
 						break;
-						case 'add' :
+						case 'add' : // 新建报表事件
 						add(table)
+						break;
+						case 'setPkg' : // 修改报表所属的业务包
+						
 						break;
 					}
 				})
-				
+				// 单元格编辑事件
 				layui.table.on("edit(reportList)",function(obj){
 					$.ajax({
 						url : basePath+"report",
 						method : "post",
-						data : obj.data,
+						data : tile(obj.data),
 						success : function(res){
 							if(res.code != 1){
 								layer.alert(res.message,function(index){
@@ -128,14 +146,14 @@
 						}
 					})
 				})
-				
+				// 监听单元格事件
 				layui.table.on("tool(reportList)",function(obj){
 					switch(obj.event){
-						case 'edit':
+						case 'edit': // 编辑按钮点击
 						localStorage['report'] = JSON.stringify(obj.data)
 						window.parent.addParentTab({href:'report/create.html',title:'编辑报表:'+obj.data.name})
 						break;
-						case 'del':
+						case 'del': // 删除按钮点击
 						layer.confirm("您确定要删除报表\""+obj.data.name+"\"吗？",{
 							btn : ["确定","取消"]
 						},function(index,layero){
@@ -143,7 +161,7 @@
 							var options = {
 								url : basePath + "report",
 								method : "post",
-								data : obj.data,
+								data : tile(obj.data),
 								success : function(res){
 									if(res.code == 1){
 										obj.del()
@@ -153,6 +171,9 @@
 							options.data.state = 0
 							$.ajax(options)
 						})
+						break;
+						case 'setPkg':
+						layer.msg("can not modify this field now !")
 						break;
 						default:
 						layer.alert("不支持的操作")
@@ -167,8 +188,16 @@
 				layer.open({
 					type : 1,
 					content : $("#addform"),
-					area : ["500px","300px"],
+					area : ["600px","400px"],
 					btn : ["提交","取消"],
+					success : function(){
+						layui.use("form",function(){
+							layui.form.render("select")
+							layui.form.on("select(pkgfilter)",function(obj){
+								vue.$emit("pkgIndex",obj.value)
+							})
+						})
+					},
 					end : function(){$("#addform").hide()},
 					cancel : cancel,
 					btn1 : ok,
@@ -189,7 +218,7 @@
 						$.ajax({
 							url : basePath + "report",
 							method : "post",
-							data : vue.report,
+							data : tile(vue.report),
 							before : openLoading,
 							complate : closeLoading,
 							success : function(res){
@@ -218,10 +247,21 @@
 			}
 			
 			var vue = new Vue({
-				el : '#addform',
+				el : '#dialog',
 				data : {
-					report : {}
+					report : {},
+					pkgs : []
+				},
+				created:function(){
+					this.$http.get(basePath+"pkg").then(function(res){
+						var data = res.body
+						Vue.set(this,"pkgs",data.data.content)
+					})
 				}
+			})
+			
+			vue.$on("pkgIndex",function(index){
+				vue.report.pkg = vue.pkgs[index]
 			})
 			
 			

@@ -1,5 +1,7 @@
 package dat.service;
 
+import java.sql.Connection;
+
 import dat.controller.WorkPackageController.ExcludeTable;
 import dat.domain.WorkPackage;
 import dat.vo.PkgPageBean;
@@ -61,5 +63,20 @@ public interface WorkPackageService {
 	Response getTables(ExcludeTable excludeTable);
 
 	Response addTab(String pid, String[] tid);
+	
+	
+	/**
+	 * 跟新ID为id的数据包的数据
+	 * @param id
+	 * @return
+	 */
+	Response updateIndex(String id);
+
+	/**
+	 * 获取数据包的对应的数据库连接
+	 * @param object
+	 * @return
+	 */
+	Connection getConnection(String object);
 
 }

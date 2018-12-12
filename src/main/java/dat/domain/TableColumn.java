@@ -60,14 +60,14 @@ public class TableColumn implements IdGeneratorable{
 	/**
 	 * 当前字段作为外键，参考其他表的信息
 	 */
-	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.LAZY)
+	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
 	@JsonIgnore
 	private ForeignKey foreignKey;
 	
 	/**
 	 * 引用当前字段的外键
 	 */
-	@OneToMany(targetEntity=ForeignKey.class,mappedBy="primaryColumn",fetch=FetchType.LAZY)
+	@OneToMany(targetEntity=ForeignKey.class,mappedBy="primaryColumn",fetch=FetchType.EAGER)
 	@JsonIgnore
 	private List<ForeignKey> quote;
 	

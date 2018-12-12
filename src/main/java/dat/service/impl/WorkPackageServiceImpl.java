@@ -1,5 +1,14 @@
 package dat.service.impl;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +19,7 @@ import javax.persistence.criteria.Predicate;
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -29,6 +39,7 @@ import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.repos.WorkPackageRepository;
+import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
 import dat.vo.PkgPageBean;
@@ -156,6 +167,7 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		
 		// 将虚拟数据表和数据包关联
 		workPackage.getTables().addAll(saveAll);
+		workPackage.setModify(true);
 		wpRepos.save(workPackage);
 		
 		// 返回的数据对象
@@ -189,6 +201,7 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		
 		// 将虚拟数据表添加到数据包中
 		workPackage.getTables().add(virtualTable);
+		workPackage.setModify(true);
 		// 保存数据包
 		wpRepos.save(workPackage);
 		
@@ -293,6 +306,7 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		boolean b = workPackage.getTables().remove(virtualTable);
 		// 移除虚拟数据表实体中关联的业务包
 		boolean c = virtualTable.getPackages().remove(workPackage);
+		workPackage.setModify(true);
 		// 保存对象
 		wpRepos.save(workPackage);
 		vtRepos.save(virtualTable);
@@ -354,6 +368,147 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",subList);
 		response.put("count", count);
 		return response;
+	}
+
+	@Override
+	public Response updateIndex(String id) {
+		// 根据数据包的ID获取数据包元数据信息
+		WorkPackage pkg = wpRepos.findById(id).orElse(null);
+		// 如果数据包不存在
+		if(pkg == null)
+		{
+			String msg = String.format("ID为‘%s’的数据包不存在", id);
+			return new Response(Constant.ERROR_CODE,msg);
+		} 
+		// 建立数据包表结构
+		if(!rebuildTable(pkg)){
+			return new Response(Constant.ERROR_CODE,"创建表结构失败",pkg);
+		}
+		// 获取数据包中的数据表
+		List<VirtualTable> tables = pkg.getTables();
+		// 数据表服务层接口
+		VirtualTableService tableService = context.getBean(VirtualTableService.class);
+		
+		boolean f = true;
+		
+		for (VirtualTable table : tables) {
+			f = f && tableService.extract(table);
+		}
+		
+		pkg.setModify(!f);
+		wpRepos.save(pkg);
+		return new Response(f ? Constant.SUCCESS_CODE:Constant.ERROR_CODE,f ?"更新成功":"更新失败",pkg);
+	}
+
+ 
+	/**
+	 * 新建数据表，新建数据包pkg中的数据表，删除原有的数据表
+	 * @param pkg
+	 * @return 
+	 */
+	private boolean rebuildTable(WorkPackage pkg) {
+		// 数据表列表
+		List<VirtualTable> tables = pkg.getTables();
+		// 建表SQL语句
+		List<String> sqlList = getCreateTableSql(tables);
+		try (Connection conn = getConnection(pkg.getId())) {
+			// 设置事物
+			conn.setAutoCommit(false);
+			try(Statement st = conn.createStatement()){
+				// 遍历SQL语句，添加到批处理中
+				for (String sql : sqlList) {
+					logger.debug(sql);
+					st.addBatch(sql);
+				}
+				// 执行批处理
+				st.executeBatch();
+				// 提交事务
+				conn.commit();
+			} catch(Exception e){
+				// 出现异常后回滚事务
+				conn.rollback();
+				throw new SQLException(e);
+			}
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace(); 
+			return false;
+		}
+	}
+
+	/**
+	 *获取ID为id的数据包缓存数据库连接
+	 * @param id
+	 * @return 
+	 */
+	public Connection getConnection(String id) {
+		logger.debugf("获取ID为'%s'的数据包的缓存数据库连接",id);
+		// Java io 输入输出的临时目录
+		String tmpdir = System.getProperty("java.io.tmpdir");
+		// 程序当前工作目录
+		String userdir = System.getProperty("user.dir");
+		// 可以在application.propeties中配置数据库文件存放目录
+		tmpdir = context.getBean(Environment.class).getProperty("db.cache.dir", tmpdir);
+		// 获取当前工作目录最后一级目录的名称
+		Path path = Paths.get(userdir);
+		Path fileName = path.getFileName();
+		// 获取数据保存文件夹，如果文件夹不存在，则新建一个目录
+		File file = Paths.get(tmpdir, fileName.toString()).toFile();
+		if(!file.isDirectory()){
+			file.mkdirs();
+		}
+		// 数据文件路径
+		String str = Paths.get(tmpdir, fileName.toString(),id+".db3").toString();
+		logger.debugf("数据文件路径：%s",str);
+		try {
+			Class.forName("org.sqlite.JDBC");
+			// 获取数据库连接
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:"+str);
+			return (Connection) Proxy.newProxyInstance(
+					getClass().getClassLoader(), 
+					new Class<?>[]{Connection.class},
+					(Object proxy, Method method, Object[] args)->{
+						if(method.getName().equals("close")){
+							logger.debugf("关闭来自%s的数据库连接",str);
+						}
+						return method.invoke(conn, args);
+					});
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 根据虚拟数据表数组获取新建数据表的SQL语句
+	 * @param tables
+	 * @return
+	 */
+	private List<String> getCreateTableSql(List<VirtualTable> tables) {
+		List<String> sqlList = new ArrayList<>(tables.size());
+		for (VirtualTable virtualTable : tables) {
+			logger.debugf("构造创建数据表'%s'，中文名称'%s'的SQL语句",virtualTable.getName(),virtualTable.getChinese());
+			List<VirtualColumn> columns = virtualTable.getColumns();
+			StringBuffer buffer = new StringBuffer("DROP TABLE IF EXISTS ");
+			buffer.append(virtualTable.getId());
+			String sql = buffer.toString();
+			sqlList.add(sql);
+			buffer.delete(0, buffer.length());
+			buffer.append("CREATE TABLE ");
+			buffer.append(virtualTable.getId());
+			buffer.append("(");
+			for (VirtualColumn virtualColumn : columns) {
+				String name = virtualColumn.getName(); 
+				buffer.append(name);
+				buffer.append(' ');
+				buffer.append(virtualColumn.getTypeName());
+				buffer.append(" , ");
+			}
+			buffer.delete(buffer.length()-3, buffer.length());
+			buffer.append(");");
+			sqlList.add(buffer.toString());
+		}
+		return sqlList;
 	}
 
 	

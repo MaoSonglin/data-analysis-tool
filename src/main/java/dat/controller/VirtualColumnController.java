@@ -47,7 +47,7 @@ public class VirtualColumnController {
 		return response;
 	}
 	
-	@PostMapping()
+	@PostMapping
 	public Response createField(VirtualColumn vt){
 		if(logger.isDebugEnabled()){
 			logger.debug(vt);

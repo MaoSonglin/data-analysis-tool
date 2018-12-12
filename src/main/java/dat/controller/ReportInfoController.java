@@ -63,10 +63,6 @@ public class ReportInfoController {
 		// 根据报表ID查询出报表信息
 		List<GraphInfo> graphs = reportInfoService.getGraphs(id);
 		if(logger.isDebugEnabled()){
-			for (GraphInfo graphInfo : graphs) {
-				logger.debug(graphInfo.getxAxis());
-				logger.debug(graphInfo.getyAxis());
-			}
 		}
 		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",graphs);
 		return response;

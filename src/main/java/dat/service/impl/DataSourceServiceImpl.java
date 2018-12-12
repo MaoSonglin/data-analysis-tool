@@ -12,6 +12,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -238,28 +239,39 @@ public class DataSourceServiceImpl implements DataSourceService {
 
 	public JdbcTemplate getTemplate(Source source) {
 		JdbcTemplate jdbcTemplate;
+		// the name of the JdbcTemplate instance
 		String beanName = source.getName()+"jdbcTemplate";
 		try {
-			jdbcTemplate = (JdbcTemplate) context.getBean(beanName);
-		} catch (Exception e) {
+			// try to find the instance in container
+			jdbcTemplate = context.getBean(beanName,JdbcTemplate.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			// if there is not the instance name 'baseName' in container
+			// create a new instance and pull it into the container
+			
+			// the four variables needed to connection the database.
 			String driverClass = source.getDriverClass();
 			String url = source.getUrl();
 			String username = source.getUsername();
 			String password = source.getPassword();
+			
 			if(logger.isDebugEnabled()){
 				logger.debug("jdbcTemplate instance named '"+beanName+"' is not exist, attempt created new one");
 				logger.debug("get database connection with url "+url+" and username="+username+" and password="+password);
 			}
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(JdbcTemplate.class);
+			// define a data source the jdbcTemplate needed 
 			DruidDataSource ds = new DruidDataSource();
 			ds.setDriverClassName(driverClass);
 			ds.setUrl(url);
 			ds.setUsername(username);
 			ds.setPassword(password);
+			
+			// the next steps is to add a java bean to spring container required
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(JdbcTemplate.class);
 			beanDefinitionBuilder.addConstructorArgValue(ds);
 			AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
 			BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) context.getBeanFactory();
 			beanFactory.registerBeanDefinition(beanName, beanDefinition);
+			// get java bean 
 			jdbcTemplate = context.getBean(beanName, JdbcTemplate.class);
 		}
 		return jdbcTemplate;

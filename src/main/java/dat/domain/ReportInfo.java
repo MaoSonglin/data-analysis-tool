@@ -7,14 +7,18 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	/**
@@ -46,6 +50,10 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	@Column(name="`comment`")
 	private String comment;
+	
+	@ManyToOne(targetEntity=WorkPackage.class,fetch=FetchType.LAZY)
+	@JoinColumn(referencedColumnName="id")
+	private WorkPackage pkg;
 	
 	@OneToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY,mappedBy="report")
 	@JsonIgnore
@@ -98,6 +106,14 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 		this.comment = comment;
 	}
 
+	public WorkPackage getPkg() {
+		return pkg;
+	}
+
+	public void setPkg(WorkPackage pkg) {
+		this.pkg = pkg;
+	}
+
 	@Override
 	public String toString() {
 		return "ReportInfo [id=" + id + ", name=" + name + ", width=" + width
@@ -119,6 +135,13 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 
 	public void setHeight(Float height) {
 		this.height = height;
+	}
+	
+	public String getPkgName(){
+		if(pkg != null)
+			return pkg.getName();
+		else
+			return null;
 	}
 
 }

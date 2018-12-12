@@ -96,4 +96,20 @@ public interface VirtualTableService {
 	 * @return
 	 */
 	DataTable getTableTree(VirtualTable table);
+
+	/**
+	 * 提取数据到本地，将虚拟数据表table需要的数据全部提取出来存放到本地，方便查询
+	 * @param table
+	 * @return
+	 */
+	boolean extract(VirtualTable table);
+
+	/**
+	 * 获取虚拟数据表table的类型。table的类型用int类型表示，1表示table中的所有<br>
+	 * 字段来自同一个实体数据表，2表示table中的所有字段来自同一个数据源下的不同数据表<br>
+	 * 3表示table中的字段来自不同数据源的不同数据表
+	 * @param table
+	 * @return
+	 */
+	int getType(VirtualTable table);
 }
