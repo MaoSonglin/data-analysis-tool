@@ -53,6 +53,20 @@ public class VirtualTable implements IdGeneratorable{
 	@JoinColumn(referencedColumnName="id")
 	@JsonIgnore
 	private List<WorkPackage> packages;
+	
+	/**
+	 * 该表引用的其他对象
+	 */
+	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="primaryTable")
+	@JsonIgnore
+	private List<Reference> references;
+	
+	/**
+	 * 引用该表的对象
+	 */
+	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedTable")
+	@JsonIgnore
+	private List<Reference> referencedBy;
 
 	public VirtualTable() {
 		super();
@@ -130,6 +144,26 @@ public class VirtualTable implements IdGeneratorable{
 	}
 
 	 
+	public List<Reference> getReferences() {
+		return references;
+	}
+
+	public void setReferences(List<Reference> references) {
+		this.references = references;
+	}
+
+	public List<Reference> getReferencedBy() {
+		return referencedBy;
+	}
+
+	public void setReferencedBy(List<Reference> referencedBy) {
+		this.referencedBy = referencedBy;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
 	@Override
 	public String toString() {
 		return "VirtualTable [id=" + id + ", name=" + name + ", chinese="

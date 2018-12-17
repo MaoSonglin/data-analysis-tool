@@ -41,8 +41,6 @@ public class VirtualColumnController {
 	
 	@PutMapping
 	public Response update(VirtualColumn column){
-		logger.debug(column);
-		logger.debug(column.getRelation());
 		Response response = virtualColumnService.save(column);
 		return response;
 	}

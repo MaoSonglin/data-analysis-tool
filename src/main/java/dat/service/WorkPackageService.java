@@ -74,7 +74,7 @@ public interface WorkPackageService {
 
 	/**
 	 * 获取数据包的对应的数据库连接
-	 * @param object
+	 * @param object 数据包的ID
 	 * @return
 	 */
 	Connection getConnection(String object);

@@ -47,6 +47,18 @@
 				</form>
 			</div>
 		</div>
+		<div id="dialog2" style="display: none;margin: 15px;">
+			<form class="layui-form" action="#" method="">
+				<div class="layui-form-item">
+					<label class="layui-form-label">节点：</label>
+					<div class="layui-input-block">
+						<input class="layui-input" type="text" name="text" id="menuText" value="" />
+					</div>
+				</div>
+			</form>
+			<ul id="myTree" class=""></ul>
+		</div>
+		
 		<script type="text/html" id="toolbarDemo">
 			<form class="layui-form" action="#">
 				<div class="layui-form-item">
@@ -60,9 +72,14 @@
 				</div>
 			</form>
 		</script>
- 
+		<script type="text/html" id="publich_check">
+			<!-- 这里的 checked 的状态只是演示 -->
+			<input type="checkbox" name="publish" value="{{d.id}}" title="发布" lay-filter="publish" {{ d.publish ? 'checked' : '' }}>
+		</script>
+
 		<script type="text/html" id="barDemo">
 			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<!-- <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="publish">发布</a> -->
 			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 		</script>
 		<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
@@ -72,6 +89,8 @@
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript">
+			Vue.http.options.emulateJSON = true
+			Vue.http.options.withCredentials = true
 			layui.use("table",function(){
 				var  table = layui.table.render({
 					elem : "#report-list",
@@ -80,10 +99,11 @@
 					height : 500,
 					cols : [[
 						{field : 'id',width : 180, title : '编号',sort : true,fixed: 'left'},
-						{field : 'name', width : 200, title : '名称',edit:'text'},
+						{field : 'name', width : 120, title : '名称',edit:'text'},
 						{field : 'pkgName', width : 200, title : '数据包', event:'setPkg'},
 						{field : 'comment', minWidth: 200, title : '描述',edit : 'text'},
-						{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+						{field : 'publish', title:'发布', width:110, templet: '#publich_check', unresize: true},
+						{fixed : 'right', title:'操作', toolbar: '#barDemo', width:120}
 					]],
 					response : {
 						statusCode : 1
@@ -175,9 +195,73 @@
 						case 'setPkg':
 						layer.msg("can not modify this field now !")
 						break;
+						case 'publish':
+						publish(obj.data)
+						break;
 						default:
 						layer.alert("不支持的操作")
 					}
+				})
+				
+				layui.form.on('checkbox(publish)',function(obj){
+					var that = this
+					var reportid = this.value
+					var menuid = null
+					if(!obj.elem.checked){
+						Vue.http.post(basePath+"report/unpublish/"+reportid).then(function(res){
+							if(res.body.code == 1){
+								table.reload()
+							}
+						})
+						return ;
+					}
+					layer.open({
+						type : 1,
+						content : $("#dialog2"),
+						area : ["500px","350px"],
+						btn : ["确定","取消"],
+						success : function(){
+							Vue.http.get(basePath+"menu/").then(function(res){
+								var nodes = [{id:0,spread:true,text:"目录菜单",children:res.body.data}]
+								$("#myTree").empty()
+								$("#menuText").val("")
+								format(nodes)
+								layui.use('tree',function(){
+									layui.tree({
+										elem : "#myTree",
+										click: function(options){
+											$("#menuText").val(options.name)
+											menuid = options.id
+										},
+										nodes: nodes,
+										skin: 'shihuang'
+									})
+								})
+								function format(data){
+									for(let i in data){
+										data[i].name = data[i].text
+										if(data[i].children){
+											format(data[i].children)
+										}
+									} 
+								}
+							})
+						},
+						end : function(){
+							$("#dialog2").hide()
+							table.reload()
+						},
+						btn1 : function(index){
+							if(menuid == null){
+								layer.msg("请选择发布目录")
+								return false;
+							}
+							layer.close(index)
+							Vue.http.post(basePath+"report/publish/"+reportid+"/"+menuid).then(function(res){
+								layer.msg(res.body.message)
+							},function(error){layer.msg("网络异常");})
+						}
+					})
 				})
 				
 			})
@@ -245,6 +329,10 @@
 					return false;
 				}
 			}
+			
+			
+			
+			
 			
 			var vue = new Vue({
 				el : '#dialog',

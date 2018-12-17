@@ -1,5 +1,7 @@
 package dat.service;
 
+import java.util.List;
+
 import dat.domain.GraphInfo;
 import dat.vo.Response;
 import dat.vo.TableDataPagingBean;
@@ -33,5 +35,8 @@ public interface GraphInfoService {
 	 * @return
 	 * @throws Exception
 	 */
+	@Deprecated
 	Response getData(TableDataPagingBean g) throws Exception;
+	
+	List<List<String>> getData(String id) throws Exception;
 }

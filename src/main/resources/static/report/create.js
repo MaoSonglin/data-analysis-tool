@@ -35,9 +35,11 @@ var app = new Vue({
 		this.pictures = [];
 		Vue.http.get(basePath+"report/graphs/"+this.report.id).then((res)=>{
 			if(res.body.code == 1){
-				for(var i in res.body.data)
+				for(var i in res.body.data){
 					var g = new Graph(res.body.data[i]);
+					g.option = JSON.parse(g.options);
 					this.pictures.push(g)
+				}
 			}else{
 				layer.msg(res.body.message)
 			} 
@@ -81,24 +83,24 @@ var app = new Vue({
 				x.dispose()
 			} 
 			for(var i in this.pictures){
-				var graph = this.pictures[i];
-				var dom = document.querySelector("#graph-"+i)
-				var myChart = echarts.init(dom)
-				var option = JSON.parse(graph.options)
-				console.log(option)
+				let graph = this.pictures[i];
+				let dom = document.querySelector("#graph-"+i)
+				let myChart = echarts.init(dom)
+				let option = JSON.parse(graph.options) 
+				if(option)
 				myChart.setOption(option)
-				myChart.showLoading();
 				myChart.on("click",function(param){
-					console.log(param)
+					alert(1)
 				})
-				this.$http.get(basePath+"graph/data/"+graph.id+"/0/1000").then(function(res){
-					myChart.hideLoading()
-					myChart.setOption({
-						dataset : {
-							source : res.body.data
-						}
-					})
-					this.charts.push(myChart) 
+				this.$http.get(basePath+"graph/data/"+graph.id+"/2/2").then(function(res){
+					if(res.body.code){
+						myChart.setOption({
+							dataset : {
+								source : res.body.data
+							}
+						})
+						this.charts.push(myChart) 
+					}
 				})
 			}
 		},
@@ -123,8 +125,8 @@ var app = new Vue({
 			})
 			event.stopPropagation()
 		},
-		setting : function(pic,event){ // 弹出轴编辑框
-			dialog.graph = pic;
+		setting : function(pic,event){ // 弹出轴编辑框 
+			dialog.$emit("setGraph",pic)
 			var index = layer.open({
 				title : pic.title,
 				type : 1,
@@ -137,7 +139,7 @@ var app = new Vue({
 				},
 				btn1 : function(index,layero){
 					layer.close(index);
-					dialog.saveGraph(pic)
+					dialog.$emit("saveGraph",pic)
 				}
 			})
 			layer.full(index)
@@ -242,8 +244,7 @@ function Graph(g){
 	this.Picture(g.width,g.height,g.top,g.left)
 }
 
-function load(target){
-	alert(JSON.stringify(target))
+function load(target){ 
 }
 
 
@@ -255,13 +256,13 @@ var dialog = new Vue({
 	el : "#dialog",
 	data : {
 		nodes : [],
-		xFields: [],// 当前已添加的x轴上的字段
-		yFields : [] ,// 当前已添加的y轴上的字段
-		graph : {}
+		graph : {},
+		xAxis : [],
+		yAxis : [],
+		option : {}
 	},
 	methods:{
-		select : function(node){
-			alert("select a node")
+		select : function(node){ 
 		},
 		loadChildren : function(event){
 			// alert("loadChildren")
@@ -328,49 +329,81 @@ var dialog = new Vue({
 			})
 		},
 		beforeSave : function(graph){
-			var series = new Array();
-			for(var i = 1,columns = graph.columns; columns && i < columns.length; i++){
-				series.push({type:'bar',seriesLayoutBy:'row'})
+			graph.options = JSON.stringify(this.option) 
+			alert(graph.options)
+		},
+		setAxis : function(index,event){
+			let tmp = this.graph.columns[index]
+			this.graph.columns = this.graph.columns.filter(elem=>{return elem != tmp})
+			this.graph.columns.unshift(tmp)
+		},
+		change : function(event){
+			switch(event.target.value){
+				case 'bar':
+				case 'line':{
+					if(this.option.xAxis === undefined || this.option.xAxis === null){
+						this.$set(this.option,'xAxis',[{"type":"category"}])
+					}
+					if(this.option.yAxis === undefined || this.option.yAxis === null){
+						this.$set(this.option,'yAxis',[{}])
+					}
+					break;
+				}
+				case 'bar':
 			}
-			if(!graph.options) graph.options = JSON.stringify({title:{text:graph.title}, legend:{}, tooltip:{}})
-			var option = JSON.parse(graph.options)
-			option.series = series
-			if(!option.xAxis){
-				option.xAxis = {}
+		},
+		remove : function(s,e){
+			e.stopPropagation();
+			this.option.series = this.option.series.filter(e=>{return e != s})
+		},
+		addSeries : function(e){
+			e.stopPropagation();
+			if(!this.option.series)
+				this.$set(this.option,"series",[])
+			this.option.series.push({type:'bar',"seriesLayoutBy":"row"})
+		},
+		addLegend : function(e){
+			e.stopPropagation()
+			if(e.target.checked){ 
+				this.$set(this.option,'legend',{})
 			}
-			if(!option.yAxis){
-				option.yAxis = {}
+			else{
+				this.$set(this.option,'legend',null)
 			}
-			graph.options = JSON.stringify(option)
+		},
+		isLegend : function(){
+			return !(!this.option.legend)
 		}
 	},
 	created:function(){
 		var report = JSON.parse(localStorage['report'])
-		this.nodes = [report['pkg']]
+		this.nodes = [report['pkg']] 
 	},
 	updated : function(){
 		layui.use("form",function(){
 			layui.form.render()
 		})
+	},
+	watch:{
+		"graph.title" : function(newVal,oldVal){
+			if(this.option)
+				this.option.title = {text : newVal}
+		}
 	}
 })
 
-// var zTreeObj = null;
-// $(document).ready(function(){
-// 	$.ajax({
-// 		url : basePath+"pkg",
-// 		method : "get",
-// 		success : function(res){
-// 			for(var i in res.data.content){
-// 				res.data.content[i].iconOpen = basePath+"/img/open.gif", res.data.content[i].iconClose="/img/close.gif"
-// 			}
-// 			zTreeNodes = {name:"数据包", children:res.data.content};
-// 			zTreeObj = $.fn.zTree.init($("#ztree"),{},zTreeNodes)
-// 		}
-// 	})
-// 	zTreeObj = $.fn.zTree.init($("#ztree"),{},{})
-// })
+dialog.$on("setGraph",function(g){
+	if(!g.option)
+		g.option = {}
+	dialog.graph = g
+	dialog.option = g.option
+})
 
+dialog.$on("saveGraph",function(g){
+	dialog.saveGraph(g)
+	console.log(JSON.stringify(g))
+})
+	
 
 /* */
 

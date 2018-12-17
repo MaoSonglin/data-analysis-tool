@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,11 +48,18 @@ public class VirtualColumn implements Serializable{
 	 */
 	private String remask;
 	
+	@OneToOne(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="foreignColumn")
+	@JsonIgnore
+	private Reference reference;
 	
-	@OneToOne(fetch=FetchType.EAGER,targetEntity=VirtualColumn.class)
-	@JoinColumn(referencedColumnName="id")
-	private VirtualColumn relation;
+	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedColumn")
+	@JsonIgnore
+	private List<Reference> referencedBy;
 	
+//	@OneToOne(fetch=FetchType.EAGER,targetEntity=VirtualColumn.class)
+//	@JoinColumn(referencedColumnName="id")
+//	private VirtualColumn relation;
+//	
 	/**
 	 * 该虚拟字段相关联的实际字段
 	 */
@@ -90,6 +98,26 @@ public class VirtualColumn implements Serializable{
 	}
 	public String getName() {
 		return name;
+	}
+
+	public Reference getReference() {
+		return reference;
+	}
+
+	public void setReference(Reference reference) {
+		this.reference = reference;
+	}
+
+	public List<Reference> getReferencedBy() {
+		return referencedBy;
+	}
+
+	public void setReferencedBy(List<Reference> referencedBy) {
+		this.referencedBy = referencedBy;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 
 	public void setName(String name) {
@@ -179,22 +207,17 @@ public class VirtualColumn implements Serializable{
 		this.remask = remask;
 	}
 
-	public VirtualColumn getRelation() {
-		return relation;
-	}
-
-	public void setRelation(VirtualColumn relation) {
-		this.relation = relation;
-	}
 	
 	public String getRela(){
-		VirtualColumn column = getRelation();
-		if(column != null){
-			VirtualTable virtualTable = column.getTable();
-			String tableChineseName = virtualTable.getChinese();
-			String tableName = tableChineseName== null ? virtualTable.getName():tableChineseName;
-			String columnChinese = column.getChinese();
-			return tableName + "." + (columnChinese == null ? virtualTable.getName() : columnChinese);
+		Reference reference = getReference();
+		if(reference != null){
+			VirtualTable virtualTable = reference.getReferencedTable();
+			String chinese = virtualTable.getChinese();
+			String tableName = chinese == null ? virtualTable.getName() : chinese;
+			VirtualColumn virtualColumn = reference.getReferencedColumn();
+			chinese = virtualColumn.getChinese();
+			String columnName = chinese == null ? virtualColumn.getName() : chinese;
+			return tableName+"."+columnName;
 		}
 		return null;
 	}

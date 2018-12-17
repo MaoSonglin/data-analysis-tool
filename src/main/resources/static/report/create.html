@@ -3,6 +3,8 @@
 	<head>
 		<meta charset="utf-8">
 		<title>新建报表</title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 		<link rel="stylesheet" type="text/css" href="create.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/zTree/css/zTreeStyle/zTreeStyle.css"/>
@@ -53,25 +55,6 @@
 		
 		<!-- 编辑图形 -->
 		<div id="dialog" style="display: none;">
-			<div class="layui-form">
-				<div class="layui-form-item">
-					<div class="layui-inline">
-						<label class="layui-form-label">报表名称</label>
-						<div class="layui-input-inline">
-							<input type="text" class="layui-input" name="name" id="name" v-model="graph.title" />
-						</div>
-						<label class="layui-form-label">报表类型</label>
-						<div class="layui-input-inline">
-							<select class="layui-select" v-model="graph.type">
-								<option value="bar">条形图</option>
-								<option value="line">折线图</option>
-								<option value="pie">饼状图</option>
-							</select>
-						</div>
-					</div>
-					<!-- <button type="button" class="layui-btn" style="float: right;">保存</button> -->
-				</div>
-			</div>
 			<div class="layui-row layui-col-space15 dialog-content">
 				<div class="layui-col-md2 layui-col-sm4" id="ztree">
 					<tree v-bind:asyn="true" v-bind:nodes="nodes" 
@@ -79,57 +62,103 @@
 						v-on:nodeclick="select($event)"
 						v-on:nodedragstart="startDrag($event)" ></tree>
 				</div>
-				<div class="layui-col-md5 layui-col-sm4">
-					
-					<div class="layui-card">
-						<div class="layui-card-header">
-							<h3 class="">分类(x轴)</h3>
-						</div>
-						<div class="layui-card-body">
-							<div style="height: 300px;" @drop="addAxis($event)" ondragover="allowDrop(event)">
-								<table class="layui-table fix-table layui-box" lay-size="sm">
-									<colgroup>
-										<col width="120">
-										<col width="120">
-										<col width="100"/>
-										<col>
-									</colgroup>
-									<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
-									<tr v-for="(field,index) in graph.columns" :id="'tr-'+field.id" :data-id = "field.id">
-										<td v-html="field.id">Data</td>
-										<td v-html="field.chinese?field.chinese:field.name"></td>
-										<td v-html="field.typeName"></td>
-										<td><i class="layui-icon layui-icon-delete" @click="rmAxis(field,$event)"></i></td>
-									</tr>
-									<tr>
-										<td colspan="4" align="center">拖动左侧字段到此处</td>
-									</tr>
-								</table>
+				<div class="layui-col-md10">
+					<div class="container-fluid">
+						<div class="layui-col-md6" @drop="addAxis($event)" ondragover="allowDrop(event)">
+							<table class="layui-table fix-table layui-box" lay-size="sm" height="300px">
+								<colgroup>
+									<col width="120">
+									<col width="120">
+									<col width="100"/>
+									<col>
+								</colgroup>
+								<tr><th>编号</th><th>名称</th><th>类型</th><th>操作</th></tr>
+								<tr v-for="(field,index) in graph.columns" :id="'tr-'+field.id" :data-id = "field.id">
+									<td v-html="field.id" :title="field.id">Data</td>
+									<td v-html="field.chinese?field.chinese:field.name" :title="field.chinese?field.chinese:field.name"></td>
+									<td v-html="field.typeName" :title="field.typeName"></td>
+									<td><i class="layui-icon layui-icon-delete" @click="rmAxis(field,$event)"></i></td>
+								</tr>
+								<tr>
+									<td colspan="4" align="center">拖动左侧字段到此处</td>
+								</tr>
+							</table>
+							<div class="Drilling">
+								<ul>
+									<li><i class="layui-icon layui-icon-face-smile-b"></i></li>
+								</ul>
 							</div>
 						</div>
-					</div>
-				</div>
-				<div class="layui-col-md5 layui-col-sm4">
-					<div class="layui-card">
-						<div class="layui-card-header">
-							<h3 class=""></h3>
-						</div>
-						<div class="layui-card-body">
-							
-						</div>
-					</div>
-				</div>
-				<div class="layui-col-sm10 layui-col-sm-offset1">
-					<div class="layui-card">
-						<div class="layui-header">
-							<h3>数据预览</h3>
-						</div>
-						<div class="layui-body">
-							<div class="" style="overflow-x: auto;width: 100%;">
-								<table class="layui-table" border="" cellspacing="" cellpadding="" lay-size="sm">
-									<tr></tr>
-								</table>
-							</div>
+						<div class="layui-col-md6">
+							<form action="#" method="" class="form-horizontal">
+								<div class="form-group">
+									<label class="control-label col-sm-3" for="graph-title">标题：</label>
+									<div class="col-sm-8">
+										<input class="form-control" id="graph-title" name="" v-model="graph.title" />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-sm-8 col-sm-offset-3">
+										<div class="checkbox">
+											<label>
+												<input type="checkbox" @click="addLegend($event)" v-model="isLegend()"/>
+												显示图例
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-3" for="">分类标准：</label>
+									<div class="col-sm-8">
+										<select class="form-control">
+											<option :value ="col.id" v-html="col.chinese?col.chinese:col.name" v-for="(col,index) in graph.columns" @click="setAxis(index,$event)"></option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-3"></label>
+									<div class="col-sm-8">
+										<button type="button" class="btn btn-block" @click="addSeries($event)">新建系列</button>
+									</div>
+								</div>
+								<template v-for="(serie,index) in option.series">
+									<div class="form-group">
+										<label class="control-label col-sm-3" for="">系列{{index+1}}：</label>
+										<div class="col-sm-3">
+											<select name="" class="form-control" v-model="serie.type" @change="change($event)" >
+												<option value ="line">折线图</option>
+												<option value ="bar">条形图</option>
+												<option value ="pie">饼状图</option>
+											</select>
+										</div>
+										<label class="col-sm-2 control-label" for="">字段：</label>
+										<div class="col-sm-3">
+											<select class="form-control" v-model="serie.name">
+												<option v-for="(col,index) in graph.columns" v-html="col.chinese?col.chinese:col.name"></option>
+											</select>
+										</div>
+										<div class="col-sm-1"><!-- 
+											<i class="layui-icon layui-icon-add-1" title="新建系列"></i> -->
+											<i class="layui-icon layui-icon-delete" title="删除系列" @click="remove(serie,$event)"></i>
+										</div>
+									</div>
+								</template>
+								<div class="form-group" v-if="option.xAxis" v-for="(axis,index) in option.xAxis">
+									<label class="control-label col-sm-3">X轴{{index+1}}：</label>
+									<div class="col-sm-3">
+										<select class="form-control" v-model="axis.name">
+											<option v-for="(col,index) in graph.columns" v-html="col.chinese?col.chinese:col.name"></option>
+										</select>
+									</div>
+									<label class="control-label col-sm-2">类型：</label>
+									<div class="col-sm-3">
+										<select class="form-control" v-model="axis.type">
+											<option value ="category">category</option>
+											<option value ="value">value</option>
+										</select>
+									</div>
+								</div>
+							</form>
 						</div>
 					</div>
 				</div>
@@ -151,44 +180,4 @@
 	</body>
 </html>
 <!-- 
-select 
-	generatedAlias0 
-from 
-	dat.domain.TableColumn as generatedAlias0, 
-	dat.domain.VirtualColumn as generatedAlias1 
-inner join 
-	generatedAlias1.refColumns as generatedAlias2 
-where 
-	generatedAlias0.id in (generatedAlias2.id=:param0) 
-    select
-        tablecolum0_.id as id1_8_,
-        tablecolum0_.add_time as add_time2_8_,
-        tablecolum0_.buffer_length as buffer_l3_8_,
-        tablecolum0_.char_octet_length as char_oct4_8_,
-        tablecolum0_.chinese as chinese5_8_,
-        tablecolum0_.column_def as column_d6_8_,
-        tablecolum0_.column_name as column_n7_8_,
-        tablecolum0_.column_size as column_s8_8_,
-        tablecolum0_.data_table_id as data_ta22_8_,
-        tablecolum0_.data_type as data_typ9_8_,
-        tablecolum0_.decimal_digits as decimal10_8_,
-        tablecolum0_.is_foregin_key as is_fore11_8_,
-        tablecolum0_.is_primary_key as is_prim12_8_,
-        tablecolum0_.is_unique as is_uniq13_8_,
-        tablecolum0_.nullable as nullabl14_8_,
-        tablecolum0_.num_prec_radix as num_pre15_8_,
-        tablecolum0_.ordinal_position as ordinal16_8_,
-        tablecolum0_.remarks as remarks17_8_,
-        tablecolum0_.sql_data_type as sql_dat18_8_,
-        tablecolum0_.sql_datetime_sub as sql_dat19_8_,
-        tablecolum0_.state as state20_8_,
-        tablecolum0_.type_name as type_na21_8_ 
-    from
-        table_column tablecolum0_ cross 
-    join
-        virtual_column virtualcol1_ 
-    where
-        virtualcol1_.id in (
-            ?
-        )
  -->

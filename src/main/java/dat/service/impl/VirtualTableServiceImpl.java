@@ -335,7 +335,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	 * array . 
 	 * @return
 	 */
-	private ResultSetHandler<Map<String, List<String>>> getMapListHandler() {
+	public static ResultSetHandler<Map<String, List<String>>> getMapListHandler() {
 		ResultSetHandler<Map<String, List<String>>> mapListResultHandler = rs->{
 			// 结果集元数据信息
 			ResultSetMetaData metaData = rs.getMetaData();

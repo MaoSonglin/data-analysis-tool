@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -48,10 +49,14 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	private Float height;
 	
+	@OneToOne(targetEntity=Menu.class,fetch=FetchType.EAGER)
+	@JoinColumn(referencedColumnName="id")
+	private Menu publish;
+	
 	@Column(name="`comment`")
 	private String comment;
 	
-	@ManyToOne(targetEntity=WorkPackage.class,fetch=FetchType.LAZY)
+	@ManyToOne(targetEntity=WorkPackage.class,fetch=FetchType.EAGER)
 	@JoinColumn(referencedColumnName="id")
 	private WorkPackage pkg;
 	
@@ -142,6 +147,20 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 			return pkg.getName();
 		else
 			return null;
+	}
+
+	
+
+	public Menu getPublish() {
+		return publish;
+	}
+
+	public void setPublish(Menu publish) {
+		this.publish = publish;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 
 }

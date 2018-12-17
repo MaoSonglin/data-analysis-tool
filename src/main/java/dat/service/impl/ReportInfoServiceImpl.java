@@ -8,6 +8,7 @@ import javax.persistence.criteria.Predicate;
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,8 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import dat.domain.GraphInfo;
+import dat.domain.Menu;
 import dat.domain.ReportInfo;
 import dat.repos.GraphInfoRepository;
+import dat.repos.MenuRepository;
 import dat.repos.ReportInfoRepository;
 import dat.service.ReportInfoService;
 import dat.util.Constant;
@@ -35,6 +38,9 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 	
 	@Autowired
 	GraphInfoRepository graphInfoRepos;
+	
+	@Autowired
+	ApplicationContext  context;
 	
 	public Response searchByPageInfo(ReportPagingBean pageInfo) {
 		Specification<ReportInfo> spec = (root,query,cb)->{
@@ -93,6 +99,43 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 			return cb.and(equal,notEqual);
 		});
 		return list;
+	}
+	
+	@Override
+	public int pulish(String reportid, Integer menuid) {
+		MenuRepository repository = context.getBean(MenuRepository.class);
+		// 根据ID查找到报表发布到的目录
+		Menu menu = repository.findById(menuid).orElse(null);
+		if(menu == null){
+			return 9;
+		}
+		// 根据ID查询出待发布的报表
+		ReportInfo reportInfo = reportInfoRepos.findById(reportid).orElse(null);
+		if(reportInfo == null){
+			return 8;
+		}
+		Menu m = new Menu();
+		m.setText(reportInfo.getName());
+		m.setUrl("report/show.html?id="+reportInfo.getId());
+		m.setParent(menu.getId());
+		repository.save(m);
+		
+		reportInfo.setPublish(m);
+		reportInfoRepos.save(reportInfo);
+		
+		return 1;
+	}
+	@Override
+	public Response unpublish(String reportid) {
+		ReportInfo reportInfo = reportInfoRepos.findById(reportid).orElse(null);
+		if(reportInfo == null){
+			return new Response(Constant.ERROR_CODE,"报表不存在",reportid);
+		}
+		Menu publish = reportInfo.getPublish();
+		reportInfo.setPublish(null);
+		ReportInfo save = reportInfoRepos.save(reportInfo);
+		context.getBean(MenuRepository.class).delete(publish);
+		return new Response(Constant.SUCCESS_CODE,"操作成功",save);
 	}
 
 }

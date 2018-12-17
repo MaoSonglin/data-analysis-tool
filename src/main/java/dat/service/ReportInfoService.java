@@ -17,4 +17,8 @@ public interface ReportInfoService {
 
 	List<GraphInfo> getGraphs(String id);
 
+	int pulish(String reportid, Integer menuid);
+
+	Response unpublish(String reportid);
+
 }

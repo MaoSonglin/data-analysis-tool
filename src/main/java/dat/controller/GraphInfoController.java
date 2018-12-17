@@ -1,5 +1,7 @@
 package dat.controller;
 
+import java.util.List;
+
 import javax.annotation.Resource;
 
 import org.jboss.logging.Logger;
@@ -15,7 +17,6 @@ import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.util.Constant;
 import dat.vo.Response;
-import dat.vo.TableDataPagingBean;
 
 /**
  * @author MaoSonglin
@@ -132,22 +133,14 @@ public class GraphInfoController {
 		return save;
 	}
 	
-	@GetMapping("/data/{graphId}/{curPage}/{pageSize}")
-	public Response getData(@PathVariable String graphId,
-			@PathVariable Integer curPage,
-			@PathVariable Integer pageSize) throws Exception{
-		TableDataPagingBean pagingBean = new TableDataPagingBean();
-		pagingBean.setCurPage(curPage);
-		pagingBean.setPageSize(pageSize);
-		GraphInfo graph = new GraphInfo();
-		graph.setId(graphId);
-		pagingBean.setGraph(graph);
-		logger.debug(pagingBean);
-		return graphInfoService.getData(pagingBean);
-	}
-	
-	@RequestMapping("/types")
-	public Response getGraphTypes(){
-		return null;
+	@GetMapping({"/data/{graphId}/{curPage}/{pageSize}","/data/{graphId}"})
+	public Response getData(@PathVariable String graphId) throws Exception{
+		try {
+			List<List<String>> data = graphInfoService.getData(graphId);
+			return new Response(Constant.SUCCESS_CODE,"查询成功",data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Response(Constant.ERROR_CODE,e.getMessage());
+		}
 	}
 }
