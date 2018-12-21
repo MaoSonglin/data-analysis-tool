@@ -70,6 +70,8 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	@Column(length=800)
 	private String options;
 	
+	private String dimension;
+	
 	private Integer state;
 	
 	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.EAGER)
@@ -170,6 +172,20 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 
 	public void setOptions(String options) {
 		this.options = options;
+	}
+	
+	
+
+	public String getDimension() {
+		return dimension;
+	}
+
+	public void setDimension(String dimension) {
+		this.dimension = dimension;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 
 	@Override

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="../res/js/vue.min.js"></script>
+	</head>
+	<body>
+		<div class="" id="app">
+			<form>
+				<input type="checkbox" readonly="readonly" value="{}" v-model="x" />
+				<input type="checkbox" value="{type:'bar',category:'true'}" v-model="x" />
+			</form>
+			<input v-model="x.join()" />
+		</div>
+	</body>
+	<script>
+		alert({}?1:2)
+		new Vue({
+			el : "#app",
+			data : {
+				x :{}
+			},
+			methods : {
+				
+			}
+		})
+	</script>
+</html>

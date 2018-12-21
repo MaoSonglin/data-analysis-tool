@@ -11,10 +11,27 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 
+
+
+
+
+
+
+
+
+
 import javax.persistence.criteria.Predicate;
+
+
+
+
+
+
+
+
+
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +40,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
+
+
+
+
+
+
+
+import dat.data.LocalDataAdapter;
 import dat.domain.GraphInfo;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
@@ -33,7 +60,6 @@ import dat.repos.VirtualColumnRepository;
 import dat.service.GraphInfoService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
-import dat.util.SqlHelper;
 import dat.util.VariableTypeParser;
 import dat.vo.Response;
 import dat.vo.TableDataPagingBean;
@@ -84,16 +110,7 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 	@Override
 	public GraphInfo getById(String id) {
 		logger.debug("获取ID为"+id+"的图表");
-		Optional<GraphInfo> optional = graphInfoRepos.findById(id);
-		try {
-			GraphInfo graphInfo = optional.get();
-			if(Constant.DELETE_STATE == graphInfo.getState())
-				return null;
-			return graphInfo;
-		} catch (Exception e) { 
-			e.printStackTrace();
-		}
-		return null;
+		return graphInfoRepos.findById(id).orElse(null);
 	}
 	
 	@Override
@@ -108,121 +125,25 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		// 获取ID对应的报表
 		GraphInfo g = graphInfoRepos.findById(id).get();
 		// 数据表集合
-		Set<VirtualTable> tableSet = new HashSet<>();
+//		Set<VirtualTable> tableSet = new HashSet<>();
 		// 待查的数据字段
 		List<VirtualColumn> columns = g.getColumns();
-		// 遍历数据字段获取对应的字段所在的数据表
-		columns.forEach(column->{tableSet.add(column.getTable());});
-		// 构建SQL语句
-		StringBuffer buffer = SqlHelper.selectList(columns, "name","id");
-		SqlHelper.from(buffer, tableSet, "id");
-		SqlHelper.limit(buffer, 0, 10);
-		// 报表中的数据表所属的业务包的ID
-		String wpkgid = tableSet.iterator().next().getPackages().iterator().next().getId();
-		// 因为对sqlite数据库只支持单线程访问，所有使用synchronized锁
-		synchronized (this) {
-			try (Connection conn = workPackageService.getConnection(wpkgid)){
-				logger.debug(buffer);
-				Map<VirtualColumn, String> map = getDataType(columns, buffer, conn);
-				// SQL语句
-				String sql = querySql(tableSet, columns, map);
-				logger.debug(sql);
-				try(PreparedStatement ps = conn.prepareStatement(sql);
-						ResultSet rs = ps.executeQuery()) {
-					Map<String, List<String>> data = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
-					List<List<String>> res = format(columns,data);
-					return res;
+		String dimension = g.getDimension();
+		String[] split = dimension.split(";");
+		columns.removeIf(elem->{
+			for (String s : split) {
+				if(s.equals(elem.getId())){
+					return true;
 				}
-			} 
-		}
-	}
-
-	/**
-	 * @param tableSet
-	 * @param columns
-	 * @param map
-	 * @return
-	 * @throws Exception
-	 */
-	private String querySql(Set<VirtualTable> tableSet,
-			List<VirtualColumn> columns, Map<VirtualColumn, String> map)
-			throws Exception {
-		StringBuffer sb = new StringBuffer("SELECT ");
-		Iterator<VirtualColumn> iterator = columns.iterator();
-		VirtualColumn virtualColumn = iterator.next();
-		String name = virtualColumn.getName();
-		sb.append(name).append(" , ");
-		while(iterator.hasNext()){
-			virtualColumn = iterator.next();
-			String typeName = map.get(virtualColumn);
-			if(typeName.equalsIgnoreCase("number")){
-				sb.append("SUM(")
-				.append(virtualColumn.getName())
-				.append(") ")
-				.append(virtualColumn.getName())
-				.append(" , ");
-			}else{
-				sb.append("COUNT(")
-				.append(virtualColumn.getName())
-				.append(") ")
-				.append(virtualColumn.getName())
-				.append(" , ");
 			}
-		}
-		SqlHelper.deleteLast(sb, 3);
-		SqlHelper.from(sb, tableSet, "id");
-		sb.append(" WHERE ").append(name).append(" IS NOT NULL ");
-		sb.append(" GROUP BY ");
-		sb.append(name);
-		sb.append(" ORDER BY ");
-		sb.append(name);
+			return false;
+		});
 		
-		String sql = sb.toString();
-		return sql;
+		Map<String, List<String>> query = new LocalDataAdapter(context).query(columns);
+		return format(columns,query);
 	}
 
 	
-	/**
-	 * 各个字段的数据的真实数据类型
-	 * @param columns
-	 * @param buffer
-	 * @param conn
-	 * @return
-	 * @throws SQLException
-	 */
-	private Map<VirtualColumn, String> getDataType(List<VirtualColumn> columns,
-			StringBuffer buffer, Connection conn) throws SQLException {
-		PreparedStatement ps = conn.prepareStatement(buffer.toString());
-		ResultSet rs = ps.executeQuery();
-		VariableTypeParser typeParser = new VariableTypeParser();
-		Map<VirtualColumn,String> map = new HashMap<>();
-		while(rs.next()){
-			columns.forEach(elem->{
-				String id2 = elem.getId();
-				try {
-					// 获取值
-					String value = rs.getString(id2);
-					// 获取值的数据类型
-					typeParser.setVariable(value);
-					String typeName2 = typeParser.getTypeName();
-					String typeName = map.get(elem);
-					if(typeName == null)
-						map.put(elem, typeName2);
-					else if(!typeName.equalsIgnoreCase(typeName2)){
-						if("any".equalsIgnoreCase(typeName2)){
-							map.put(elem,typeName);
-						}else{
-							map.put(elem,"String");
-						}
-					}
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			});
-		}
-		return map;
-	}
-
 	@Override
 	public Response getData(TableDataPagingBean pagingBean) throws Exception {
 		GraphInfo g = pagingBean.getGraph();
@@ -285,10 +206,12 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 	private List<List<String>> format(List<VirtualColumn> columns,
 			Map<String, List<String>> data) {
 		List<List<String>> list = new ArrayList<>(data.size());
-		data.forEach((key,value)->{
-			String columnName = getColumnName(key, columns);
-			value.add(0, columnName);
-			list.add(value);
+		columns.forEach(column->{
+			String name = column.getName();
+			List<String> list2 = data.get(name);
+			String chinese = column.getChinese();
+			list2.add(0, chinese==null?name:chinese);
+			list.add(list2);
 		});
 		return list;
 	}
@@ -396,20 +319,6 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		return sb.toString();
 	}
 
-	/**
-	 * @param key
-	 * @param x_axis
-	 * @return
-	 */
-	private String getColumnName(String key, List<VirtualColumn> x_axis) {
-		for (VirtualColumn virtualColumn : x_axis) {
-			if(virtualColumn.getName().equals(key)){
-				String chinese = virtualColumn.getChinese();  
-				if(chinese != null) key = chinese;
-			}
-		}
-		return key;
-	}
 
 
 	/**

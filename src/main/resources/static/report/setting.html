@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/font-awesome/css/font-awesome.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/modules/layer/default/layer.css" />
+		<style type="text/css">
+			.tree{
+				padding-left: 10px;
+			}
+			.tree *{
+				list-style-type: none;
+			}
+			.tree li{
+				white-space: nowrap;
+				cursor: pointer;
+			}
+			.fa{
+				cursor: pointer;
+			}
+			.flex{
+				display: flex;
+				padding: 5px;
+				flex-wrap: wrap;
+			}
+			.flex-item{
+				align-items: flex-end;
+			}
+			.column-item{
+				margin:5px 10px 3px;
+				font-size: 16px;
+			}
+			.del-icon{
+				visibility: hidden;
+				cursor: pointer;
+			}
+			.del-icon:hover{
+				color: #00BFFF;
+			}
+			.column-item:hover .del-icon{
+				visibility: visible;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app" class="container-fluid">
+			<div class="row">
+				<div class="col-md-3">
+					<!-- <h3>数据表：</h3> -->
+					<ul class="tree" style="max-height: 380px;overflow: auto;">
+						<li v-for="(table,index) in tables" style="font-size: 16px;padding: 3px 5px 1px">
+							<i :class="table.open==true ? 'fa fa-caret-down':'fa fa-caret-right'" v-on:click="getFields(table)"></i>&nbsp;&nbsp;
+							<i class="fa fa-table" aria-hidden="true"></i>&nbsp;&nbsp;
+							<a v-on:dblclick="getFields(table)">{{table.chinese?table.chinese:table.name}}</a>
+							<ul class="tree" v-show="table.open">
+								<li v-for="(column,index) in table.columns" style="font-size: 15px;padding: 3px 4px 1px;" draggable="true" @dragstart="dragStart($event)" @dblclick="add(table,column)">
+									<i class="fa fa-file-excel-o"></i>&nbsp;&nbsp;
+									<a>{{column.chinese?column.chinese:column.name}}</a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="col-md-6">
+					<div class="" style="max-height: 100px;overflow: auto;" @dragover="allowDrop($event)">
+						<ul class="flex">
+							<li class="flex-item column-item" v-for="(column,index) in graph.columns" style="list-style: none;">
+								<i class="fa fa-file-excel-o"></i>
+								<span>{{column.chinese?column.chinese:column.name}}</span>
+								<i class="fa fa-remove del-icon" v-on:click="remove(column,$event)"></i>
+							</li>
+						</ul>
+					</div>
+					<div>
+						<form class="form-horizontal">
+							<div class="form-group">
+								<label class="control-label col-md-2">标题</label>
+								<div class="col-md-10">
+									<input class="form-control" v-model="graph.title" />
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2">分类</label>
+								<div class="col-md-10">
+									<select class="form-control" v-model="setting.category" @change="setCategory($event)">
+										<option v-for="(column,index) in graph.columns" 
+											v-html="column.chinese?column.chinese:column.name" 
+											v-bind:value="column.id" v-bind:data-index="index"></option>
+									</select>
+								</div>
+							</div>
+							
+							<!-- echarts图表设置属性options.series -->
+							<div class="form-group">
+								<label class="control-label col-md-2">系列</label>
+								<div class="col-md-10">
+									<div class="btn-group btn-group-sm">
+										<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+											<span class="caret"></span>
+											添加系列
+										</button>
+										<ul class="dropdown-menu" role="menu">
+											<li v-for="(column,index) in getColumns()">
+												<a href="#" v-html="column.chinese?column.chinese:column.name" 
+													v-on:click="addseries(column)"></a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="form-group form-group-sm" v-for="(x,index) in setting.series">
+								<label class="control-label col-md-2"></label>
+								<div class="col-md-5">
+									<div class="input-group input-group-sm">
+										<span class="input-group-addon">类型：</span>
+										<select class="form-control" v-model="x.type">
+											<option v-for="type in graphTypes" v-html="type.name" :value="type.type"></option>
+										</select>
+									</div>
+								</div>
+								<div class="col-md-5">
+									<div class="input-group input-group-sm">
+										<span class="input-group-addon">名称：</span>
+										<input class="form-control" v-model="x.name" placeholder="请输入系列名称" />
+										<span class="input-group-btn">
+											<button type="button" class="btn btn-danger" v-on:click="rmseries(x)">移除</button>
+										</span>
+									</div>
+								</div>
+							</div><!-- 设置options.series属性 -->
+							
+							
+							<div class="form-group">
+								<div class="col-md-10 col-md-offset-2">
+									<div class="checkbox">
+										<label class="checkbox-inline">
+											<input type="checkbox" v-on:click="check('xAxis',{},$event)" v-bind:checked="setting.xAxis" />显示X轴
+										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" v-on:click="check('yAxis',{},$event)" v-bind:checked="setting.yAxis" />显示Y轴
+										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" v-on:click="check('tooltip',{},$event)" v-bind:checked="setting.tooltip" />显示提示框
+										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" v-on:click="check('legend',{},$event)"  v-bind:checked="setting.legend" />显示图例
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="form-group" v-if="setting.xAxis">
+								<label class="control-label col-md-2">X轴</label>
+								<div class="col-md-4">
+									<select class="form-control" v-model="setting.xAxis.type">
+										<option v-bind:value="'category'">分类</option>
+										<option v-bind:value="'value'">值</option>
+									</select>
+								</div>
+								<label class="control-label col-md-2">名称</label>
+								<div class="col-md-4">
+									<input class="form-control" v-model="setting.xAxis.name" />
+								</div>
+							</div>
+							<div class="form-group" v-if="setting.yAxis">
+								<label class="control-label col-md-2">Y轴</label>
+								<div class="col-md-4">
+									<select class="form-control" v-model="setting.yAxis.type">
+										<option v-bind:value="'category'">分类</option>
+										<option v-bind:value="'value'">值</option>
+									</select>
+								</div>
+								<label class="control-label col-md-2">名称</label>
+								<div class="col-md-4">
+									<input class="form-control" v-model="setting.yAxis.name" />
+								</div>
+							</div>
+							
+							<!-- 钻取维度的设置 -->
+							<div class="form-group form-group-sm">
+								<label class="control-label col-md-2">钻取维度</label>
+								<div class="col-md-10">
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+											<span class="caret"></span>
+											添加维度
+										</button>
+										<ul class="dropdown-menu" role="menu">
+											<template v-for="column in getColumns()">
+												<li>
+													<a v-html="column.chinese ? column.chinese:column.name" v-on:click="addDrilling(column)"></a>
+												</li>
+											</template>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="form-group form-group-sm">
+								<div class="col-md-6 col-md-offset-2">
+									<template v-for="(c,index) in drilling">
+										<div class="input-group input-group-sm" style="margin-bottom: 15px;">
+											<span class="input-group-addon text-info" >维度{{index+1}}：</span>
+											<input class="form-control" name="" v-model="c.chinese?c.chinese:c.name" readonly="readonly" />
+											<span class="input-group-btn">
+												<button type="button" class="btn btn-danger " v-on:click="rmDrilling(c)">删除</button>
+											</span>
+										</div>
+									</template>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-md-10 col-md-offset-2">
+									<button class="btn btn-primary" type="button" @click="save()">保存</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-tree.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/lay/modules/layer.js" charset="UTF-8"></script>
+	<script src="setting.js" type="text/javascript" charset="utf-8"></script>
+</html>

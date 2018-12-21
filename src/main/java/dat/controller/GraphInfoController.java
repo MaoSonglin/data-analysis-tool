@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import dat.App;
 import dat.domain.GraphInfo;
 import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
+import dat.service.VirtualTableService;
+import dat.service.WorkPackageService;
 import dat.util.Constant;
 import dat.vo.Response;
 
@@ -94,7 +97,7 @@ public class GraphInfoController {
 	 */
 	@GetMapping("/{gpid}/{vcid}")
 	public Response addx(@PathVariable String gpid,
-			@PathVariable String vcid,@PathVariable String axis) throws Exception{
+			@PathVariable String vcid) throws Exception{
 		// 根据ID获取待编辑的图表
 		GraphInfo graphInfo = graphInfoService.getById(gpid);
 		if(graphInfo == null){
@@ -118,8 +121,7 @@ public class GraphInfoController {
 	 * @return
 	 */
 	@DeleteMapping("/{pgid}/{vcid}")
-	public Response rmAxis(@PathVariable String pgid,
-			@PathVariable String vcid,@PathVariable String axis){
+	public Response rmAxis(@PathVariable String pgid,@PathVariable String vcid){
 		// 根据ID获取待编辑的图表
 		GraphInfo graphInfo = graphInfoService.getById(pgid);
 		if(graphInfo == null){
@@ -142,5 +144,20 @@ public class GraphInfoController {
 			e.printStackTrace();
 			return new Response(Constant.ERROR_CODE,e.getMessage());
 		}
+	}
+	
+	@GetMapping("/tree")
+	public Response getTree(String id){
+		if(id == null || "".equals(id)){
+			throw new IllegalArgumentException("ID不能为null");
+		}
+		if(id.startsWith("PKG")){
+			WorkPackageService pkgService = App.getContext().getBean(WorkPackageService.class);
+			Response tables = pkgService.getTables(id);
+			return tables;
+		}else if(id.startsWith("VT")){
+			return App.getContext().getBean(VirtualTableService.class).getVirtualColumns(id);
+		}
+		return null;
 	}
 }

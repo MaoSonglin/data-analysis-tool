@@ -2,7 +2,6 @@ package dat.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import javax.persistence.criteria.Predicate;
 
@@ -60,6 +59,7 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 		response.put("searchInfo", pageInfo);
 		return response;
 	}
+	
 	@Transactional
 	public Response save(ReportInfo report) {
 		Specification<ReportInfo> spec = (root,query,cb)->{
@@ -81,14 +81,7 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 
 	@Override
 	public ReportInfo getById(String id) {
-		Optional<ReportInfo> optional = reportInfoRepos.findById(id);
-		try {
-			ReportInfo reportInfo = optional.get();
-			return reportInfo;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+		return reportInfoRepos.findById(id).orElse(null);
 	}
 
 	@Override
@@ -102,17 +95,23 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 	}
 	
 	@Override
-	public int pulish(String reportid, Integer menuid) {
+	@Transactional
+	public Response pulish(String reportid, Integer menuid) {
+		Response res = new Response();
 		MenuRepository repository = context.getBean(MenuRepository.class);
 		// 根据ID查找到报表发布到的目录
 		Menu menu = repository.findById(menuid).orElse(null);
 		if(menu == null){
-			return 9;
+			res.setCode(9);
+			res.setMessage("目录不存在");
+			return res;
 		}
 		// 根据ID查询出待发布的报表
 		ReportInfo reportInfo = reportInfoRepos.findById(reportid).orElse(null);
 		if(reportInfo == null){
-			return 8;
+			res.setCode(8);
+			res.setMessage("报表不存在");
+			return res;
 		}
 		Menu m = new Menu();
 		m.setText(reportInfo.getName());
@@ -121,19 +120,26 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 		repository.save(m);
 		
 		reportInfo.setPublish(m);
-		reportInfoRepos.save(reportInfo);
+		ReportInfo save = reportInfoRepos.save(reportInfo);
 		
-		return 1;
+		res.setCode(Constant.SUCCESS_CODE);
+		res.setMessage("发布成功");
+		res.setData(save);
+		return res;
 	}
+	
 	@Override
+	@Transactional
 	public Response unpublish(String reportid) {
 		ReportInfo reportInfo = reportInfoRepos.findById(reportid).orElse(null);
 		if(reportInfo == null){
 			return new Response(Constant.ERROR_CODE,"报表不存在",reportid);
 		}
+		// 获取发布目录
 		Menu publish = reportInfo.getPublish();
 		reportInfo.setPublish(null);
 		ReportInfo save = reportInfoRepos.save(reportInfo);
+		// 删除之前发布的目录
 		context.getBean(MenuRepository.class).delete(publish);
 		return new Response(Constant.SUCCESS_CODE,"操作成功",save);
 	}

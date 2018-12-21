@@ -30,9 +30,11 @@ import java.util.Set;
 
 
 
+
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+
 
 
 
@@ -64,7 +66,9 @@ import org.springframework.stereotype.Service;
 
 
 
+
 import com.alibaba.fastjson.JSON;
+
 
 
 
@@ -344,7 +348,9 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			// 存放结果的map对象
 			Map<String,List<String>> map = new HashMap<>(columnCount);
 			for(int i = 0; i < columnCount; i++){
-				map.put(metaData.getColumnLabel(i+1), new LinkedList<>());
+				String columnLabel = metaData.getColumnLabel(i+1);
+//				System.err.println(columnLabel);
+				map.put(columnLabel, new LinkedList<>());
 			}
 			// 遍历结果集
 			while(rs.next()){
@@ -579,9 +585,9 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	}
 
 	 
+	public interface ResultSetHandler<T>{
+		T doResultSet(ResultSet resultSet) throws SQLException ;
+	}
 }
 
 
-interface ResultSetHandler<T>{
-	T doResultSet(ResultSet resultSet) throws SQLException ;
-}

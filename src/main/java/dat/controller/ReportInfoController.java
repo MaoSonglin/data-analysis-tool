@@ -88,11 +88,8 @@ public class ReportInfoController {
 	
 	@RequestMapping("publish/{reportid}/{menuid}")
 	public Response publish(@PathVariable String reportid,@PathVariable  Integer menuid){
-		int code = reportInfoService.pulish(reportid,menuid);
-		Response res = new Response();
-		res.setCode(code);
-		res.setMessage(code == 1? "发布成功": code == 9 ? "目录不存在": code==8 ? "报表不存在":"发布失败");
-		return res;
+		Response response = reportInfoService.pulish(reportid,menuid);
+		return response;
 	}
 	
 	@RequestMapping("unpublish/{reportid}")
