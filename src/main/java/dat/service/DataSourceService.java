@@ -1,5 +1,6 @@
 package dat.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -7,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import dat.domain.DataTable;
 import dat.domain.Source;
+import dat.vo.ExcelSheet;
 import dat.vo.PagingBean;
 import dat.vo.Response;
 
@@ -18,8 +20,9 @@ public interface DataSourceService {
 	 * 添加新数据源
 	 * @param source
 	 * @return
+	 * @throws Exception 
 	 */
-	Response add(Source source);
+	Response add(Source source) throws Exception;
 
 	/**
 	 * 修改已有数据源信息
@@ -52,4 +55,30 @@ public interface DataSourceService {
 	JdbcTemplate getTemplate(Source source);
 
 	Set<Source> findSourceContain(List<DataTable> quoteTable);
+
+	/**
+	 * 获取Excel数据源中的工作簿信息
+	 * @param id	数据源id
+	 * @return		工作簿信息的数组
+	 * @throws Exception 
+	 */
+	List<ExcelSheet> getExcelSheet(String id) throws Exception;
+
+	/**
+	 * 提取指定的Excel数据源中的数据
+	 * @param id
+	 * @param sheets
+	 * @return
+	 */
+	Source extract(String id,List<ExcelSheet> sheets);
+
+	/**
+	 * 获取指定id的Excel数据源中指定的工作簿sheetName中的第row行数据
+	 * @param id
+	 * @param sheetName
+	 * @param row
+	 * @return
+	 * @throws IOException 
+	 */
+	List<String> getSpecifyRow(String id, String sheetName, Integer row) throws IOException;
 }

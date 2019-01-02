@@ -7,6 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/font-awesome/css/font-awesome.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/modules/layer/default/layer.css" />
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/plugins/bootstrap-treeview/bootstrap-treeview.min.css"/>
 		<style type="text/css">
 			.tree{
 				padding-left: 10px;
@@ -43,6 +44,26 @@
 			.column-item:hover .del-icon{
 				visibility: visible;
 			}
+			.my-table{
+				table-layout: fixed;
+			}
+			.my-table td{
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.my-table td:hover{
+				overflow: visible;
+			}
+			.list-group-item{
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				overflow: hidden;
+			}
+			.list-group-item:hover{
+				overflow: visible;
+				color: #0092DC;
+			}
 		</style>
 	</head>
 	<body>
@@ -50,6 +71,8 @@
 			<div class="row">
 				<div class="col-md-3">
 					<!-- <h3>数据表：</h3> -->
+					<div class="form-group"></div>
+					<!-- <span class="h3 text-justify">数据表</span>
 					<ul class="tree" style="max-height: 380px;overflow: auto;">
 						<li v-for="(table,index) in tables" style="font-size: 16px;padding: 3px 5px 1px">
 							<i :class="table.open==true ? 'fa fa-caret-down':'fa fa-caret-right'" v-on:click="getFields(table)"></i>&nbsp;&nbsp;
@@ -58,31 +81,67 @@
 							<ul class="tree" v-show="table.open">
 								<li v-for="(column,index) in table.columns" style="font-size: 15px;padding: 3px 4px 1px;" draggable="true" @dragstart="dragStart($event)" @dblclick="add(table,column)">
 									<i class="fa fa-file-excel-o"></i>&nbsp;&nbsp;
-									<a>{{column.chinese?column.chinese:column.name}}</a>
+									<a>{{column.chinese?column.chinese:column.name}}（类型:{{column.typeName}}）</a>
 								</li>
 							</ul>
 						</li>
-					</ul>
+					</ul> -->
 				</div>
-				<div class="col-md-6">
-					<div class="" style="max-height: 100px;overflow: auto;" @dragover="allowDrop($event)">
+				<div class="col-md-8">
+					<!-- <div class="" style="max-height: ;overflow: auto;" @dragover="allowDrop($event)">
 						<ul class="flex">
 							<li class="flex-item column-item" v-for="(column,index) in graph.columns" style="list-style: none;">
 								<i class="fa fa-file-excel-o"></i>
-								<span>{{column.chinese?column.chinese:column.name}}</span>
+								<span>{{column.chinese?column.chinese:column.name}}（类型:{{column.typeName}}）</span>
 								<i class="fa fa-remove del-icon" v-on:click="remove(column,$event)"></i>
 							</li>
 						</ul>
-					</div>
+					</div> -->
 					<div>
 						<form class="form-horizontal">
-							<div class="form-group">
-								<label class="control-label col-md-2">标题</label>
-								<div class="col-md-10">
-									<input class="form-control" v-model="graph.title" />
+							<div class="form-group"></div>
+							<div class="form-group" v-if="false">
+								<label class="control-label col-md-2">当前选择字段</label>
+								<div class="col-md-10" >
+									<table class="table table-bordered" style="margin-bottom: 0;">
+										<colgroup>
+											<col width="200" />
+											<col width="120" />
+											<col width="200" />
+											<col />
+										</colgroup>
+										<tr>
+											<th>字段名称</th>
+											<th>类型</th>
+											<th>数据表</th>
+											<th>操作</th>
+										</tr>
+									</table>
+									<div class="table-responsive" style="max-height: 200px;overflow-y: auto;" >
+										<table class="table table-bordered table-hover table-striped table-condensed my-table" >
+											<colgroup>
+												<col width="200" />
+												<col width="120" />
+												<col width="200" />
+												<col />
+											</colgroup>
+											<tr v-for="(column,index) in graph.columns">
+												<td v-html="column.chinese?column.chinese:column.name"></td>
+												<td v-html="column.typeName"></td>
+												<td v-html="column.table.chinese?column.table.chinese:column.table.name"></td>
+												<td> <span class="glyphicon glyphicon-remove-sign"  @click="remove(column,$event)" title="删除"></span> </td>
+											</tr>
+										</table>
+									</div>
 								</div>
 							</div>
 							<div class="form-group">
+								<label class="control-label col-md-2">标题</label>
+								<div class="col-md-10">
+									<input class="form-control" v-model="setting.title.text" placeholder="请输入图表标题" /> 
+								</div>
+							</div>
+							<!-- <div class="form-group">
 								<label class="control-label col-md-2">分类</label>
 								<div class="col-md-10">
 									<select class="form-control" v-model="setting.category" @change="setCategory($event)">
@@ -91,27 +150,60 @@
 											v-bind:value="column.id" v-bind:data-index="index"></option>
 									</select>
 								</div>
+							</div> -->
+							<!-- 钻取维度的设置 -->
+							<div class="form-group form-group-sm">
+								<label class="control-label col-md-2">分类维度</label>
+								<div class="col-md-10">
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-default dropdown-toggle" @click="chooseColumn('categoryColumns','',$event)">
+											<!-- <span class="caret"></span> -->
+											添加维度
+										</button>
+										<!-- <ul class="dropdown-menu" role="menu">
+											<template v-for="column in getColumns()">
+												<li>
+													<a v-html="column.chinese ? column.chinese:column.name" v-on:click="addDrilling(column)"></a>
+												</li>
+											</template>
+										</ul> -->
+									</div>
+								</div>
 							</div>
-							
+							<div class="form-group form-group-sm">
+								<div class="col-md-6 col-md-offset-2">
+									<template v-for="(c,index) in graph.categoryColumns">
+										<div class="input-group input-group-sm" style="margin-bottom: 15px;">
+											<span class="input-group-addon text-info" >维度{{index+1}}：</span>
+											<input class="form-control" name="" v-model="c.chinese?c.chinese:c.name" readonly="readonly" />
+											<span class="input-group-btn">
+												<button type="button" class="btn btn-danger " v-on:click="rmColumn('categoryColumns',c)">删除</button>
+											</span>
+										</div>
+									</template>
+								</div>
+							</div>
 							<!-- echarts图表设置属性options.series -->
 							<div class="form-group">
 								<label class="control-label col-md-2">系列</label>
 								<div class="col-md-10">
+									<!-- <button type="button" @click="chooseColumn('valueColumns','Number',$event)">添加字段</button> -->
 									<div class="btn-group btn-group-sm">
-										<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-											<span class="caret"></span>
+										<button type="button" class="btn btn-default" @click="chooseColumn('valueColumns','Number',$event)">
+											<!-- <span class="caret"></span> -->
 											添加系列
-										</button>
+										</button><!-- 
 										<ul class="dropdown-menu" role="menu">
-											<li v-for="(column,index) in getColumns()">
+											<li v-for="(column,index) in graph.valueColumns">
 												<a href="#" v-html="column.chinese?column.chinese:column.name" 
 													v-on:click="addseries(column)"></a>
 											</li>
-										</ul>
+										</ul> -->
 									</div>
 								</div>
 							</div>
 							<div class="form-group form-group-sm" v-for="(x,index) in setting.series">
+								<input type="hidden" name="columnId" v-model="x.columnId" />
 								<label class="control-label col-md-2"></label>
 								<div class="col-md-5">
 									<div class="input-group input-group-sm">
@@ -133,81 +225,156 @@
 							</div><!-- 设置options.series属性 -->
 							
 							
+							
+							<!-- 显示项目配置 -->
 							<div class="form-group">
+								<!-- <label class="control-label col-md-2">配置项</label> -->
 								<div class="col-md-10 col-md-offset-2">
 									<div class="checkbox">
 										<label class="checkbox-inline">
-											<input type="checkbox" v-on:click="check('xAxis',{},$event)" v-bind:checked="setting.xAxis" />显示X轴
+											<input type="checkbox" v-model="setting.xAxis.show"/>显示X轴
 										</label>
 										<label class="checkbox-inline">
-											<input type="checkbox" v-on:click="check('yAxis',{},$event)" v-bind:checked="setting.yAxis" />显示Y轴
+											<input type="checkbox" v-model="setting.yAxis.show" />显示Y轴
 										</label>
 										<label class="checkbox-inline">
-											<input type="checkbox" v-on:click="check('tooltip',{},$event)" v-bind:checked="setting.tooltip" />显示提示框
+											<input type="checkbox" v-model="setting.tooltip.show" />显示提示框
 										</label>
 										<label class="checkbox-inline">
-											<input type="checkbox" v-on:click="check('legend',{},$event)"  v-bind:checked="setting.legend" />显示图例
+											<input type="checkbox" v-model="setting.legend.show" />显示图例
 										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" v-model="setting.grid.show" />显示网格
+										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" v-model="setting.toolbox.show" />显示工具条
+										</label>
+										<label class="checkbox-inline"><input type="checkbox" v-model="setting.dataZoom.show" />显示滑块</label>
 									</div>
 								</div>
-							</div>
-							<div class="form-group" v-if="setting.xAxis">
+							</div><!-- 显示配置 -->
+							
+							<!-- x轴配置 -->
+							<div class="form-group form-group-sm" v-if="setting.xAxis">
 								<label class="control-label col-md-2">X轴</label>
 								<div class="col-md-4">
-									<select class="form-control" v-model="setting.xAxis.type">
-										<option v-bind:value="'category'">分类</option>
-										<option v-bind:value="'value'">值</option>
-									</select>
+									<div class="input-group">
+										<span class="input-group-addon">类型</span>
+										<select class="form-control" v-model="setting.xAxis.type">
+											<option v-bind:value="'category'">分类</option>
+											<option v-bind:value="'value'">值</option>
+										</select>
+									</div>
 								</div>
-								<label class="control-label col-md-2">名称</label>
 								<div class="col-md-4">
-									<input class="form-control" v-model="setting.xAxis.name" />
+									<div class="input-group">
+										<span class="input-group-addon">名称</span>
+										<input class="form-control" v-model="setting.xAxis.name" />
+									</div>
 								</div>
-							</div>
-							<div class="form-group" v-if="setting.yAxis">
+							</div><!-- x轴配置 -->
+							
+							<!-- y轴配置 -->
+							<div class="form-group form-group-sm" v-if="setting.yAxis">
 								<label class="control-label col-md-2">Y轴</label>
 								<div class="col-md-4">
-									<select class="form-control" v-model="setting.yAxis.type">
-										<option v-bind:value="'category'">分类</option>
-										<option v-bind:value="'value'">值</option>
-									</select>
+									<div class="input-group">
+										<span class="input-group-addon">类型</span>
+										<select class="form-control" v-model="setting.yAxis.type">
+											<option v-bind:value="'category'">分类</option>
+											<option v-bind:value="'value'">值</option>
+										</select>
+									</div>
 								</div>
-								<label class="control-label col-md-2">名称</label>
 								<div class="col-md-4">
-									<input class="form-control" v-model="setting.yAxis.name" />
+									<div class="input-group">
+										<span class="input-group-addon">名称</span>
+										<input class="form-control" v-model="setting.yAxis.name" />
+									</div>
 								</div>
-							</div>
+							</div><!-- y轴配置 -->
 							
-							<!-- 钻取维度的设置 -->
-							<div class="form-group form-group-sm">
-								<label class="control-label col-md-2">钻取维度</label>
-								<div class="col-md-10">
-									<div class="btn-group btn-group-sm">
-										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-											<span class="caret"></span>
-											添加维度
-										</button>
-										<ul class="dropdown-menu" role="menu">
-											<template v-for="column in getColumns()">
-												<li>
-													<a v-html="column.chinese ? column.chinese:column.name" v-on:click="addDrilling(column)"></a>
-												</li>
-											</template>
-										</ul>
+							<!-- 图例 -->
+							<div class="form-group form-group-sm" v-if="setting.legend.show">
+								<label class="control-label col-md-2">图例</label>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">类型</span>
+										<select class="form-control" v-model="setting.legend.type">
+											<option value ="plain" selected="selected">普通图例</option>
+											<option value ="scroll">可滚动图例</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">方向</span>
+										<select class="form-control" v-model="setting.legend.orient">
+											<option value="horizontal">水平</option>
+											<option value ="vertical">垂直</option>
+										</select>
+									</div>
+								</div>
+							</div><!-- 图例 -->
+							
+							<!-- 工具栏 -->
+							<div class="form-group form-group-sm" v-if="setting.toolbox.show">
+								<label class="control-label col-md-2">工具栏</label>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">方向</span>
+										<select name="" class="form-control" v-model="setting.toolbox.orient">
+											<option value="horizontal">水平</option>
+											<option value ="vertical">垂直</option>
+										</select>
+									</div>
+								</div>
+							</div><!-- 工具栏 -->
+							
+							<!-- 滑块组件 -->
+							<div class="form-group form-group-sm" v-if="setting.dataZoom.show">
+								<label class="control-label col-md-2">滑块</label>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">类型</span>
+										<select class="form-control" v-model="setting.dataZoom.type">
+											<option value ="inside">inside</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">方向</span>
+										<select name="" class="form-control" v-model="setting.dataZoom.orient">
+											<option value="horizontal">水平</option>
+											<option value ="vertical">垂直</option>
+										</select>
+									</div>
+								</div>
+								
+							</div>
+							<div class="form-group form-group-sm" v-if="setting.dataZoom.show">
+								<div class="col-md-4 col-md-offset-2">
+									<div class="input-group">
+										<span class="input-group-addon">开始</span>
+										<input class="form-control" type="number" value="0" v-model="setting.dataZoom.start" max="100" min="0" />
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="input-group">
+										<span class="input-group-addon">结束</span>
+										<input class="form-control" type="number" v-model="setting.dataZoom.end" max="100" :min="setting.dataZoom.start"/>
 									</div>
 								</div>
 							</div>
-							<div class="form-group form-group-sm">
-								<div class="col-md-6 col-md-offset-2">
-									<template v-for="(c,index) in drilling">
-										<div class="input-group input-group-sm" style="margin-bottom: 15px;">
-											<span class="input-group-addon text-info" >维度{{index+1}}：</span>
-											<input class="form-control" name="" v-model="c.chinese?c.chinese:c.name" readonly="readonly" />
-											<span class="input-group-btn">
-												<button type="button" class="btn btn-danger " v-on:click="rmDrilling(c)">删除</button>
-											</span>
-										</div>
-									</template>
+							<!-- 滑块组件 -->
+							
+							<div class="form-group">
+								<label for="desc" class="control-label col-md-2">描述</label>
+								<div class="col-md-10">
+									<textarea rows="5" cols="" class="form-control" v-model="graph.desc" placeholder="请输入图表描述,不多于500个字符">
+										
+									</textarea>
 								</div>
 							</div>
 							<div class="form-group">
@@ -220,6 +387,11 @@
 				</div>
 			</div>
 		</div>
+		<div id="tree-div" style="display: none;overflow: auto;padding: 15px;">
+			<div id="tree">
+				
+			</div>
+		</div>
 	</body>
 	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
@@ -228,5 +400,6 @@
 	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/my-tree.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/layui/lay/modules/layer.js" charset="UTF-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/bootstrap-treeview/bootstrap-treeview.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="setting.js" type="text/javascript" charset="utf-8"></script>
 </html>

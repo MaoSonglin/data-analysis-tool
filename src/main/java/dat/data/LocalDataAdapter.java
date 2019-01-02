@@ -19,6 +19,7 @@ import org.jboss.logging.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.Assert;
 
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
@@ -46,7 +47,40 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 		super();
 		this.context = context;
 	}
-
+	
+	
+	public Map<String,List<String>> query(List<VirtualColumn> columns,SqlBuilder builder) throws Exception{
+		// 数据表集合
+		Set<VirtualTable> tableSet = new HashSet<>();
+		// 遍历数据字段获取对应的字段所在的数据表
+		columns.forEach(column->{tableSet.add(column.getTable());});
+		
+		String wpkg = tableSet.iterator().next().getPackages().iterator().next().getId();
+		synchronized (this) {
+			try(Connection conn = context.getBean(WorkPackageService.class).getConnection(wpkg);){
+				String tableName = null;
+				if(tableSet.size() == 1){
+					tableName = tableSet.iterator().next().getId();
+				}else if(tableSet.size() > 1){
+					tableName = createTemporaryTable(conn,tableSet,columns);
+				}
+				SqlInfo sqlInfo = new SqlInfo() ;
+				builder.build(tableName,sqlInfo);
+				logger.debug(sqlInfo.getSql());
+				logger.debug(sqlInfo.getParams());
+				try(PreparedStatement ps = conn.prepareStatement(sqlInfo.getSql())){
+					List<Object> params = sqlInfo.getParams();
+					for(int i = 0, size = params.size(); i < size; i++){
+						ps.setObject(i+1, params.get(i));
+					}
+					try(ResultSet rs = ps.executeQuery()){
+						Map<String, List<String>> data = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
+						return data;
+					}
+				}
+			}
+		}
+	}
 
 	public Map<String, List<String>> query(List<VirtualColumn> columns) throws Exception{
 		// 数据表集合
@@ -63,7 +97,6 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 				}else if(tableSet.size() > 1){
 					tableName = createTemporaryTable(conn,tableSet,columns);
 				}
-				
 				String sql = querySql(conn, tableName, columns);
 				logger.debug(sql);
 				try(PreparedStatement ps = conn.prepareStatement(sql);ResultSet rs = ps.executeQuery()){
@@ -74,6 +107,45 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 		}
 	}
 
+	protected SqlInfo buildSql(String tableName,List<VirtualColumn> fields,VirtualColumn groupByColumn,Object...filters){
+		Assert.isTrue(filters.length%2==0, "the length of array ‘filters’ must be even numbers");
+		ArrayList<VirtualColumn> arrayList = new ArrayList<>(fields);
+		arrayList.remove(groupByColumn);
+		StringBuffer sb = new StringBuffer("SELECT ");
+		SqlInfo sqlInfo = new SqlInfo();
+		sb.append(groupByColumn.getName()).append(" , ");
+		for (VirtualColumn virtualColumn : arrayList) {
+			String typeName = virtualColumn.getTypeName();
+			if(typeName.equalsIgnoreCase("number")){
+				sb.append("SUM(")
+				.append(virtualColumn.getName())
+				.append(") ")
+				.append(virtualColumn.getName())
+				.append(" , ");
+			}else{
+				sb.append("COUNT(")
+				.append(virtualColumn.getName())
+				.append(") ")
+				.append(virtualColumn.getName())
+				.append(" , ");
+			}
+		}
+		SqlHelper.deleteLast(sb, 3);
+		sb.append(" FROM ").append(tableName);
+		sb.append(" WHERE ");
+		for(int i = 0,length = filters.length; i < length-1; i+=2){
+			sb.append(filters[i]).append(" = ? AND ");
+			sqlInfo.getParams().add(filters[i+1]);
+		}
+		sb.append(groupByColumn.getName()).append(" IS NOT NULL ");
+		
+		sb.append(" GROUP BY ");
+		sb.append(groupByColumn.getName());
+		sb.append(" ORDER BY ");
+		sb.append(groupByColumn.getName());
+		sqlInfo.setSql(sb.toString());
+		return sqlInfo;
+	}
 
 	/**
 	 * @param conn
@@ -85,17 +157,18 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	 */
 	private String querySql(Connection conn, String tableName,
 			List<VirtualColumn> columns) throws Exception, SQLException {
-		StringBuffer buffer = SqlHelper.selectList(columns, "name", "id");
-		buffer.append(" FROM ").append(tableName);
+//		StringBuffer buffer = SqlHelper.selectList(columns, "name", "id");
+//		buffer.append(" FROM ").append(tableName);
 		
-		Map<VirtualColumn, String> dataType = getDataType(columns, buffer, conn);
+//		Map<VirtualColumn, String> dataType = getDataType(columns, buffer, conn);
 		StringBuffer sb = new StringBuffer("SELECT ");
 		Iterator<VirtualColumn> iterator = columns.iterator();
 		VirtualColumn next = iterator.next();
 		sb.append(next.getName()).append(" , ");
 		while(iterator.hasNext()){
 			VirtualColumn virtualColumn = iterator.next();
-			String typeName = dataType.get(virtualColumn);
+//			String typeName = dataType.get(virtualColumn);
+			String typeName = virtualColumn.getTypeName();
 			if(typeName.equalsIgnoreCase("number")){
 				sb.append("SUM(")
 				.append(virtualColumn.getName())
@@ -121,6 +194,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	}
 	
 	
+	@SuppressWarnings("unused")
 	private Map<VirtualColumn, String> getDataType(List<VirtualColumn> columns,
 			StringBuffer buffer, Connection conn) throws SQLException {
 		PreparedStatement ps = conn.prepareStatement(buffer.toString());
@@ -364,6 +438,10 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		context = applicationContext;
+	}
+	
+	public static interface SqlBuilder{
+		void build(String tableName,SqlInfo sqlInfo);
 	}
 
 }

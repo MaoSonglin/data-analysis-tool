@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<div id="id888888888" style="position: absolute;top: 0;right:0; bottom: 0;left: 0;">
+			
+		</div>
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		$(function(){
+			let pkg = JSON.parse(localStorage.pkg)
+			let myEchart = echarts.init(document.querySelector("#id888888888"))
+			
+			$.ajax({
+				url : basePath + "pkg/tab/col/"+pkg.id,
+				method : "GET",
+				dataType : "json",
+				xhrFields: {
+				   withCredentials: true    // 前端设置是否带cookie
+			    },
+				success : function(data){
+					let res = data.tables
+					let nodes = new Array()
+					let links = new Array()
+					let categories = new Array();
+					for(let i in res){
+						categories.push({
+							name : "数据表"+i
+						})
+						nodes.push({
+							id : res[i].id,
+							name : res[i].name,
+							itemStyle : {},
+							symbolSize : 50,
+							value : res[i].chinese,
+							category : categories.length - 1,
+							draggable: true
+						})
+						categories.push({
+							name : "数据表"+i+"中的字段"
+						})
+						let linkid = 0
+						for(let j in res[i].columns){
+							nodes.push({
+								id : res[i].columns[j].id,
+								name : res[i].columns[j].name,
+								itemStyle : {},
+								symbolSize : 20,
+								value : res[i].columns[j].chinese,
+								category : categories.length - 1,
+								draggable: true
+							})
+							
+							links.push({
+								id : linkid++,
+								source : res[i].id,
+								target : res[i].columns[j].id
+							})
+						}
+					}
+					
+					let refs = data.refs
+					for(let i in refs){
+						links.push({
+							source : refs[i].foreignColumn.id,
+							target : refs[i].referencedColumn.id,
+							lineStyle : {
+								color : 'rgb(128,128,128)',
+								type : 'linear',
+								width : 5
+							}
+						})
+					}
+					
+					myEchart.setOption({
+						series : [{
+							data:nodes,
+							links : links,
+							categories: categories,
+						}]
+					})
+				}
+			})
+			
+			myEchart.setOption({
+				title : {
+					text : "'"+pkg.name+"'的关联关系图"
+				},
+				tooltip: {},
+				legend: {},
+				animation: false, 
+				series : [
+					{
+						name: '',
+						type: 'graph',
+						layout: 'force', 
+						roam: true,
+						label: {
+							show : true,
+							normal: {
+								position: 'right'
+							}
+						},
+						force: {
+							repulsion: 100
+						}
+					}
+				]
+			})
+		})
+	</script>
+</html>

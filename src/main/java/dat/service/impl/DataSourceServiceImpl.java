@@ -1,5 +1,15 @@
 package dat.service.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +20,14 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +35,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,22 +45,29 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.sqlite.JDBC;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
+import dat.data.ExcelCargador;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
+import dat.domain.UploadFile;
 import dat.repos.CustomerSpecs;
 import dat.repos.DataTableRepository;
 import dat.repos.DsRepository;
 import dat.repos.TableColumnRepository;
 import dat.service.DataSourceService;
+import dat.service.UploadFileService;
 import dat.util.BeanUtil;
 import dat.util.Constant;
 import dat.util.MetaDataParser;
 import dat.util.MetaDataParser.SourceMetaDataException;
 import dat.util.StrUtil;
+import dat.vo.ExcelSheet;
 import dat.vo.PagingBean;
 import dat.vo.Response;
 
@@ -93,7 +118,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	
 
 	@Transactional
-	public Response add(Source source) {
+	public Response add(Source source) throws Exception {
 		try {
 			// 检查数据源的属性是否存在冲突
 			checkAttribute(source);
@@ -104,30 +129,140 @@ public class DataSourceServiceImpl implements DataSourceService {
 		// 为数据源设置新的ID
 		source.generateId();
 		source.setAddTime(StrUtil.currentTime());
-		
-		Response response = new Response();
-		try {
-			// 读取数据源中的元数据
-			MetaDataParser sourceMetaData = MetaDataParser.getSourceMetaData(source);
-			if(!sourceMetaData.testConnection()){
-				return new Response(Constant.ERROR_CODE,"数据源连接失败，请检查数据源配置是否正确！");
-			}
-			// 保存数据源中的表格和字段
-			saveTableAndColumn(sourceMetaData);
-		} catch (SourceMetaDataException e) {
-			logger.info(e.getMessage());
-			response.put("tableInfo", e.getMessage());
-		}
-		// TODO 2. 读取数据表之间的关联关系
-		
 		// 保存数据源信息
 		Source save = dsRepos.save(source);
+		Response response = new Response();
+		
+		// 如果是Excel文件数据源
+		if("Excel".equalsIgnoreCase(save.getDatabaseName())){
+//			List<ExcelSheet> list = 解析Excel文件(save);
+			save.setState(Constant.DELETE_STATE);
+			response.setData(save);
+//			response.put("sheets", list);
+		}else{
+			try {
+				// 读取数据源中的元数据
+				MetaDataParser sourceMetaData = MetaDataParser.getSourceMetaData(source);
+				if(!sourceMetaData.testConnection()){
+					return new Response(Constant.ERROR_CODE,"数据源连接失败，请检查数据源配置是否正确！");
+				}
+				// 保存数据源中的表格和字段
+				saveTableAndColumn(sourceMetaData);
+			} catch (SourceMetaDataException e) {
+				logger.info(e.getMessage());
+				throw new RuntimeException(e);
+			}
+			// TODO 2. 读取数据表之间的关联关系
+			
+			response.setData(save);
+		}
 		
 		response.setCode(Constant.SUCCESS_CODE);
 		response.setMessage("保存成功");
-		response.setData(save);
 		
 		return response;
+	}
+
+
+
+	/**
+	 * @param save
+	 * @return 
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	private List<ExcelSheet> 解析Excel文件(Source save) throws IOException,
+			FileNotFoundException {
+		
+		try (Workbook workbook = getWorkbook(save)){
+			
+			List<ExcelSheet> list = new ArrayList<>();
+			for(int i = 0 , number = workbook.getNumberOfSheets(); i < number; i++){
+				// 获取工作簿
+				Sheet sheetAt = workbook.getSheetAt(i);
+				// 工作簿名称
+				String sheetName = sheetAt.getSheetName();
+				
+				// 保存工作簿内容的javabean
+				ExcelSheet excelSheet = new ExcelSheet();
+				int lastRowNum = sheetAt.getLastRowNum();
+				// 如果工作簿中的数据量小于等于0
+				if(lastRowNum <= 0)
+					continue;
+				// 获取第一行数据
+				Row row = sheetAt.getRow(0);
+				
+				// 存放栏位名称的数组
+				excelSheet.setColumnNames(new ArrayList<>());
+				// 存放栏位类型的数组
+				excelSheet.setTypes(new ArrayList<>());
+				excelSheet.setLengths(new ArrayList<>());
+				for(short index = row.getFirstCellNum(), lastCellNum = row.getLastCellNum(); index < lastCellNum; index++){
+					// 获取单元格
+					Cell cell = row.getCell(index);
+					if(cell != null){
+						String value = cell.toString();
+						excelSheet.getColumnNames().add(value);
+					}else{
+						excelSheet.getColumnNames().add(null);
+					}
+					excelSheet.getTypes().add("varchar");
+					excelSheet.getLengths().add(255);
+				}
+				
+				excelSheet.setSheetName(sheetName);
+				excelSheet.setFieldNameRow(1);
+				excelSheet.setFirstDataRow(2);
+				excelSheet.setDatePattern("YMD");
+				excelSheet.setDateSegmentation("/");
+				excelSheet.setTimeSegmentation(":");
+				excelSheet.setDateTimeSort("0");
+				list.add(excelSheet);
+			}
+			return list;
+		} finally {
+		}
+	}
+
+
+
+	/**
+	 * 获取Excel数据操作对象workbook
+	 * @param save
+	 * @return
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	private Workbook getWorkbook(Source save) throws IOException,
+			FileNotFoundException {
+		if(save.getAssociation()==null){
+			throw new IllegalArgumentException("this data source is not contain excel file");
+		}
+		Workbook workbook = null;
+		// springboot配置对象
+		Environment env = context.getBean(Environment.class);
+		// 获取HTTPServletRequest对象
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpServletRequest request = requestAttributes.getRequest();
+		
+		// 文件保存目录
+		String dir = env.getProperty("file.upload.savepath", request.getServletContext().getRealPath("/WEB-INF/upload"));
+		// 文件在文件保存目录下的虚拟路径
+		String virtualPath = save.getAssociation().getVirtualPath();
+
+		// 文件对象
+		File file = Paths.get(dir, virtualPath).toFile();
+		if(!file.isFile()){
+			throw new IllegalArgumentException("file '"+file.getAbsolutePath()+"' is not exist !");
+		}
+		if (virtualPath.endsWith(".xls")) {
+			workbook = new HSSFWorkbook(new FileInputStream(file));
+		} else if (virtualPath.endsWith(".xlsx")) {
+			workbook = new XSSFWorkbook(new FileInputStream(file));
+		} else {
+			throw new IllegalArgumentException("文件类型不匹配:" + virtualPath);
+		}
+		return workbook;
 	}
 
 
@@ -253,6 +388,11 @@ public class DataSourceServiceImpl implements DataSourceService {
 			String url = source.getUrl();
 			String username = source.getUsername();
 			String password = source.getPassword();
+			if(source.getDatabaseName().equalsIgnoreCase("excel")){
+				String realPath = context.getBean(UploadFileService.class).getRealPath(source.getAssociation().getId());
+				url = realPath.replaceFirst("\\.xls|\\.xlsx", ".db3");
+				driverClass = "org.sqlite.JDBC";
+			}
 			
 			if(logger.isDebugEnabled()){
 				logger.debug("jdbcTemplate instance named '"+beanName+"' is not exist, attempt created new one");
@@ -290,5 +430,102 @@ public class DataSourceServiceImpl implements DataSourceService {
 		};
 		List<Source> list = dsRepos.findAll(spec);
 		return new HashSet<>(list);
+	}
+
+
+
+	@Override
+	public List<ExcelSheet> getExcelSheet(String id) throws Exception {
+		Source source = dsRepos.findById(id).get();
+		List<ExcelSheet> list = 解析Excel文件(source);
+		return list;
+	}
+
+
+
+	@Override
+	@Transactional
+	public Source extract(String id, List<ExcelSheet> sheets) {
+		// 查找到对应的数据源
+		Source source = dsRepos.findById(id).get();
+		
+		// 获取Excel文件操作对象
+		try(Workbook workbook = getWorkbook(source);Connection conn = getConnection(source)){
+			conn.setAutoCommit(false);
+			// 将Excel的中数据转化为SQL语句的对象
+			ExcelCargador cargador = new ExcelCargador(workbook);
+			// 遍历所有的工作簿配置对象
+			for(ExcelSheet sheet : sheets){
+				// 设置工作簿配置
+				cargador.setSheetConfig(sheet);
+				// 创建数据库中的数据表
+				try(Statement st = conn.createStatement()){
+					st.addBatch(cargador.dropSql());
+					st.addBatch(cargador.createSql());
+					st.executeBatch();
+				}
+				// 插入数据
+				try(PreparedStatement ps = conn.prepareStatement(cargador.insertSql())){
+					for(List<String> params : cargador){
+						for(int i = 0, size = params.size(); i< size; i++){
+							ps.setString(i+1, params.get(i));
+						}
+						ps.addBatch();
+					}
+					ps.executeBatch();
+				}
+			}
+			conn.commit();
+			// 解析
+			MetaDataParser parser = MetaDataParser.getSourceMetaData(source);
+			saveTableAndColumn(parser);
+			source.setState(Constant.ACTIVATE_SATE);
+			Source save = dsRepos.save(source);
+			return save;
+		} catch (IOException | SQLException | ClassNotFoundException e) {
+			e.printStackTrace();
+		};
+		return source;
+	}
+
+
+
+	private Connection getConnection(Source source) throws ClassNotFoundException, SQLException {
+		if(!source.getDatabaseName().equals("Excel")){
+			throw new IllegalArgumentException("must be excel data source");
+		}
+		Class.forName(JDBC.class.getName());
+		UploadFile asso = source.getAssociation();
+		String realPath = context.getBean(UploadFileService.class).getSavePath();
+		// 文件名
+		String fileName = asso.getVirtualPath();
+		
+		// 不含后缀名的文件名
+		int lastIndexOf = fileName.lastIndexOf('.');
+		String substring = fileName.substring(0, lastIndexOf);
+		
+		// sqlite文件名称
+		String string = Paths.get(realPath, substring).toAbsolutePath().toString();
+		
+		String url = "jdbc:sqlite:"+string+".db3";
+		logger.debug(url);
+		Connection conn = DriverManager.getConnection(url);
+		return conn;
+	}
+
+
+
+	@Override
+	public List<String> getSpecifyRow(String id, String sheetName, Integer row) throws IOException {
+		Source source = dsRepos.findById(id).get();
+		Workbook workbook = getWorkbook(source);
+		Sheet sheet = workbook.getSheet(sheetName);
+		Row row2 = sheet.getRow(row-1);
+		List<String> list = new ArrayList<>();
+		for (Cell cell : row2) {
+			String value = cell.toString();
+			list.add(value);
+		}
+		return list;
 	}
 }

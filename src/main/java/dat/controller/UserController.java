@@ -1,7 +1,6 @@
 package dat.controller;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,7 +9,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dat.domain.User;
 import dat.service.UserService;
 import dat.util.Constant;
+import dat.vo.PagingBean;
 import dat.vo.Response;
 
 @RestController
@@ -42,21 +41,8 @@ public class UserController implements Serializable {
 	public Response login(@ModelAttribute User user,String validateCode,
 			Boolean autologin,HttpServletRequest req,HttpServletResponse res ,
 			HttpSession session){
-		// 获取保存在session中验证码
-		String sessionValidateCode = (String) session.getAttribute(Constant.SESSION_VALIDATE_CODE);
-		if(sessionValidateCode.equalsIgnoreCase(validateCode)){
-			Response response = userService.login(user);
-			// 如果登录成功，将用户信息保存到session作用于中
-			if(response.getCode().equals(Constant.SUCCESS_CODE)){
-				session.setAttribute(Constant.SESSION_USER_BEAN, response.getData());
-				// 如果用户选择了自动登录
-				if(Boolean.valueOf(true).equals(autologin)){
-//						setAutoLoginCookie(user.getUsername()+"&"+user.getPassword(),req, res, 30*24*60*60); 
-				}
-			}
-			return response;
-		}
-		return new Response(Constant.ERROR_CODE,"验证码错误！");
+		Response response = userService.login(user);
+		return response;
 	}
 
 	@RequestMapping("/logout")
@@ -91,11 +77,10 @@ public class UserController implements Serializable {
 	}
 	
 	
-	@GetMapping({"/list/{filter}","/list"})
-	public Response list(@PathVariable(value="filter",required=false) String filter){
-		System.err.println("filter:"+filter);
-		List<User> list = userService.listAll(filter);
-		return new Response(Constant.SUCCESS_CODE,"查询成功！",list);
+	@RequestMapping("/page")
+	public Response page(PagingBean bean){
+		Response response = userService.findByPage(bean);
+		return response;
 	}
 
 	@RequestMapping(value={"/{id}"},method=RequestMethod.DELETE)

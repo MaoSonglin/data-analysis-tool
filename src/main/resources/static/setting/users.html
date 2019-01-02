@@ -2,10 +2,308 @@
 <html>
 	<head>
 		<title>用户管理</title>
-		<link rel="stylesheet" href="../layui/css/layui.css" type="text/css" />
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 	</head>
 	<body>
-		
+		<div class="container" id="app">
+			<div class="">
+				<button type="button" class="btn btn-default" data-toggle="modal" data-target="#addDialog">添加用户</button>
+				<table class="table table-striped">
+					<tr>
+						<th>编号</th><th>用户名</th><th>添加时间</th><th>状态</th><th>操作</th>
+					</tr>
+					<tr v-for="(user,index) in users">
+						<td v-html="index+1 + (page.curPage - 1) * page.pageSize"></td>
+						<td v-html="user.username"></td>
+						<td v-html="user.createTime"></td>
+						<td v-html="user.state"></td>
+						<td>
+							<div class="btn-group btn-group-sm">
+								<button type="button" class="btn btn-primary dropdown-toggle btn-sm" data-toggle="dropdown">
+									操作<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu">
+									<li ><a href="javascript:void(0);" @click="remove(user,$event)">删除</a></li>
+									<!-- <li><a href="javascript:void(0);" @click="edit(user,$event)">修改</a></li> -->
+								</ul>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<ul id="page">
+			</ul>
+		</div>
+		<div class="modal fade" id="addDialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title" v-html="title">添加用户</h4>
+					</div>
+					<div class="modal-body">
+						<form id="addform" action="#" method="post" class="form-horizontal">
+							<div class="form-group">
+								<label class="control-label col-md-2" for="username">用户名</label>
+								<div class="col-md-10">
+									<input type="text"class="form-control" id="username" name="username" v-model="user.username" placeholder="请输入用户名"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2">密码</label>
+								<div class="col-md-10">
+									<input type="password" class="form-control" name="password" id="password" v-model="user.password" placeholder="请输入密码"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2" for="repassword">确认密码</label>
+								<div class="col-md-10">
+									<input type="password" name="repassword" id="repassword" class="form-control" v-model="user.repassword" placeholder="请输入确认密码" />
+								</div>
+							</div>
+							<!-- <input type="submit" value=""/> -->
+						</form>
+					</div>
+					<div class="modal-footer">
+						<div class="btn-group btn-sm">
+							<button type="button" class="btn btn-primary" @click="submitForm()">确定</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</body>
-	<script src="../layui/layui.all.js" charset="UTF-8"></script>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/bootstrap-paginator/bootstrap-paginator.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/bootstrap-paginator/bootstrap-paginator-ext.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/lay/modules/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		Vue.http.options.withCredentials=true
+		Vue.http.options.emulateJSON=true
+		let vue = new Vue({
+			el :"#app",
+			data : {
+				users : [],
+				page : {
+					curPage : 1,
+					pageSize : 5,
+					totalCount : 0,
+					totalPage : 1
+				}
+			},
+			created : function(){
+				this.getPages(this.page)
+			},
+			methods : {
+				getPages : function(page){
+					this.$http.get(basePath+"user/page",{params:page}).then(function(res){
+						if(res.body.code == 1){
+							this.users = res.body.data.content
+							this.page.curPage = res.body.data.number+1
+							this.page.pageSize = res.body.data.size
+							this.page.totalCount = res.body.data.totalElements
+							this.page.totalPage = res.body.data.totalPages
+							this.renderPage()
+						}
+					})
+				},
+				renderPage : function(){
+					let dom = this.$el.querySelector("#page")
+					$(dom).bootstrapPaginator({
+						bootstrapMajorVersion : 3,
+						currentPage : this.page.curPage, 
+						totalPages : this.page.totalPage,
+						numberOfPages : 5,
+						itemTexts: function (type, page, current) {
+						    switch (type) {
+						        case "first":
+						            return "首页";
+						        case "prev":
+						            return "上一页";
+						        case "next":
+						            return "下一页";
+						        case "last":
+						            return "末页";
+						        case "page":
+						            return page;
+						    }
+						},
+						"onPageClicked" : (event, originalEvent, type, page)=>{
+							this.page.curPage = page
+							this.getPages(this.page)
+						},
+					});
+				},
+				remove : function(user,event){
+					if(confirm("您确定要删除该用户吗？"))
+					this.$http.delete(basePath+"user/"+user.id).then(function(res){
+						if(res.body.code == 1){
+							alert(res.body.message)
+							this.$emit("refresh")
+						}
+					})
+				},
+				edit : function(user,event){
+					dialog.$emit("edit",user)
+				}
+			},
+			mounted : function(){
+				
+			}
+		})
+		
+		vue.$on("refresh",function(){
+			this.getPages(this.page)
+		})
+		
+		let options = {
+			rules : {
+				username : {required: true},
+				password : {required : true},
+				repassword : {equalTo : "#password"}
+			},
+			messages : {
+				username : {required:"请输入用户名"},
+				password : {required:"请输入密码"},
+				repassword : {equalTo : "两次密码输入不一致"}
+			},
+			errorPlacement : function(error,element){
+				error.css("color","red").insertAfter(element)
+			}
+		}
+		
+		let dialog = new Vue({
+			el :"#addDialog",
+			data : {
+				user : {},
+				title : "添加用户"
+			},
+			methods : {
+				submitForm : function(){
+					if($("#addform").valid()){
+						this.$http.post(basePath+"user/add",tile(this.user)).then(function(res){
+							if(res.body.code == 1){
+								vue.$emit("refresh")
+								this.user = {}
+								$("#addDialog").modal("hide")
+							}else{
+								alert(res.body.message)
+							}
+						})
+					}
+				}
+			},
+			mounted : function(){
+				let form = this.$el.querySelector("form")
+				$(form).validate(options)
+			}
+		})
+		dialog.$on("edit",function(user){
+			this.user = user
+			this.title = "修改用户"
+			$("#addDialog").modal("show")
+		})
+	</script>
 </html>
+<!-- 
+  queryUser();
+ function queryUser() {
+        $.ajax({
+            async: true,
+            type: "post",
+            url: "UI_selectUser.action",//向后台发送请求，后台为stuts2框架
+            dataType: "json",
+            data: {page:'1'},
+            cache: false,
+            success: function(data) {
+                var result = JSON.parse(data.json_data);   //data.json_data为后台返回的JSON字符串，这里需要将其转换为JSON对象
+ 
+ 
+                tbody="<tr style='background:#fff;'><th >用户名</th><th>姓名</th>" +
+                    "<th >角色</th><th>职务</th><th>联系方式</th></tr>";
+                for (var i = 0; i <result.list.length; i++) {//拼接对应<th>需要的值
+                    var trs = "";
+                    trs+='<tr ><td >' + result.list[i].USERCODE
+                        + '</td><td >' + result.list[i].REALNAME
+                        + '</td><td >' + result.list[i].ROLEID
+                        + '</td><td>' + result.list[i].ROLENAME
+                        + '</td><td>' + ""
+                        +'</td></tr>';
+                    tbody+=trs;
+                };
+                $("#userTable").html(tbody);
+ 
+                var currentPage = result.CurrentPage; //当前页数
+                var pageCount = result.pageCount; //总页数
+                var options = {
+                    bootstrapMajorVersion: 3, //版本
+ 
+                    currentPage: currentPage, //当前页数
+ 
+                    totalPages: pageCount, //总页数
+ 
+                    numberOfPages: 5,
+                    shouldShowPage:true,//是否显示该按钮
+ 
+                    itemTexts: function (type, page, current) {
+                        switch (type) {
+                            case "first":
+                                return "首页";
+                            case "prev":
+                                return "上一页";
+                            case "next":
+                                return "下一页";
+                            case "last":
+                                return "末页";
+                            case "page":
+                                return page;
+                        }
+                    },//点击事件，用于通过Ajax来刷新整个list列表
+                    onPageClicked: function (event, originalEvent, type, page) {
+                        $.ajax({
+                            async: true,
+                            url: "UI_selectUser.action",
+                            type: "post",
+                            dataType : "json",
+                            data: {page:page},
+                            cache: false,
+                            success: function (data) {
+                                var result = JSON.parse(data.msg);
+ 
+                                tbody="<tr style='background:#fff;'><th >用户名</th>                                <th>姓名</th>" +
+                                    "<th >角色</th><th>职务</th><th>联系方式</th></tr>";
+                                for (var i = 0; i <result.list.length; i++) {
+ 
+                                    var trs = "";
+                                    trs+='<tr ><td >'+ result.list[i].USERCODE
+                                        + '</td><td >' + result.list[i].REALNAME
+                                        + '</td><td >' + result.list[i].ROLEID
+                                        + '</td><td>' + result.list[i].ROLENAME
+                                        + '</td><td>' + ""
+                                        +'</td></tr>';
+                                    tbody+=trs;
+ 
+                                };
+                                $("#userTable").html(tbody);
+ 
+                            }/*success*/
+                        });
+ 
+                    }
+ 
+                };
+                $('#useroption').bootstrapPaginator(options);
+            }/*success*/
+ 
+        });
+    }
+ 
+ -->

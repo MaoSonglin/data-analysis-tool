@@ -144,4 +144,22 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 		return new Response(Constant.SUCCESS_CODE,"操作成功",save);
 	}
 
+	@Override
+	@Transactional
+	public Response delete(String id) {
+		ReportInfo reportInfo = reportInfoRepos.findById(id).orElse(null);
+		if(reportInfo == null){
+			return new Response(Constant.ERROR_CODE,"ID不存在");
+		}
+		Menu menu = reportInfo.getPublish();
+		// 删除发布的目录
+		if(menu != null)
+			context.getBean(MenuRepository.class).delete(menu);
+		List<GraphInfo> graphs = reportInfo.getGraphs();
+		// 删除图表信息
+		context.getBean(GraphInfoRepository.class).deleteAll(graphs);
+		reportInfoRepos.delete(reportInfo);
+		return new Response(Constant.SUCCESS_CODE,"删除成功");
+	}
+
 }

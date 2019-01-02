@@ -3,6 +3,7 @@ package dat.service;
 import java.util.List;
 
 import dat.domain.User;
+import dat.vo.PagingBean;
 import dat.vo.Response;
 
 public interface UserService {
@@ -33,4 +34,6 @@ public interface UserService {
 	Response remove(String id);
 
 	Response save(User user);
+
+	Response findByPage(PagingBean bean);
 }

@@ -3,8 +3,9 @@ package dat.service;
 import java.util.List;
 
 import dat.domain.GraphInfo;
+import dat.vo.GraphDrillData;
 import dat.vo.Response;
-import dat.vo.TableDataPagingBean;
+import dat.vo.TreeNode;
 
 public interface GraphInfoService {
 
@@ -28,15 +29,12 @@ public interface GraphInfoService {
 	 * @return
 	 */
 	Response delete(String id);
-
-	/**
-	 * 获取绘制图表需要的数据
-	 * @param g
-	 * @return
-	 * @throws Exception
-	 */
-	@Deprecated
-	Response getData(TableDataPagingBean g) throws Exception;
 	
 	List<List<String>> getData(String id) throws Exception;
+
+	Object drill(GraphDrillData drillData) throws Exception;
+
+	TreeNode findTree(String id);
+
+	Response addColumn(String gpid, String vcid);
 }

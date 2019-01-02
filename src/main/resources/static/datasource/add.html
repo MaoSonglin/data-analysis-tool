@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>添加数据源</title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/modules/layer/default/layer.css"/>
+		<link href="../static/plugins/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" type="text/css" />
+		<link href="../static/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+		<div class="container" id="wrapper">
+			<div class="" style="height: 40px;">
+				
+			</div>
+			<form class="form-horizontal">
+				<div class="form-group">
+					<label class="control-label col-md-3">
+						数据源名称：
+					</label>
+					<div class="col-md-9">
+						<input type="text" class="form-control" v-model="ds.name" placeholder="请输入数据源名称" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-3">类型：</label>
+					<div class="col-md-9">
+						<select class="form-control" v-model="ds.databaseName">
+							<option v-for="(value,key) in driverInfos" v-html="key"></option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group" v-if="ds.databaseName != 'Excel'">
+					<label class="control-label col-md-3">驱动程序：</label>
+					<div class="col-md-9">
+						<input type="text" class="form-control" v-model="ds.driverClass" placeholder="驱动程序"/>
+					</div>
+				</div>
+				<div class="form-group" v-if="ds.databaseName != 'Excel'">
+					<label class="control-label col-md-3">URL：</label>
+					<div class="col-md-9">
+						<input type="text" class="form-control" v-model="ds.url" placeholder="连接url"/>
+					</div>
+				</div>
+				<div class="form-group" v-if="ds.databaseName != 'Excel'">
+					<label class="control-label col-md-3">用户名：</label>
+					<div class="col-md-9">
+						<input type="text" class="form-control" v-model="ds.username" placeholder="数据源连接用户名"/>
+					</div>
+				</div>
+				<div class="form-group" v-if="ds.databaseName != 'Excel'">
+					<label class="col-md-3 control-label">密码：</label>
+					<div class="col-md-9">
+						<input type="password" class="form-control" v-model="ds.password" placeholder="数据源连接密码"/>
+					</div>
+				</div>
+				<div class="form-group" v-if="ds.databaseName == 'Excel'">
+					<label class="control-label col-md-3">文件上传：</label>
+					<div class="col-md-9">
+						<div class="input-group">
+							<input type="text"class="form-control" v-model="association.fileName" placeholder="请选择文件" readonly="readonly" @click="chooseFile()"/>
+							<span class="input-group-btn">
+								<button type="button" class="btn btn-primary" id="upload">上传文件</button>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-3">描述：</label>
+					<div class="col-md-9">
+						<textarea class="form-control" rows="5" placeholder="数据源描述" v-model="ds.desc"></textarea>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-3"></label>
+					<div class="col-md-3">
+						<input type="button" class="btn btn-primary form-control" value="提交" @click="submit()" />
+					</div>
+				</div>
+			</form>
+		</div>
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js"></script>
+	<script src="../res/js/jquery.validate.js"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js"></script>
+	<script src="../res/js/ds/tmp-data.js"></script>
+	<script src="../res/js/my-global.js"></script>
+	<script src="../res/js/vue.min.js"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/jquery.form.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		Vue.http.options.emulateJSON=true;
+		Vue.http.options.withCredentials=true;
+		delete driverInfos.Excel
+		let vue = new Vue({
+			el : '#wrapper',
+			data : {
+				ds : {},
+				driverInfos : driverInfos,
+				association : {}
+			},
+			created : function(){
+				
+			},
+			methods : {
+				getFileName : function(){
+					if(this.ds.association){
+						return this.ds.association.name
+					}else{
+						return "还未上传文件"
+					}
+				},
+				chooseFile : function(){
+					$("#upload").trigger("click")
+				},
+				upload : function(e){
+				},
+				submit : function(){
+					if(!this.ds.name){
+						layer.msg("请输入数据源名")
+						return;
+					}
+					if(!this.ds.databaseName){
+						layer.msg("请选择数据源类型")
+						return
+					}
+					if(!this.ds.databaseName == 'Excel' && ! this.ds.association){
+						layer.msg("请上传数据文件")
+						return
+					}
+					this.$http.post(basePath+"ds/",tile(this.ds)).then(function(res){
+						if(res.body.code == 1){
+							this.ds = {}
+							this.association = {}
+						}else{
+						}
+						layer.msg(res.body.message)
+					})
+				}
+			},
+			watch : {
+				"ds.databaseName": function(newVal,oldVal){
+					this.ds.driverClass = driverInfos[newVal].driverClass
+					this.ds.url = driverInfos[newVal].url
+				}
+			},
+			updated : function(){
+				let that = this
+				layui.use('upload', function(){
+					var upload = layui.upload;
+				   
+					//执行实例
+					var uploadInst = upload.render({
+						elem: '#upload' ,//绑定元素
+						accept: 'file',
+						url: basePath+'file/upload/' ,//上传接口
+						done: function(res){
+							layer.msg(res.message)
+							that.association=res.data
+							that.ds.association = res.data
+						},
+						error: function(){
+						}
+					});
+				});
+			}
+		})
+	</script>
+</html>

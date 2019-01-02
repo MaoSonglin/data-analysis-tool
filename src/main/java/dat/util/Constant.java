@@ -33,4 +33,5 @@ public interface Constant {
 	String SQLITE = "SQLite";
 	String ACCESS = "Access";
 	String HIVE = "hive";
+	String EXCEL = "Excel";
 }

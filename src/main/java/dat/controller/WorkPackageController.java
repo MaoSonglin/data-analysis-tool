@@ -13,8 +13,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import dat.App;
+import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
+import dat.service.ReferenceService;
 import dat.service.WorkPackageService;
+import dat.util.Constant;
 import dat.vo.PkgPageBean;
 import dat.vo.Response;
 
@@ -27,7 +36,7 @@ public class WorkPackageController {
 	private WorkPackageService wpService;
 	
 	
-	private Logger log = Logger.getLogger(getClass());
+	private Logger logger = Logger.getLogger(getClass());
 	/**
 	 * 根据id返回工作包
 	 * @param id
@@ -49,6 +58,27 @@ public class WorkPackageController {
 		return wpService.getTables(id);
 	}
 	
+	@GetMapping("/tab/col/{id}")
+	public Object getTablesAndColumns(@PathVariable String id) throws Exception{
+		List<VirtualTable> tables = wpService.getTablesAndColumns(id);
+		JSONArray jsonArray = new JSONArray();
+		ObjectMapper objectMapper = new ObjectMapper();
+		for (VirtualTable table : tables) {
+			String json = objectMapper.writeValueAsString(table);
+			String columns = objectMapper.writeValueAsString(table.getColumns());
+			JSONObject object = JSON.parseObject(json);
+			JSONArray array = JSON.parseArray(columns);
+			object.put("columns", array);
+			jsonArray.add(object);
+		}
+		String jsonString = JSON.toJSONString(new Response(Constant.SUCCESS_CODE,"查询成功"));
+		JSONObject object = JSON.parseObject(jsonString);
+		object.put("tables", jsonArray);
+		String writeValueAsString = objectMapper.writeValueAsString(App.getContext().getBean(ReferenceService.class).findByPkgId(id));
+		object.put("refs", JSON.parseArray(writeValueAsString));
+		return object.toJSONString();
+	}
+	
 	@GetMapping()
 	public Response getTables(PkgPageBean pageBean){
 		Response pkgs = wpService.getPkgs(pageBean);
@@ -62,7 +92,7 @@ public class WorkPackageController {
 	 */
 	@PostMapping()
 	public Response add(WorkPackage pg){
-		log.info(pg);
+		logger.info(pg);
 		return wpService.add(pg);
 	}
 	
@@ -84,7 +114,7 @@ public class WorkPackageController {
 	 */
 	@PutMapping("/addTab")
 	public Response addTab(PkgAddTable pkg){
-		log.debug(pkg);
+		logger.debug(pkg);
 		return wpService.addTab(pkg.getPid(),pkg.getTids().stream().toArray(String[]::new));
 	}
 	
@@ -107,6 +137,8 @@ public class WorkPackageController {
 	}
 	
 	
+	
+	
 	/**
 	 * 数据源dsid中pid没有添加的数据表
 	 * @return
@@ -115,6 +147,7 @@ public class WorkPackageController {
 	public Response notAddTable(ExcludeTable excludetable){
 		return wpService.getTables(excludetable);
 	}
+	
 	
 	public static class ExcludeTable{
 		private String pkgid;

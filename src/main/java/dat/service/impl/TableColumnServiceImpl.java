@@ -1,6 +1,7 @@
 package dat.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,12 +20,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import dat.App;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.repos.DataTableRepository;
 import dat.repos.TableColumnRepository;
+import dat.service.DataSourceService;
 import dat.service.TableColumnService;
 import dat.util.Constant;
 import dat.util.StrUtil;
@@ -34,6 +37,7 @@ import dat.vo.TableColumnPagingBean;
 @Service
 public class TableColumnServiceImpl implements TableColumnService {
 	private static Logger logger = LoggerFactory.getLogger(TableColumnServiceImpl.class);
+	
 	@Resource(name="tableColumnRepository")
 	TableColumnRepository colRepos;
 	
@@ -151,6 +155,40 @@ public class TableColumnServiceImpl implements TableColumnService {
 		// 待查询的底层实体字段
 		Set<TableColumn> tableColumns = colRepos.findByIdIn(list);
 		return new ArrayList<>(tableColumns);
+	}
+
+	@Override
+	public String getTypeName(TableColumn column) {
+		DataTable dataTable = column.getDataTable();
+		Source source = dataTable.getSource();
+		JdbcTemplate template = App.getContext().getBean(DataSourceService.class).getTemplate(source);
+		String tableName = dataTable.getName();
+		String columnName = column.getColumnName();
+		Collection<String> list = template.query("select "+columnName+" from "+tableName, (rs,i)->{
+			String value = rs.getString(columnName);
+			if(value == null){
+				return "Any";
+			}
+			try {
+				Double.parseDouble(value);
+				return "Number";
+			} catch (Exception e) {
+			}
+			return "String";
+		});
+		list = new HashSet<>(list);
+		list.removeIf(elem->{return "Any".equals(elem);});
+		String typeName;
+		if(list.size() == 0){
+			typeName = "Any";
+		}
+		else if(list.size() > 1) {
+			typeName = "String";
+		}
+		else{
+			typeName = list.iterator().next();
+		}
+		return typeName;
 	}
 
 }

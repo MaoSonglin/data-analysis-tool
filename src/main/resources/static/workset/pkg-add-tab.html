@@ -156,8 +156,12 @@
 			
 			// 请求数据源信息
 			function loadSource(vue){
-				vue.$http.get(basePath+"ds/0/1000/%20",{
-					before:openLoading
+				vue.$http.get(basePath+"ds/page",{
+					before:openLoading,
+					params : {
+						curPage : 1,
+						pageSize : 1000
+					}
 				}).then(function(res){
 					closeLoading();
 					if(res.body.code == 1){

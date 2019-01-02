@@ -12,14 +12,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSON;
+
 import dat.App;
 import dat.domain.GraphInfo;
-import dat.domain.VirtualColumn;
 import dat.service.GraphInfoService;
 import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
+import dat.vo.GraphDrillData;
 import dat.vo.Response;
+import dat.vo.TreeNode;
 
 /**
  * @author MaoSonglin
@@ -57,6 +60,7 @@ public class GraphInfoController {
 	 */
 	@PostMapping()
 	public Response add(GraphInfo graphInfo){
+		logger.debug(JSON.toJSON(graphInfo));
 		// 检查图表的标题是否为null或者空字符
 		String title = graphInfo.getTitle();
 		if(title == null || title.trim().isEmpty()){
@@ -99,18 +103,8 @@ public class GraphInfoController {
 	public Response addx(@PathVariable String gpid,
 			@PathVariable String vcid) throws Exception{
 		// 根据ID获取待编辑的图表
-		GraphInfo graphInfo = graphInfoService.getById(gpid);
-		if(graphInfo == null){
-			// 图表不存在
-			return new Response(Constant.ERROR_CODE,"ID为"+gpid+"的图表不存在");
-		}
-		// 字段
-		VirtualColumn vc = new VirtualColumn();
-		vc.setId(vcid);
-		graphInfo.getColumns().add(vc);
-		// 保存图表信息
-		Response save = graphInfoService.save(graphInfo);
-		return save;
+		Response response = graphInfoService.addColumn(gpid,vcid);
+		return response;
 	}
 	
 	/**
@@ -160,4 +154,18 @@ public class GraphInfoController {
 		}
 		return null;
 	}
+	
+	@RequestMapping("/drill")
+	public Response drill(GraphDrillData drillData) throws Exception{
+		logger.debug(drillData);
+		Object drill = graphInfoService.drill(drillData);
+		return new Response(Constant.SUCCESS_CODE,"查询成功",drill);
+	}
+	
+	@GetMapping("/tree/{id}")
+	public Response tree(@PathVariable String id){
+		TreeNode node = graphInfoService.findTree(id);
+		return new Response(Constant.SUCCESS_CODE,"查询成功",node);
+	}
+	
 }

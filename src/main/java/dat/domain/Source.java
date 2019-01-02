@@ -63,7 +63,7 @@ public class Source implements IdGeneratorable{
 	
 	private Integer state = Constant.ACTIVATE_SATE;
 	
-	@OneToOne(targetEntity=UploadFile.class,fetch=FetchType.EAGER)
+	@OneToOne(targetEntity=UploadFile.class,fetch=FetchType.LAZY)
 	@JoinColumn(name="file_id",referencedColumnName="id")
 	private UploadFile association;
 

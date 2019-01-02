@@ -52,4 +52,7 @@ public interface ReportInfoService {
 	 */
 	Response unpublish(String reportid);
 
+	Response delete(String id);
+
+
 }

@@ -44,9 +44,8 @@ var container = new Vue({
 				layer.msg("网络异常")
 			})
 		},
-		addTable:function(pkg,event){// 添加数据表格
+		addTable:function(){// 添加数据表格
 			location.href = "pkg-add-tab.html?pkg.id="+this.pkg.id;
-			event.preventDefault()
 		},
 		getRelation : function(field){
 			if(field.relation){
@@ -71,6 +70,23 @@ var container = new Vue({
 					this.pkg = res.body.data
 				closeLoading()
 			},closeLoading)
+		},
+		checkRelationShip : function(){// 查看关系图
+			localStorage.pkg = JSON.stringify(this.pkg)
+			let index = layer.open({
+				type : 2,
+				content : "relation-graph.html",
+				// btn : ["确定"],
+				btn1 : function(index,layero){
+					layer.close(index)
+				},
+				success : function(index,layero){
+				},
+				end : function(){
+					delete localStorage.pkg
+				}
+			})
+			layer.full(index)
 		}
 	},
 	watch : {
@@ -129,7 +145,9 @@ layui.use('table',function(){
 				del(obj)
 			break;
 			case 'setRelation':
+			var field = container.findFieldById(obj.data.id)
 			localStorage.pkg = JSON.stringify(container.pkg)
+			localStorage.field = JSON.stringify(field)
 			layer.open({
 				title : "编辑关联关系",
 				type : 2,
@@ -138,23 +156,20 @@ layui.use('table',function(){
 				btn : ["确定","取消"],
 				btn1 : function(index,layero){
 					layer.close(index)
-					var field = container.findFieldById(obj.data.id)
-					var old = field.relation;
-					Vue.set(field,"relation",JSON.parse(localStorage.relation))
-					Vue.http.put(basePath+"vc",tile(field)).then(function(res){
-						if(res.body.code == 1){
-							field = res.body.data
-							obj.data.relation = container.getRelation(field);
-						}else{
-							field.relation = old;
-							layer.msg(res.body.message)
-						}
-					},function(error){layer.msg("网络异常")})
+					let reference = JSON.parse(localStorage.reference)
+					console.log(reference)
+					Vue.http.post(basePath+"ref",tile(reference)).then(function(res){
+						layer.msg(res.message)
+					})
 				},
 				success : function(){
 					
 				},
-				end : function(){delete localStorage.relationId}
+				end : function(){
+					delete localStorage.reference
+					delete localStorage.field
+					delete localStorage.pkg
+				}
 			})
 			
 			break;

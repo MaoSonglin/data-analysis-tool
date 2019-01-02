@@ -1,7 +1,10 @@
 package dat.service.impl;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,5 +62,28 @@ public class UploadFileServiceImpl implements UploadFileService {
 		}
 		return new Response(Constant.ERROR_CODE,"删除失败");
 	}
+	
+	@Override
+	public String getRealPath(String id) {
+		UploadFile fileInfo = fileRepos.findById(id).get();
+		
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpServletRequest request = requestAttributes.getRequest();
+		
+		String virtualPath = fileInfo.getVirtualPath();
+		String dir = env.getProperty("file.upload.savepath",request.getServletContext().getRealPath("/WEB-INF/upload"));
+		Path absolutePath = Paths.get(dir, virtualPath).toAbsolutePath();
+		return absolutePath.toString();
+	}
+	@Override
+	public String getSavePath() {
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpServletRequest request = requestAttributes.getRequest();
+		
+		String dir = env.getProperty("file.upload.savepath",request.getServletContext().getRealPath("/WEB-INF/upload"));
+		return dir;
+	}
 
+	
+	
 }

@@ -4,7 +4,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +19,7 @@ import dat.service.UserService;
 import dat.util.Constant;
 import dat.util.Md5Util;
 import dat.util.StrUtil;
+import dat.vo.PagingBean;
 import dat.vo.Response;
 
 @Service
@@ -44,6 +50,8 @@ public class UserServiceImplWithJpa implements UserService {
 		user.setUsername(username);
 		user.setPassword(password);
 		user.setSalt(salt);
+		user.setCreateTime(new Date());
+		user.setState(Constant.ACTIVATE_SATE);
 		// 保存到数据库中
 		userRepos.save(user);
 		// 设置响应消息
@@ -84,14 +92,30 @@ public class UserServiceImplWithJpa implements UserService {
 
 	@Override
 	public Response remove(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		User user = userRepos.findById(id).orElse(null);
+		if(user!=null){
+			userRepos.deleteById(id);
+			return new Response(Constant.SUCCESS_CODE,"删除成功");
+		}
+		return new Response(Constant.ERROR_CODE,"ID不存在");
 	}
 
 	@Override
 	public Response save(User user) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Response findByPage(PagingBean bean) {
+		PageRequest pageRequest = PageRequest.of(bean.getCurPage()-1, bean.getPageSize());
+		Page<User> page = userRepos.findAll((root,query,cb)->{
+			Path<Integer> path = root.get("state");
+			Predicate notEqual = cb.notEqual(path, Constant.DELETE_STATE);
+			return notEqual;
+		},pageRequest);
+		Response res = new Response(Constant.SUCCESS_CODE,"查询成功",page);
+		return res;
 	}
 
 }

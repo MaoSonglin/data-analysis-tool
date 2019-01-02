@@ -15,6 +15,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import dat.util.StrUtil;
 
@@ -23,6 +24,7 @@ import dat.util.StrUtil;
  * 数据包中的数据表包含的虚拟字段类
  */ 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class VirtualColumn implements Serializable{
 	
 	/**

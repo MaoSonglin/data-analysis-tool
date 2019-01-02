@@ -23,22 +23,24 @@ public class Reference implements Serializable {
 	private Long id;
 	
 	// 该外键所在的数据表
-	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.EAGER)
+	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.LAZY)
 	@JoinColumn(referencedColumnName="id")
 	private VirtualTable primaryTable;
 	
 	// 引用的的字段
-	@ManyToOne(targetEntity=VirtualColumn.class,fetch=FetchType.EAGER)
+	@ManyToOne(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
 	@JoinColumn(referencedColumnName="id")
+	@JsonIgnoreProperties({"hibernateLazyInitializer","handler","table"})
 	private VirtualColumn referencedColumn;
 	
 	// 作为外键的字段
-	@OneToOne(targetEntity=VirtualColumn.class,fetch=FetchType.EAGER)
+	@OneToOne(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
 	@JoinColumn(referencedColumnName="id")
+	@JsonIgnoreProperties({"hibernateLazyInitializer","handler","table"})
 	private VirtualColumn foreignColumn;
 	
 	// 引用的数据表
-	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.EAGER)
+	@ManyToOne(targetEntity=VirtualTable.class,fetch=FetchType.LAZY)
 	@JoinColumn(referencedColumnName="id")
 	private VirtualTable referencedTable;
 

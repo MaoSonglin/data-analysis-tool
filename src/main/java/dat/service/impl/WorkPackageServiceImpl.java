@@ -39,6 +39,7 @@ import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.repos.WorkPackageRepository;
+import dat.service.TableColumnService;
 import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
@@ -250,7 +251,16 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 			VirtualColumn vc = new VirtualColumn();
 			vc.setName(column.getColumnName());
 			vc.setChinese(column.getChinese());
-			vc.setTypeName(column.getTypeName());
+			if("VARCHAR".equals(column.getTypeName())){
+				String typeName = context.getBean(TableColumnService.class).getTypeName(column);
+				vc.setTypeName(typeName);
+				if(!"VARCHAR".equalsIgnoreCase(typeName)){
+					column.setTypeName(typeName);
+//					colRepos.save(column);
+				}
+			}else{
+				vc.setTypeName(column.getTypeName());
+			}
 			vc.setState(Constant.ACTIVATE_SATE);
 			vc.setFormula(column.getId());
 			vc.getRefColumns().add(column);
@@ -485,18 +495,24 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 	 * @return
 	 */
 	private List<String> getCreateTableSql(List<VirtualTable> tables) {
-		List<String> sqlList = new ArrayList<>(tables.size());
+		// 存放SQL语句的数组
+		List<String> sqlList = new ArrayList<>(tables.size()*2);
+		// 遍历每一个数据表信息，为每一个数据表构建两条SQL语句
 		for (VirtualTable virtualTable : tables) {
 			logger.debugf("构造创建数据表'%s'，中文名称'%s'的SQL语句",virtualTable.getName(),virtualTable.getChinese());
 			List<VirtualColumn> columns = virtualTable.getColumns();
+			// 删除已经存在的同名数据表
 			StringBuffer buffer = new StringBuffer("DROP TABLE IF EXISTS ");
 			buffer.append(virtualTable.getId());
 			String sql = buffer.toString();
 			sqlList.add(sql);
+			
+			// 清空buffer
 			buffer.delete(0, buffer.length());
 			buffer.append("CREATE TABLE ");
 			buffer.append(virtualTable.getId());
 			buffer.append("(");
+			// 遍历字段
 			for (VirtualColumn virtualColumn : columns) {
 				String name = virtualColumn.getName(); 
 				buffer.append(name);
@@ -506,11 +522,42 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 			}
 			buffer.delete(buffer.length()-3, buffer.length());
 			buffer.append(");");
+			
 			sqlList.add(buffer.toString());
 		}
 		return sqlList;
 	}
 
+	@Override
+	public List<VirtualTable> getTablesAndColumns(String id) {
+		List<VirtualTable> list = vtRepos.findAll((root,query,cb)->{
+			Predicate equal = cb.equal(root.join("packages").get("id"), id);
+			return equal;
+		});
+		return list;
+	}
+
+	@Override
+	public Response findTree(String id) {
+//		WorkPackage pkg = this.wpRepos.findById(id).orElse(null);
+//		if(pkg == null){
+//			return new Response(Constant.ERROR_CODE,"ID不存在");
+//		}
+//		TreeNode treeNode = new TreeNode();
+//		treeNode.setText(pkg.getName());
+//		treeNode.setNodes(new ArrayList<>());
+//		List<VirtualTable> tables = pkg.getTables();
+//		for (VirtualTable virtualTable : tables) {
+//			TreeNode tn = new TreeNode();
+//			tn.setText(virtualTable.getChinese()!=null ? virtualTable.getChinese():virtualTable.getName());
+//			List<VirtualColumn> columns = virtualTable.getColumns();
+//			for (VirtualColumn virtualColumn : columns) {
+//				
+//			}
+//		}
+//		return null;
+		throw new UnsupportedOperationException("该方法还没有实现");
+	}
 	
 
 }

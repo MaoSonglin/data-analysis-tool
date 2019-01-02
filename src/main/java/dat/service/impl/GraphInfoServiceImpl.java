@@ -1,37 +1,10 @@
 package dat.service.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-
-
-
-
-
-
-
-
 
 import javax.persistence.criteria.Predicate;
-
-
-
-
-
-
-
-
-
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-
-
-
-
-
-
-
+import com.alibaba.fastjson.JSON;
 
 import dat.data.LocalDataAdapter;
 import dat.domain.GraphInfo;
@@ -60,9 +26,12 @@ import dat.repos.VirtualColumnRepository;
 import dat.service.GraphInfoService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
-import dat.util.VariableTypeParser;
+import dat.util.DrillUtils;
+import dat.vo.EchartOptions;
+import dat.vo.GraphDrillData;
 import dat.vo.Response;
-import dat.vo.TableDataPagingBean;
+import dat.vo.Serie;
+import dat.vo.TreeNode;
 
 @Service
 public class GraphInfoServiceImpl implements GraphInfoService {
@@ -85,7 +54,7 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 	@Transactional
 	@Override
 	public Response save(GraphInfo graphInfo) {
-		logger.debug("保存图表信息:"+graphInfo);
+		logger.debug("保存图表信息:"+JSON.toJSONString(graphInfo));
 		
 		String title = graphInfo.getTitle();
 		long count = 1,i = 1;
@@ -128,76 +97,28 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 //		Set<VirtualTable> tableSet = new HashSet<>();
 		// 待查的数据字段
 		List<VirtualColumn> columns = g.getColumns();
-		String dimension = g.getDimension();
-		String[] split = dimension.split(";");
+		String options = g.getOptions();
+		EchartOptions option = JSON.parseObject(options, EchartOptions.class);
 		columns.removeIf(elem->{
-			for (String s : split) {
-				if(s.equals(elem.getId())){
-					return true;
+			String id2 = elem.getId();
+			if(id2.equalsIgnoreCase(option.getCategory())){
+				return false;
+			}
+			List<Serie> series = option.getSeries();
+			for (Serie serie : series) {
+				boolean equalsIgnoreCase = id2.equalsIgnoreCase(serie.getColumnId());
+				if(equalsIgnoreCase){
+					return false;
 				}
 			}
-			return false;
+			return true;
 		});
-		
 		Map<String, List<String>> query = new LocalDataAdapter(context).query(columns);
 		return format(columns,query);
 	}
 
 	
-	@Override
-	public Response getData(TableDataPagingBean pagingBean) throws Exception {
-		GraphInfo g = pagingBean.getGraph();
-		g = graphInfoRepos.findById(g.getId()).get();
-		if(logger.isDebugEnabled()){
-			logger.debugf("查询出图表“%s”需要展示的数据'%d'",g.getTitle(),g.getColumns().size());
-		}
-		// 待查询的数据表与检索的字段映射
-		Map<VirtualTable,List<VirtualColumn>> map = new HashMap<>(); 
-		List<VirtualColumn> columns = g.getColumns();
-		// 提取检索的字段和数据表
-		setTableMapColumn(columns, map);
-		
-		// 查询的结果
-		Map<String, List<String>> data = new HashMap<>();
-		// 数据包服务层接口
-		WorkPackageService packageService = context.getBean(WorkPackageService.class);
-		// loop through
-		for (Entry<VirtualTable, List<VirtualColumn>> entry : map.entrySet()) {
-			// 待访问的数据表
-			VirtualTable key = entry.getKey();
-			// 待查的列
-			List<VirtualColumn> value = entry.getValue();
-//			Map<String, List<String>> data2 = tableService.getData(key, value,pagingBean.getCurPage()*pagingBean.getPageSize(),pagingBean.getPageSize());
-//			data.putAll(data2);
-			// 虚拟数据表所属的数据包
-			WorkPackage wpkg = key.getPackages().iterator().next();
-			try(Connection conn = packageService.getConnection(wpkg.getId());){
-				
-				// 查询所所有的数据，分别出每一列的数据的数据类型
-				// 查询数据的SQL语句
-				String sql = selectSql1(key, value);
-				// 获取字段数据类型
-				Map<VirtualColumn, Set<String>> columnTypeNames = getTypeNames(conn,sql,value);
-				// 查询SQL语句
-				String sb = selectSql2(key, value, columnTypeNames);
-				try (PreparedStatement ps = conn.prepareStatement(sb);
-						ResultSet rs = ps.executeQuery()){
-					Map<String, List<String>> data2 = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
-					data.putAll(data2);
-				}
-				
-			} catch (SQLException e){
-				
-			}
-			
-		}
-		// 将数据格式转化为ECharts能够识别的数据格式
-		List<List<String>> list = format(columns, data);
-		Response res = new Response(Constant.SUCCESS_CODE,"查询成功");
-		res.setData(list);
-		return res;
-	}
-
+	
 	/**
 	 * @param columns
 	 * @param data
@@ -209,6 +130,8 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		columns.forEach(column->{
 			String name = column.getName();
 			List<String> list2 = data.get(name);
+			if(list2 == null)
+				return ;
 			String chinese = column.getChinese();
 			list2.add(0, chinese==null?name:chinese);
 			list.add(list2);
@@ -216,138 +139,96 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		return list;
 	}
 
-	/**
-	 * @param key				待查询的数据表
-	 * @param value				待查询的列
-	 * @param columnTypeNames	待查询的列到该列中包含的数据类型的映射
-	 * @return 					SQL语句
-	 */
-	private String selectSql2(VirtualTable key, List<VirtualColumn> value,
-			Map<VirtualColumn, Set<String>> columnTypeNames) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("SELECT ");
-		
-		// 待查的列的第一条数据默认为分组的对象
-		Iterator<VirtualColumn> iterator = value.iterator();
-		VirtualColumn groupTarget = iterator.next();
-		sb.append(groupTarget.getName()).append(" , ");
-		
-		while(iterator.hasNext()){
-			VirtualColumn virtualColumn = iterator.next();
-			// 该列中的数据包含的数据类型字符串集合
-			Set<String> typeNames = columnTypeNames.get(virtualColumn);
-			// 默认都是String类型
-			String type = "String";
-			// 如果该列中只包含一种数据类型
-			if(typeNames.size() == 1){
-				type = typeNames.iterator().next();
-			}
-			
-			// 如果当前列的所有数据类型都是number
-			if("Number".equals(type)){
-				sb.append("SUM(").append(virtualColumn.getName()).append(") ");
-			}
-			else{// 包含其他类型
-				sb.append("COUNT(").append(virtualColumn.getName()).append(") ");
-			}
-			sb.append(virtualColumn.getName());
-			sb.append(" , ");
-		}
-		sb.delete(sb.length()-3, sb.length());
-		sb.append(" FROM ");
-		sb.append(key.getId());
-		// 忽略掉分组列中为null的数据
-		sb.append(" WHERE ").append(groupTarget.getName()).append(" IS NOT NULL ");
-		sb.append("GROUP BY ").append(groupTarget.getName());
-		logger.debug(sb);
-		return sb.toString();
-	}
+	
 
-	/**
-	 * @param value
-	 * @return
-	 * @throws SQLException
-	 */
-	private Map<VirtualColumn, Set<String>> getTypeNames(Connection conn,String sb,
-			List<VirtualColumn> value) throws SQLException {
-		// 存放数据字段和数据字段的类型的映射
-		Map<VirtualColumn,Set<String>> columnTypeNames = new HashMap<>();
-		value.forEach(e->{
-			columnTypeNames.put(e, new HashSet<>());
-		});
-		// 解析变量类型的解析器
-		VariableTypeParser typeParser = new VariableTypeParser();
-		try(PreparedStatement ps = conn.prepareStatement(sb.toString());
-				ResultSet rs = ps.executeQuery()){
-			while(rs.next()){
-				for (VirtualColumn virtualColumn : value) {
-					String name = virtualColumn.getName();
-					String columnValue = rs.getString(name);
-					typeParser.setVariable(columnValue);
-					// 变量类型
-					String typeName;
-					try {
-						typeName = typeParser.getTypeName();
-						columnTypeNames.get(virtualColumn).add(typeName);
-					} catch (Exception e) {
-					}
+	@Override
+	public Object drill(GraphDrillData drillData) throws Exception{
+		GraphInfo graphInfo = graphInfoRepos.findById(drillData.getGraphId()).orElse(null);
+		VirtualColumn virtualColumn = virtualColumnRepos.findById(drillData.getColumnId()).orElse(null);
+		List<VirtualColumn> columns = graphInfo.getValueColumns();// graphInfo.getColumns();
+		// 解析获取echart的配置对象
+		String options = graphInfo.getOptions();
+		EchartOptions echartOptions = DrillUtils.parseOptions(options);
+		System.out.println(echartOptions);
+		// 系列
+//		List<Serie> series = echartOptions.getSeries();
+		// 过滤掉不用显示的数据字段
+		/*columns.removeIf(elem->{
+			for(Serie serie : series){
+				// 如果字段elem的ID保存在serie的属性中，则不移除
+				if(elem.getId().equalsIgnoreCase(serie.getColumnId())){
+					return false;
 				}
 			}
+			// 如果elem的ID不存在所有的series中，则移除
+			return true;
+		});*/
+		// 添加作为钻取维度的列
+		columns.add(0,virtualColumn);
+		Map<String, List<String>> map = new LocalDataAdapter(context).query(columns,DrillUtils.getSqlInfo(drillData, virtualColumn, columns));
+		// 重新设置数据格式
+		List<List<String>> list = format(columns,map);
+		// echarts 配置对象
+		// 设置dataset
+		DrillUtils.setDataSet(echartOptions, list);
+		// 设置系列颜色
+		DrillUtils.setSeriesColor(echartOptions);
+		// 设置轴
+		DrillUtils.setAxis(virtualColumn, echartOptions);
+		// 设置滑块组件
+		DrillUtils.setDataZoom(echartOptions, list);
+		return echartOptions;
+	}
+
+	@Override
+	public TreeNode findTree(String id) {
+		GraphInfo graph = this.graphInfoRepos.findById(id).orElse(null);
+		if(graph == null){
+			return null;
 		}
-		return columnTypeNames;
-	}
-
-	/**
-	 * @param key
-	 * @param value
-	 * @param columnTypeNames
-	 * @return
-	 */
-	private String selectSql1(VirtualTable key,
-			List<VirtualColumn> value) {
-		StringBuffer sb = new StringBuffer("select ");
-		value.forEach(column->{
-			String name = column.getName();
-			sb.append(name).append(" , ");
-			
-		});
-		sb.delete(sb.length()-3, sb.length());
-		sb.append(" from ");
-		sb.append(key.getId());
-		sb.append(" limit 0,20");
-		logger.debug(sb);
-		return sb.toString();
-	}
-
-
-
-	/**
-	 * 遍历数据表数组x_axis，获取每个字段所属的数据表信息，并将该字段添加到映射map当中，
-	 * map是一个VirtualTable到Set<VirtualColumn>的映射，表示某个虚拟数据表
-	 * 包含的字段
-	 * @param x_axis
-	 * @param map
-	 */
-	private void setTableMapColumn(List<VirtualColumn> x_axis,
-			Map<VirtualTable, List<VirtualColumn>> map) {
-		for (VirtualColumn virtualColumn : x_axis) {
-			VirtualTable table = virtualColumn.getTable();
-			List<VirtualColumn> list = map.get(table);
-			if(list == null){
-				list = new ArrayList<>();
-				map.put(table, list);
+		// 已经添加的字段
+		List<VirtualColumn> excludes = graph.getColumns();
+		// 所属数据包
+		WorkPackage pkg = graph.getReport().getPkg();
+		TreeNode root = new TreeNode(pkg.getId(),pkg.getName(),new ArrayList<>());
+		// 数据包中包含的数据表
+		List<VirtualTable> tables = pkg.getTables();
+		for (VirtualTable virtualTable : tables) {
+			// 遍历数据包中的数据表
+			TreeNode treeNode = new TreeNode(virtualTable.getId(),virtualTable.getChinese()!=null?virtualTable.getChinese():virtualTable.getName(),new ArrayList<>());
+			// 数据表中的字段
+			List<VirtualColumn> columns = virtualTable.getColumns();
+			for (VirtualColumn virtualColumn : columns) {
+				// 不添加已经添加到图表中的字段
+				if(excludes.contains(virtualColumn))
+					continue;
+				TreeNode tn = new TreeNode();
+				tn.setId(virtualColumn.getId());
+				tn.setText(virtualColumn.getChinese() != null ? virtualColumn.getChinese():virtualColumn.getName());
+				tn.setText(tn.getText()+"("+virtualColumn.getTypeName()+")");
+				tn.setType(virtualColumn.getTypeName());
+				treeNode.getNodes().add(tn);
 			}
-			list.add(virtualColumn);
+			root.getNodes().add(treeNode);
 		}
-		if(logger.isDebugEnabled()){
-			StringBuffer sb = new StringBuffer();
-			map.forEach((table,columns)->{
-				columns.forEach(column->{
-					sb.append(table.getName()).append(".").append(column.getName()).append(";");
-				});
-			});
-			sb.deleteCharAt(sb.length()-1);
-			logger.debug("待查询的列："+sb.toString());
-		}
+		return root;
 	}
+
+	@Override
+	@Transactional
+	public Response addColumn(String gpid, String vcid) {
+		GraphInfo orElse = this.graphInfoRepos.findById(gpid).orElse(null);
+		if(orElse == null){
+			return new Response(Constant.ERROR_CODE,"指定id的图表不存在");
+		}
+		VirtualColumn virtualColumn = this.virtualColumnRepos.findById(vcid).orElse(null);
+		if(virtualColumn == null){
+			return new Response(Constant.ERROR_CODE,"字段不存在");
+		}
+		orElse.getColumns().add(virtualColumn);
+		this.graphInfoRepos.save(orElse);
+		return new Response(Constant.SUCCESS_CODE,"添加成功",orElse);
+	}
+
+	
 }

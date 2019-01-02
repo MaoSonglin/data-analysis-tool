@@ -15,8 +15,8 @@
 
 .active{
 	color: #2D93CA;
-	transform: scale(1.2,1.2);
-	padding-left: 20px;
+	/* transform: scale(1.2,1.2); */
+	/* padding-left: 20px; */
 }
 
 .option-icon{

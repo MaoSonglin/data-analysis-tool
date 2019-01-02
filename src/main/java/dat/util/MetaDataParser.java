@@ -47,6 +47,9 @@ public interface MetaDataParser {
 		if(Constant.ORACLE.equals(databaseName)){
 			return new OracleSourceMetaData(source);
 		}
+		if(Constant.EXCEL.equals(databaseName)){
+			return new ExcelSourceMetaParser(source);
+		}
 		throw new SourceMetaDataException("unexpected datasource type of database name "+databaseName);
 	}
 	/**
@@ -339,3 +342,5 @@ class MySQLSourceMetaData implements MetaDataParser{
 	
 	
 }
+
+

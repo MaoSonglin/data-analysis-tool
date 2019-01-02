@@ -6,23 +6,120 @@
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/plugins/bootstrap-treeview/bootstrap-treeview.min.css"/>
 		<style type="text/css">
 			#wrapper{
-				position: absolute;
-				top: 0;
-				right: 0;
-				bottom: 0;
-				left: 0;
+				position: absolute ;top :0; right: 0; bottom: 0;left :0; 
+				margin: 10px;
+			}
+			.x{
+				position: absolute;top: 65%;right: 0;bottom: 0;left: 0;overflow-y: auto;
+			}
+			.y{
+				position: absolute;top: 0;right:0;bottom: 40;left: 70%;padding: 15px;
+			}
+			.dataset{
+				height: 200px;
+				min-width: 200px;
+				overflow: auto;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="wrapper">
 			<template v-for="(graph,index) in graphs">
-				<div class="" v-bind:style="getPosition(graph)" v-bind:id="'graph-'+index">
-					
+				<div class="graph" :style="getPosition(graph)" v-bind:id="'graph-'+index">
 				</div>
+				<div v-if="graph.dataset" class="dataset x">
+					<div class="table-responsive" >
+					<table id="data-table" class="table table-bordered table-hover table-condensed">
+						<tr class="">
+							<th v-for="(col,index) in getRow(graph)[0]" v-html="col"></th>
+							<th width="60">操作</th>
+						</tr>
+						<tr v-for="(row,i) in getRow(graph)" v-if="i>0">
+							<td v-for="(col,j) in row" v-html="col":data-x="i-1" :data-y="j-1" ></td>
+							<td width="60"><span :id="'filter-'+i" class="glyphicon glyphicon-filter"
+							 style="cursor: pointer;" @click="drill(index,$event)" ></span></td>
+						</tr>
+					</table>
+					</div>
+				</div>
+				<div class="drill-div y">
+					<div class="alert alert-success" v-if="curGraph.desc">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						<p v-html="curGraph.desc"></p>
+					</div>
+					<!-- 显示钻取深度的树形菜单 -->
+					<div id="tree">
+					</div>
 			</template>
+
+			<!-- 钻取条件的 modal dialog -->
+			<div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" > 
+				<div class="modal-dialog modal-sm">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title">钻取</h4>
+						</div>
+						<div class="modal-body">
+							<div class="btn-group">
+								<button type="button" class="btn btn-default" v-on:click="drillUp(curGraph)">向上</button>
+							</div>
+							<div class="btn-group">
+								<button type="button" class="btn btn-primary dropdown-toggle" 
+									data-toggle="dropdown">
+									向下<span class="caret"></span></button>
+								<ul class="dropdown-menu" role="menu">
+									<li v-for="column in getDrilling()">
+										<a href="#" v-html="column.chinese?column.chinese:column.name"
+											v-on:click="drillDown(column)"></a>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<div class="btn-group btn-group-sm">
+								<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- 旋转 -->
+			<div class="modal fade" id="myModal2" role="dialog" aria-hidden="true" > 
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title">旋转</h4>
+						</div>
+						<div class="modal-body" >
+							<form action="#" method="" class="form">
+								<div class="form-group">
+									<div class="radio" v-for="v in curGraph.columns" v-if="v.typeName == 'String'">
+										<label>
+											<input type="radio" name="rotate" v-bind:value="v.id"
+											 v-model="rotate">
+											{{v.chinese ? v.chinese : v.name}}
+										</label>
+									</div>
+									<div class="col-xs-10">
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<div class="btn-group btn-group-sm">
+								<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
 		</div>
 	</body>
 	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
@@ -32,5 +129,37 @@
 	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/bootstrap-treeview/bootstrap-treeview.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var toolbox = { //可视化的工具箱
+                show: true,
+                feature: {
+                    restore: { //重置
+                        show: true
+                    },
+                    dataZoom: { //数据缩放视图
+                        show: true
+                    },
+                    magicType: {//动态类型切换
+                        type: ['bar', 'line']
+                    },
+					myTool1: {
+						show: true,
+						title: '旋转',
+						icon: 'path://M432.45,595.444c0,2.177-4.661,6.82-11.305,6.82c-6.475,0-11.306-4.567-11.306-6.82s4.852-6.812,11.306-6.812C427.841,588.632,432.452,593.191,432.45,595.444L432.45,595.444z M421.155,589.876c-3.009,0-5.448,2.495-5.448,5.572s2.439,5.572,5.448,5.572c3.01,0,5.449-2.495,5.449-5.572C426.604,592.371,424.165,589.876,421.155,589.876L421.155,589.876z M421.146,591.891c-1.916,0-3.47,1.589-3.47,3.549c0,1.959,1.554,3.548,3.47,3.548s3.469-1.589,3.469-3.548C424.614,593.479,423.062,591.891,421.146,591.891L421.146,591.891zM421.146,591.891',
+						onclick: function (){
+							$("#myModal2").modal("toggle")
+						},
+					},
+					myTool2: {
+						show: false,
+						title: '自定义扩展方法',
+						icon: 'image://http://echarts.baidu.com/images/favicon.png',
+						onclick: function (){
+						},
+					}
+                }
+            }
+	</script>
 	<script type="text/javascript" src="show.js"></script>
 </html>

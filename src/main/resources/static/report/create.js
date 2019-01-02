@@ -18,7 +18,8 @@ var graphTypes = [
 		type : "pie"
 	}
 ]
-
+let report = JSON.parse(localStorage['report'])
+// delete localStorage['report']
 var app = new Vue({
 	el : "#app",
 	data:{
@@ -35,23 +36,39 @@ var app = new Vue({
 		this.pictures = [];
 		Vue.http.get(basePath+"report/graphs/"+this.report.id).then((res)=>{
 			if(res.body.code == 1){
-				for(var i in res.body.data){
-					var g = new Graph(res.body.data[i]);
-					g.option = JSON.parse(g.options);
-					this.pictures.push(g)
+				if(res.body.data.length){
+					for(var i in res.body.data){
+						var g = new Graph(res.body.data[i]);
+						g.option = JSON.parse(g.options);
+						this.pictures.push(g)
+					}
+				}else{
+					addNewGraph()
 				}
 			}else{
 				layer.msg(res.body.message)
 			} 
 		})
+		let that = this
+		function addNewGraph(){
+			let data = new Picture()
+			data.title = "图表"
+			data.report = that.report
+			Vue.http.post(basePath+"graph",tile(data)).then(res=>{
+				if(res.body.code == 1){
+					that.pictures.push(new Graph(res.body.data))
+				}
+				layer.msg(res.body.message)
+			})
+		}
 	},
 	methods:{
 		drag : function(data,event){ // 开始拖动
 			this.dragedPic = new Picture(600,400)
-			this.dragedPic.title = this.dragList[data].name
-			this.dragedPic.type = this.dragList[data].type
+			// this.dragedPic.title = this.dragList[data].name
+			// this.dragedPic.type = this.dragList[data].type
 			this.dragedPic.report = this.report
-			this.dragedPic.options = this.dragList[data].option;
+			// this.dragedPic.options = this.dragList[data].option;
 		},
 		allowDrop : function(event){ // 允许
 			event.preventDefault()
@@ -127,7 +144,6 @@ var app = new Vue({
 		},
 		setting : function(pic,event){ // 弹出轴编辑框 
 			// window.parent.addParentTab({href:'./html/article/detail.html',title:'强化党内监督是全面从严治党重要保障'})
-			dialog.$emit("setGraph",pic)
 			localStorage.graph = JSON.stringify(pic)
 			var index = layer.open({
 				title : pic.title,
@@ -252,157 +268,7 @@ function load(target){
 /******************************************************/
 
 
-var dialog = new Vue({
-	el : "#dialog",
-	data : {
-		nodes : [],
-		graph : {},
-		xAxis : [],
-		yAxis : [],
-		option : {}
-	},
-	methods:{
-		select : function(node){ 
-		},
-		loadChildren : function(event){
-			// alert("loadChildren")
-			var indexs = event.id.search(/\d+/)
-			var x = event.id.substring(0,indexs)
-			var url = null;
-			switch(x){
-				case "PKG":
-				url = basePath+"pkg/tab/"+event.id
-				break;
-				case "VT":
-				url = basePath+"vt/vc/"+event.id
-				break;
-				case "VC":
-				event.children = null;
-				return;
-			}
-			this.$http.get(url).then(function(res){
-				for(var i in res.body.data){
-					var elem = res.body.data[i]
-					if(elem.chinese) elem.name= elem.chinese ;//+ "("+elem.name+")";
-					if(elem.typeName) elem.name+= ":("+elem.typeName+")"
-					event.children.push(elem)
-				}
-				event.spread = true;
-			});
-		},
-		addAxis : function(event){
-			if(!this.dragTarget) return;
-			if(this.graph.columns)
-				this.graph.columns.push(this.dragTarget)
-			else
-				Vue.set(this.graph,"columns",[this.dragTarget])
-			this.saveGraph(this.graph)
-		},
-		rmAxis : function(field,event){
-			// this.$http.delete(basePath+"graph/"+this.graph.id+"/"+field.id+"")
-			layer.confirm("您确定要移除字段"+(field.chinese?field.chinese:field.name)+"吗?",{
-				title : "确认",
-				btn : ["确定","取消"]
-			},(index,layero)=>{
-				this.graph["columns"] = this.graph["columns"].filter(elem => {return elem.id != field.id})
-				this.saveGraph(this.graph)
-				layer.close(index)
-			},function(index,layero){})
-		},
-		startDrag : function(event){
-			this.dragTarget = event.nodeData.id.startsWith("VC") ?  event.nodeData : null;
-			event.stopPropagation()
-		},
-		getGraph : function(id){
-			this.$http.get(basePath+"graph/"+id).then(function(res){
-				this.graph = res.body.data;
-			})
-		},
-		saveGraph : function(graph){
-			this.beforeSave(graph)
-			this.$http.post(basePath+"graph",tile(graph)).then(function(res){
-				if(res.body.code == 0){
-					layer.msg(res.body.message)
-				}
-			},function(error){
-				layer.msg("网络错误")
-			})
-		},
-		beforeSave : function(graph){
-			graph.options = JSON.stringify(this.option) 
-			alert(graph.options)
-		},
-		setAxis : function(index,event){
-			let tmp = this.graph.columns[index]
-			this.graph.columns = this.graph.columns.filter(elem=>{return elem != tmp})
-			this.graph.columns.unshift(tmp)
-		},
-		change : function(event){
-			switch(event.target.value){
-				case 'bar':
-				case 'line':{
-					if(this.option.xAxis === undefined || this.option.xAxis === null){
-						this.$set(this.option,'xAxis',[{"type":"category"}])
-					}
-					if(this.option.yAxis === undefined || this.option.yAxis === null){
-						this.$set(this.option,'yAxis',[{}])
-					}
-					break;
-				}
-				case 'bar':
-			}
-		},
-		remove : function(s,e){
-			e.stopPropagation();
-			this.option.series = this.option.series.filter(e=>{return e != s})
-		},
-		addSeries : function(e){
-			e.stopPropagation();
-			if(!this.option.series)
-				this.$set(this.option,"series",[])
-			this.option.series.push({type:'bar',"seriesLayoutBy":"row"})
-		},
-		addLegend : function(e){
-			e.stopPropagation()
-			if(e.target.checked){ 
-				this.$set(this.option,'legend',{})
-			}
-			else{
-				this.$set(this.option,'legend',null)
-			}
-		},
-		isLegend : function(){
-			return !(!this.option.legend)
-		}
-	},
-	created:function(){
-		var report = JSON.parse(localStorage['report'])
-		this.nodes = [report['pkg']] 
-	},
-	updated : function(){
-		layui.use("form",function(){
-			layui.form.render()
-		})
-	},
-	watch:{
-		"graph.title" : function(newVal,oldVal){
-			if(this.option)
-				this.option.title = {text : newVal}
-		}
-	}
-})
 
-dialog.$on("setGraph",function(g){
-	if(!g.option)
-		g.option = {}
-	dialog.graph = g
-	dialog.option = g.option
-})
-
-dialog.$on("saveGraph",function(g){
-	dialog.saveGraph(g)
-	console.log(JSON.stringify(g))
-})
 	
 
 /* */

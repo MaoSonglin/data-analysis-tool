@@ -1,5 +1,5 @@
 
-	var report = JSON.parse(localStorage['report'])
+	// var report = JSON.parse(localStorage['report'])
 	Vue.http.options.withCredentials=true
 	Vue.http.options.emulateJSON=true
 	var graphTypes = [
@@ -16,99 +16,88 @@
 			name : '饼状图'
 		}
 	]
+	var toolbox = {
+					show : false,
+					feature : {
+						restore: { //重置
+						    show: true
+						},
+						dataZoom: { //数据缩放视图
+						    show: true
+						},
+						magicType: {//动态类型切换
+						    type: ['bar', 'line']
+						}
+					}
+				}
 	var vue = new Vue({
 		el : "#app",
 		data : {
-			report : report,
-			tables : [],
+			report : {},
 			treeNodes : [],
 			graph : {},
 			setting : {
-				xAxis : {},
-				yAxis : {},
-				tooltip : {},
-				legend : {},
-				series : []
+				title : {show : true, "text" : ""},
+				xAxis : {show : true},
+				yAxis : {show : true},
+				tooltip : {show : true},
+				legend : {show : true},
+				grid : {show : false},
+				toolbox : toolbox,
+				dataZoom : {show : false},
+				series : [],
 			},
 			graphTypes : graphTypes,
-			drilling : []
 		},
 		created : function(){
 			this.graph = JSON.parse(localStorage.graph)
+			this.report = this.graph.report
+			// 请求图表信息
 			this.$http.get(basePath+"graph/"+this.graph.id).then(function(res){
 				this.setGraph(res.body.data)
 			})
-			this.$http.get(basePath+"pkg/tab/"+report.pkg.id).then(function(res){
+			// 请求获取当前图表所属数据包下包含的数据表
+			this.$http.get(basePath+"pkg/tab/"+this.report.pkg.id).then(function(res){
 				this.$set(this,'tables',res.body.data)
 			})
+			// loadTree(this.graph.id)
+			function loadTree(reportId){
+				Vue.http.get(basePath+"graph/tree/"+reportId).then(function(res){
+					setTimeout(()=>{
+						let data = res.body.data
+						$("#tree").treeview({
+							data:[data],
+							onNodeSelected : nodeSelected
+						})
+					},100)
+				})
+			}
+			var that = this
+			function nodeSelected(event,node){
+				// 添加
+				Vue.http.get(basePath+"graph/"+that.graph.id+"/"+node.id).then(function(res){
+					if(res.body.code == 1){
+						Vue.set(that.graph,"columns",res.body.data.columns)
+					}else{
+						layer.msg(res.body.message)
+					}
+				})
+			}
 		},
 		methods : {
 			setGraph: function(graph){
 				// 图表基本数据
 				this.graph = graph
-				this.setting = JSON.parse(this.graph.options)
+				if(graph.options){
+					this.setting = JSON.parse(this.graph.options)
+				}
 				// 分类
-				this.$set(this.setting,'category',this.graph.columns[0].id)
+				if(graph.columns.length){
+					this.$set(this.setting,'category',this.graph.columns[0].id)
+				}
 				// 报表
 				this.report = graph.report
-				// 处理维度
-				if(this.graph.dimension){
-					let split = this.graph.dimension.split(';')
-					for(let i in split){
-						for(let j in this.graph.columns){
-							if(split[i] === this.graph.columns[j].id){
-								this.drilling.push(this.graph.columns[j])
-							}
-						}
-					}
-				}
-			},
-			getFiledCount : function(){
-				return this.graph.columns.length - this.setting.series.length - (this.setting.category ? 1 : 0) - this.drilling.length
-			},
-			getFields : function(table){// 获取数据表table下的所有字段
-				if(!table.columns){
-					this.$http.get(basePath+"vt/vc/"+table.id).then(function(res){
-						this.$set(table,'columns',this.beside(res.body.data))
-					})
-				}
-				if(table.open == undefined){
-					this.$set(table,'open',false)
-				}
-				table.open = ! table.open;
-			},
-			getColumns : function(){ // 获取当前可用的字段：移除作为分类的字段，作为系列的字段和钻取的字段
-				let array = new Array();
-				for(let i in this.graph.columns){
-					let column = this.graph.columns[i]
-					if(column.id != this.setting.category){
-						let arr = this.setting.series.filter(elem=>{
-							return elem.columnId === column.id
-						})
-						if(!arr.length && !this.drilling.includes(column)){
-							array.push(column)
-						}
-					}
-				}
-				return array
-			},
-			setCategory : function(e){
-				let column = this.graph.columns[e.target.selectedIndex]
-				this.graph.columns.splice(e.target.selectedIndex,1)
-				this.graph.columns.unshift(column)
-			},
-			addseries : function(column){// 添加系列
-				this.setting.series.push({type:'bar',name:column.chinese?column.chinese:column.name,columnId:column.id,"seriesLayoutBy":"row"})
-			},
-			rmseries : function(seria){ // 删除系列
-				this.setting.series = this.setting.series.filter(elem=>{return seria != elem})
-			},
-			dragStart : function(e){ 
-				console.log(e)
-				e.preventDefault()
-			},
-			allowDrop : function(e){
-				e.preventDefault()
+				
 			},
 			add : function(table,column){ // 为图表添加字段
 				this.$http.get(basePath+"graph/"+this.graph.id+"/"+column.id).then(function(res){
@@ -119,55 +108,9 @@
 						layer.msg(res.body.message)
 					}
 				})
-			},
-			remove : function(column,e){// 移除图表中的字段
-				this.graph.columns = this.graph.columns.filter(elem=>{return elem != column})
-				this.$http.delete(basePath+"graph/"+this.graph.id+"/"+column.id).then(function(res){
-					if(res.body.code == 1){
-						this.setGraph(res.body.data)
-						this.$http.get(basePath+"vt/vc/"+column.table.id).then(function(res){
-							let table = this.tables.find(elem=>{return elem.id === column.table.id})
-							this.$set(table,'columns',this.beside(res.body.data))
-						})
-					}
-				})
-				e.preventDefault()
-			},
-			check : function(field,value,event){
-				if(event.target.checked){
-					this.$set(this.setting,field,value)
-				}else{
-					this.$set(this.setting,field,undefined)
-				}
-				event.stopPropagation()
-			},
-			beside : function(columns){
-				var array = new Array();
-				for(var i in columns){
-					var f = true;
-					for(var j in this.graph.columns){
-						if(columns[i].id === this.graph.columns[j].id){
-							f = false
-							break
-						}
-					}
-					if(f)
-						array.push(columns[i])
-				}
-				return array
-			},
-			addDrilling : function(column){// 添加系列
-				this.drilling.push(column)
-			},
-			rmDrilling : function(c){// 移除系列
-				this.drilling = this.drilling.filter(elem=>{return c != elem})
-			},
+			},    
 			save : function(){ // 保存数据
 				this.graph.options = JSON.stringify(this.setting)
-				this.graph.dimension = "";
-				for(let i in this.drilling){
-					this.graph.dimension += this.drilling[i].id+";"
-				}
 				layer.confirm("您确定要提交吗？",{
 					btn:["确定","取消"]
 				},(index,layero)=>{
@@ -181,6 +124,73 @@
 						}
 					})
 				})
+			},
+			chooseColumn : function(signal,type,event){
+				event.stopPropagation()
+				layer.open({
+					type : 1,
+					title : false,
+					shade : false,
+					content : $("#tree-div"),
+					area : ["500px","350px"],
+					btn : ["确定","取消"],
+					success : ()=>{
+						Vue.http.get(basePath+"graph/tree/"+this.graph.id).then(function(res){
+							res = res.body
+							for(let i in res.data.nodes){
+								let table = res.data.nodes[i]
+								for(let j in table.nodes){
+									let column = table.nodes[j]
+									if(type && column.type && column.type !=  type){
+										column.state = {disabled : true}
+									}
+									column.selectedIcon = "glyphicon glyphicon-ok"
+									column.icon = "glyphicon glyphicon-unchecked"
+								}
+								table.selectable = false
+								table.showCheckbox = false
+							}
+							res.data.showCheckbox = false
+							res.data.selectable = false
+							$("#tree").treeview({
+								data:[res.data],
+								multiSelect : true,
+								showCheckbox : false,
+								onNodeSelected : function(event,node){
+									// alert(JSON.stringify(node))
+									// vue.$emit(signal,node.id)
+									alert(node.id)
+								}
+							})
+						})
+					},
+					end : function(){
+						$("#tree-div").hide()
+						vue.$emit("clear")
+					},
+					btn1 : function(index,layero){
+						layer.close(index)
+						// vue.$emit("save")
+						let arrays = $("#tree").treeview(true).getSelected()
+						vue.$emit("save",{data:arrays,field:signal})
+						// console.log(arrays)
+					},
+					cancel :function(){
+						
+					}
+				})
+				// console.log()
+			},
+			rmColumn : function(field,column,event){
+				this.graph[field] = this.graph[field].filter(e=>{return e.id != column.id})
+			},
+			rmseries : function(serie){
+				this.graph.valueColumns = this.graph.valueColumns.filter(e=>{
+					return e.id != serie.columnId
+				})
+				this.setting.series = this.setting.series.filter(elem=>{
+					return elem.columnId != serie.columnId
+				})
 			}
 		},
 		watch : {
@@ -191,7 +201,55 @@
 			"setting.tooltip" : function(newVal,oldVal){
 			},
 			"setting.legend" : function(newVal,oldVal){
-			}
-		}
+			},
+			"graph.title" : function(newVal,oldVal){
+			},
+			"setting.toolbox.show" : function(newVal,oldVal){
+				if(!newVal)
+					this.setting.toolbox = {show : false}
+				else{
+					this.setting.toolbox.feature = toolbox.feature
+				}
+			},
+			"setting.dataZoom.show" : function(newVal,oldVal){
+				if(!newVal)
+					this.setting.dataZoom = {show : false}
+			},
+			"graph.valueColumns" : function(newVal,oldVal){
+				let array = newVal.filter(elem=>{
+					for(let i in this.setting.series){
+						if(this.setting.series[i].columnId == elem.id){
+							return false
+						}
+					}
+					return true
+				})
+				if(array.length){
+					for(let i in array){
+						this.setting.series.push({
+							columnId : array[i].id,
+							type : "bar",
+							name : array[i].chinese ? array[i].chinese:array[i].name
+						})
+					}
+				}
+			},
+		},
+		mounted : function(){
+			// var tree = document.querySelector("#tree")
+			// console.log(this.$el)
+			this.$on("save",function(data){
+				alert(JSON.stringify(data))
+				for(let i in data.data)
+				this.graph[data.field].push({id:data.data[i].id})
+				this.$http.post(basePath+"graph",tile(this.graph)).then(function(res){
+					if(res.body.code == 1){
+						this.$set(this.graph,data.field,res.body.data[data.field])
+					}else{
+						layer.msg(res.body.message)
+					}
+				})
+			})
+		},
 	})
 	

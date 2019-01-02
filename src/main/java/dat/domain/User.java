@@ -1,8 +1,16 @@
 package dat.domain;
 
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
 
 @Entity
 @Table(name="t_user")
@@ -17,7 +25,7 @@ public class User {
 	
 	private String salt;
 	
-	private String createTime;
+	private Date createTime;
 	
 	private Integer state;
 
@@ -53,11 +61,27 @@ public class User {
 		this.salt = salt;
 	}
 
-	public String getCreateTime() {
-		return createTime;
+	
+
+	public Date getCreateTime() {
+		Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(Date.class);
+		enhancer.setCallback(new MethodInterceptor() {
+			@Override
+			public Object intercept(Object arg0, Method arg1, Object[] arg2,
+					MethodProxy arg3) throws Throwable {
+				if(arg1.getName().equals("toString")){
+					String format = new SimpleDateFormat("yyyy-MM-dd").format(createTime);
+					return format;
+				}
+				return arg1.invoke(createTime, arg2);
+			}
+		});
+		Date create = (Date) enhancer.create();
+		return create;
 	}
 
-	public void setCreateTime(String createTime) {
+	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
 

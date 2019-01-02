@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>从Excel文件导入数据</title>
+		<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../static/plugins/layui/css/modules/layer/default/layer.css"/>
+	</head>
+		<div class="container" id="app">
+			<div id="" class="row">
+				<form action="#" method="post" class="form-horizontal">
+					<div class="form-group">
+						
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2">数据表：</label>
+						<div class="col-md-10">
+							<select name="" class="form-control" v-model="sheetIndex">
+								<option v-bind:value="index" v-for="(sheet,index) in sheets" v-html="sheet.sheetName"></option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2">栏位名行：</label>
+						<div class="col-md-4">
+							<input type="number" class="form-control" onkeypress="" v-model="sheets[sheetIndex].fieldNameRow" @change="getNewRow($event)"/>
+						</div>
+						<label class="control-label col-md-2">第一个数据行：</label>
+						<div class="col-md-4">
+							<input type="number" name="" id="" value="2" class="form-control" v-model="sheets[sheetIndex].firstDataRow" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2">日期排序：</label>
+						<div class="col-md-4">
+							<select class="form-control" v-model="sheets[sheetIndex].datePattern">
+								<option value ="YMD">YMD</option>
+								<option value ="MDY">MDY</option>
+								<option value ="DMY">DMY</option>
+								<option value ="YDM">YDM</option>
+								<option value ="DYM">DYM</option>
+								<option value ="MYD">MYD</option>
+							</select>
+						</div>
+						<label class="control-label col-md-2">日期分隔符：</label>
+						<div class="col-md-4">
+							<input type="text" class="form-control" value="/" v-model="sheets[sheetIndex].dateSegmentation" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2">时间分隔符：</label>
+						<div class="col-md-4">
+							<input type="text" class="form-control" name="" id="" value="   :   " v-model="sheets[sheetIndex].timeSegmentation" />
+						</div>
+						<label class="control-label col-md-2">日期事件排序：</label>
+						<div class="col-md-4">
+							<select name="" class="form-control" v-model="sheets[sheetIndex].dateTimeSort">
+								<option value="0">日期&nbsp;时间</option>
+								<option value="1">时间&nbsp;日期</option>
+								<option value="2">日期&nbsp;时间&nbsp;时区</option>
+								<option value="3">时间&nbsp;日期&nbsp;时区</option>
+								<option value="4">时间&nbsp;时区&nbsp;日期</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2"></label>
+						<div class="col-md-10" style="max-height: 300px;overflow: auto;">
+							<table class="table table-striped">
+								<tr><th>选择</th><th>目标栏位</th><th>类型</th><th>长度</th><th>主键</th></tr>
+								<tr v-for="(name,index) in sheets[sheetIndex].columnNames">
+									<td><input type="checkbox" v-bind:value="name" v-model="sheets[sheetIndex].columnNames" /></td>
+									<td v-html="name"></td>
+									<td>
+										<div class="form-group-sm">
+											<select class="form-control" v-model="sheets[sheetIndex].types[index]">
+												<option value ="varchar">varchar</option>
+											</select>
+										</div>
+									</td>
+									<td><div class="form-group-sm">
+										<input type="number" class="form-control" v-model="sheets[sheetIndex].lengths[index]"/>
+									</div></td>
+									<td><input type="radio" name="primaryKey" id="" v-bind:value="name" v-model="sheets[sheetIndex].primaryKey" /></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-2"></label>
+						<div class="col-md-4">
+							<button type="button" class="btn btn-primary" @click="save()">保存</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	<body>
+	</body>
+	<script src="../../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/plugins/layui/lay/modules/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		Vue.http.options.withCredentials=true
+		Vue.http.options.emulateJSON=true
+		let sheets
+		$.ajax({
+			url : basePath + "ds/excel",
+			data : {
+				id : getParameter("id")
+			},
+			async : false,
+			dataType : "json",
+			success : function(res){
+				sheets = res.data
+			},
+			xhrFields : {
+				withCredentials : true
+			}
+		})
+		// let sheets = JSON.parse(localStorage.excel)
+		// delete localStorage.excel
+		console.log(sheets)
+		let vue = new Vue({
+			el : "#app",
+			data : {
+				sheets : sheets,
+				sheetIndex : 0
+			},
+			created : function(){
+				
+			},
+			methods : {
+				save : function(){
+					layer.confirm("您确定要提交吗？",{
+						title : "确认",
+						btn : ["确认","取消"]
+					},(index,layero)=>{
+						layer.close(index)
+						Vue.http.post(basePath+"ds/excel",JSON.stringify(this.sheets),{params:{id:getParameter("id")},emulateJSON:false}).then(function(res){
+							layer.msg(res.body.message)
+							setTimeout(function(){
+								// location.(-1)
+								history.back()
+							},2000)
+						})
+					})
+				},
+				getNewRow : function(event){
+					let row = event.target.value
+					this.$http.get(basePath+"ds/excel/"+getParameter("id")+"/"+this.sheets[this.sheetIndex].sheetName+"/"+row).then(function(res){
+						this.sheets[this.sheetIndex].columnNames = res.body.data
+					})
+				},
+			},
+			updated : function(){
+				
+			}
+		})
+		
+	</script>
+</html>

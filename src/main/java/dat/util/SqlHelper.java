@@ -88,4 +88,9 @@ public class SqlHelper {
 		sb.append(offset).append(" , ").append(max);
 		return sb;
 	}
+
+	public static void addFunction(StringBuffer buffer, String functionName,
+			String fieldName,String alias) {
+		buffer.append(functionName.toUpperCase()).append("(").append(fieldName).append(") AS ").append(alias);
+	}
 }

@@ -93,17 +93,17 @@
 										<td>连接(link)</td>
 										<td v-html="menu.link"></td>
 									</tr>
-									<tr>
-										<td>指针提示(title)</td>
-										<td v-html="menu.title"></td>
+									<tr v-if="menu.children && menu.children.length">
+										<td>状态(state)</td>
+										<td v-html="menu.state=='closed' ? '折叠':'展开'"></td>
 									</tr>
-									<tr>
+									<!-- <tr>
 										<td>样式(cssclass)</td>
 										<td v-html="menu.cssclass"><i ></i></td>
-									</tr>
+									</tr> -->
 									<tr>
 										<td>图标(icon)</td>
-										<td v-html="menu.icon"></td>
+										<td v-html="menu.iconCls"></td>
 									</tr>
 									<tr>
 										<td>父菜单(parent)</td>
@@ -134,26 +134,28 @@
 					</div>
 				</div>
 				<div class="layui-form-item">
-					<label for="mTitle" class="layui-form-label">指针提示</label>
+					<label for="mTitle" class="layui-form-label">折叠</label>
 					<div class="layui-input-block">
-						<input type="text" name="mTitle" id="mTitle" value="" 
-						v-model="menu.title" class="layui-input" placeholder="请输入后指针提示" />
+						<!-- <input type="text" name="mTitle" id="mTitle" value="" 
+						v-model="menu.title" class="layui-input" placeholder="请输入后指针提示" /> -->
+						<input type="checkbox" name="state" v-model="menu.state" value="closed" lay-skin="switch" lay-text="折叠|展开" lay-filter="expand" />
+						<!-- <input type="radio" name="state" id="state" value="" /> -->
 					</div>
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label" for="mIcon">图标</label>
 					<div class="layui-input-block">
-						<input type="text" name="mIcon" id="mIcon" value="" @click="chooseIcon('icon')"
-						v-model="menu.icon" placeholder="请选择菜单首部图标" class="layui-input" />
+						<input type="text" name="mIcon" id="mIcon" value="" @click="chooseIcon('iconCls')"
+						v-model="menu.iconCls" placeholder="请选择菜单首部图标" class="layui-input" />
 					</div>
 				</div>
-				<div class="layui-form-item">
+				<!-- <div class="layui-form-item">
 					<label for="cssclass" class="layui-form-label">尾部图标</label>
 					<div class="layui-input-block">
 						<input type="text" name="cssclass" id="cssclass" value="" @click="chooseIcon('cssclass')"
 						v-model="menu.cssclass" placeholder="请选择尾部图标" class="layui-input" />
 					</div>
-				</div>
+				</div> -->
 				<div class="layui-form-item">
 					<label for="parent" class="layui-form-label">父菜单{{menu.parent}}</label>
 					<div class="layui-input-inline">
@@ -173,7 +175,6 @@
 		<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript" src="../res/js/setting/menu.js"></script>

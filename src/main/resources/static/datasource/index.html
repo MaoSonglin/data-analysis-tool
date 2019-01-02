@@ -6,143 +6,143 @@
 		<title>数据源</title>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 		<link rel="stylesheet" type="text/css" href="../res/css/ds-index.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css" />
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css" />
 	</head>
 	<body>
-		<div id="wrapper" class=" ">
-			<div class="layui-row layui-col-space10">
-				<div class="layui-col-md4">
-					<div class="layui-card">
-						<div class="layui-card-header">
-							<h2>数据源列表<i class="layui-icon float-right" title="创建新数据源" onclick="showAddDialog()">&#xe654;</i></h2>
-						</div>
-						<div class="layui-card-body">
-							<ul class="">
-								<template v-for="(ds,index) in dsList" >
-									<li @click="choose(ds,$event)" :class="ds==datasource? 'active':''">
-										<span v-html="ds.name"></span>
-										<i class="layui-icon option-icon float-right" @click="remove(ds,$event)">&#xe640;</i>
-										<i class="layui-icon option-icon float-right" @click="toUpdate(ds,$event)">&#xe642;</i>
-									</li>
-								</template>
-							</ul>
-							<div id="pageinfo"></div>
-						</div>
-					</div>
-				</div>
-				<!-- 一下内容显示数据源详情 -->
-				<div class="layui-col-md8">
-					<div class="layui-card">
-						<div class="layui-card-header">
-							<h2><span v-html="datasource.name"></span><a :href="tableInfo(datasource)" class="layui-btn layui-btn-primary float-right">显示数据表</a></h2>
-						</div>
-						<div class="layui-card-body">
-							<table class="layui-table" lay-even v-if="datasource.id" >
-								<colgroup>
-									<col width="200">
-									<col />
-								</colgroup>
-								<tr><th>属性</th><th>值</th></tr>
-								<template v-for="(value,key) in datasource" v-show="false">
-									<tr v-if="value">
-										<td v-html="keySet[key]"></td><td v-html="showValue(key,value)"></td>
-									</tr>
-								</template>
-							</table>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- 弹出层：添加数据源：version 1 -->
-		<div id="add-div" style="margin: 5px 10px;">
-			<form id="addForm" action="#" class="layui-form" method="">
-				<div class="layui-form-item">
-					<label class="layui-form-label" for="dsname">数据源名称</label>
-					<div class="layui-input-block">
-						<input class="layui-input" type="text" id="dsname" name="dsname"
-						 v-model="ds.name" placeholder="请输入数据源名称" autocomplete="off" />
-					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label" for="dstype">数据源类型</label>
-					<div class="layui-input-block">
-						<!-- <select name="dstype" id="dstype" v-model="ds.databaseName" lay-filter="dstype"> 
-							<option v-for="(type,index) in dstype" :value="type" v-html="type"></option>
-						</select> -->
-						<!-- 使用弹出框选择类型 -->
-						<input class="layui-input" name="dstype" id="dstype" v-model="ds.databaseName" placeholder="请选择数据源类型" readonly="readonly" required="required" @focus="chooseDatabase()"/>
-					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label">数据库URL</label>
-					<div class="layui-input-block">
-						<input type="text" name="dsurl" id="dsurl" v-model="ds.url"
-						 class="layui-input" placeholder="请输入数据库url" autocomplete="off" />
-					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label" for="dsDriverClass">数据库驱动</label>
-					<div class="layui-input-block" >
-						<input type="text" name="dsDriverClass" id="dsDriverClass" v-model="ds.driverClass"
-						 class="layui-input" placeholder="请输入数据库驱动类" autocomplete="off" />
-					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label" for="dsuname">用户名</label>
-					<div class="layui-input-block">
-						<input type="text" name="dsuname" id="dsuname" v-model="ds.username" 
-						class="layui-input" placeholder="请输入数据源用户名" autocomplete="off"/>
-					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label" for="dspwd">密码</label>
-					<div class="layui-input-block">
-						<input type="password" name="dspwd" id="dspwd" v-model="ds.password"
-						class="layui-input" placeholder="请输入数据源密码"/>
-					</div>
-				</div>
-				<div  :class="ds.isFile ? 'layui-form-item':'layui-hide'">
-					<div class="layui-inline">
-						<label for="" class="layui-form-label">数据文件</label>
-						<div class="layui-input-inline">
-							<button class="layui-btn" type="button" id="up-ds-btn"><i class="layui-icon">&#xe67c;</i>上传数据源</button>
-						</div>
-						 <div class="layui-form-mid layui-word-aux" v-html="ds.association ? ds.association.fileName:loading">请填写密码</div>
-					</div>
-					<!-- <div class="layui-inline">
-						<div class="layui-input-inline">
-							<input class="layui-input" type="text" name="filename" id="filename" value="" readonly="readonly" />
-						</div>
-					</div> -->
-				</div>
-				<div class="layui-form-item">
-					<label for="comment" class="layui-form-label">数据源描述</label>
-					<div class="layui-input-block">
-						<textarea id="comment" name="comment" rows="" cols="" 
-						class="layui-textarea" v-model="ds.comment" placeholder="不超过200个字符">
-							
-						</textarea>
-					</div>
-				</div>
-			</form>
-		</div><!-- 弹出层：添加数据源：version 1 -->
-		
-		<div id="add-div-2" class="layui-hide">
-			<div class="layui-form" style="padding: 5px 15px;">
-				<template v-for="(value,key,index) in driverInfos">
-					<input type="radio" name="databaseName" :value="key" :title="key" lay-filter="dbName">
-				</template>
-			</div>
+		<div id="wrapper">
+			<table class="layui-table" id="ds-table" lay-filter='table1231231'></table>
 		</div>
 	</body>
+	<script type="text/html" id="toolbar">
+		<div class="layui-row">
+			<div class="layui-inline">
+				<h4>数据源列表</h4>		
+			</div>
+			<div class="layui-inline">
+				<div class="btn-group">
+					<button type="button" class="btn btn-default btn-sm dropdown-toggle"
+					 data-toggle = "dropdown" >添加数据源<span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						<li><a href="javascript:void(0);" lay-event='add-ds'>关系型数据源</a></li>
+						<li><a href="javascript:void(0);" lay-event='add-excel'>Excel表格</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</script>
+	<script type="text/html" id="tool">
+		<button type="button" class="layui-btn layui-btn-xs" lay-event='show-table'>查看</button>
+		<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event='detail'>详情</button>
+		<button type="button" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</button>
+	</script>
 	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
-	
-	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/ds/tmp-data.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../res/js/ds/ds.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<!-- <script src="../res/js/ds/ds.js" type="text/javascript" charset="utf-8"></script> -->
+	<script>
+		layui.use('table',function(){
+			let table = layui.table
+			let tabIns = table.render({
+				elem : "#ds-table",
+				url : basePath + "ds/page",
+				toolbar : "#toolbar",
+				cols: [[
+				  {field:'id',fixed:'left', width:120, title: 'ID', sort: true}
+				  ,{field:'name', width:160, title: '数据名称',edit:'text'}
+				  ,{field:'driverClass', width:120, title: '驱动程序',edit:'text'}
+				  ,{field:'url', title: 'URL', width: 120,edit:'text'} //minWidth：局部定义当前单元格的最小宽度，layui 2.2.1 新增
+				  ,{field:'username', title: '用户名',width : 80,edit:'text'}
+				  ,{field:'password', title: '密码',width : 80,edit:'text'}
+				  ,{field:'databaseName', title: '数据源类型',width:80,edit:'text'}
+				  ,{field:'desc', title: '描述',minWidth:250,edit:'text'},
+				  {fixed: 'right', title:'操作', toolbar: '#tool', width:160}
+				]],
+				page : true,
+				request : {
+					pageName : 'curPage',
+					limitName : 'pageSize'
+				},
+				parseData : function(res){
+					return {
+						"code" : res.code,
+						"msg" : res.message,
+						"data" : res.data.content,
+						"count" : res.data.totalElements
+					}
+				},
+				response : {
+					statusCode : 1
+				}
+			
+			})
+			
+			table.on("toolbar(table1231231)",function(data){
+				switch(data.event){
+					case 'add-ds':
+					$('.dropdown-toggle').dropdown("toggle")
+					window.parent.addParentTab({href:'datasource/add.html',title:'添加数据源'})
+					break;
+					case 'add-excel':
+					$('.dropdown-toggle').dropdown("toggle")
+					window.parent.addParentTab({href:'datasource/excel/add-excel.html',title:'添加excel表格'})
+					break
+				}
+			})
+			
+			table.on("tool(table1231231)",function(data){
+				console.log(data)
+				switch(data.event){
+					case 'show-table':
+					window.parent.addParentTab({href:'datasource/ds-tables.html?dsid='+data.data.id,title:data.data.name})
+					break;
+					case 'detail':
+					layer.msg(JSON.stringify(data.data))
+					break;
+					case 'delete':
+					layer.confirm("您确定要删除本条数据吗？",{
+						title : '确认',
+						btn : ['确定','取消']
+					},function(index,layero){
+						layer.close(index)
+						$.ajax({
+							url : basePath+"ds/"+data.data.id,
+							method : 'delete',
+							xhrFields : {
+								withCredentials : true
+							},
+							success : function(res){
+								layer.msg(res.message)
+								if(res.code == 1)
+									data.del()	
+							}
+						})
+					})
+					break;
+				}
+			})
+			
+			table.on("edit(table1231231)",function(data){
+				console.log(data)
+				$.ajax({
+					url : basePath+"ds",
+					method : 'put',
+					data : tile(data.data),
+					xhrFields : {
+						withCredentials : true
+					},
+					success : function(res){
+						layer.msg(res.message)
+						if(res.code == 1)
+							data.update()	
+					}
+				})
+			})
+		})
+	</script>
 </html>

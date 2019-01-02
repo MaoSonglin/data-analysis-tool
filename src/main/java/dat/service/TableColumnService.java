@@ -38,5 +38,12 @@ public interface TableColumnService {
 	Response getSourceById(String id);
 
 	
+	/**
+	 * 根据虚拟字段获取实体字段
+	 * @param columns
+	 * @return
+	 */
 	List<TableColumn> getColumnsByVirtualColumns(List<VirtualColumn> columns);
+
+	String getTypeName(TableColumn column);
 }

@@ -49,6 +49,8 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	private Float height;
 	
+	private String type;
+	
 	@OneToOne(targetEntity=Menu.class,fetch=FetchType.EAGER)
 	@JoinColumn(referencedColumnName="id")
 	private Menu publish;
@@ -98,6 +100,15 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	public Integer getState() {
 		return state;
 	}
+	
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 
 	public void setState(Integer state) {
 		this.state = state;
@@ -117,13 +128,6 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 
 	public void setPkg(WorkPackage pkg) {
 		this.pkg = pkg;
-	}
-
-	@Override
-	public String toString() {
-		return "ReportInfo [id=" + id + ", name=" + name + ", width=" + width
-				+ ", height=" + height + ", comment=" + comment + ", graphs="
-				+ graphs + ", state=" + state + "]";
 	}
 
 	public Float getWidth() {

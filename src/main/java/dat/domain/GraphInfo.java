@@ -1,6 +1,7 @@
 package dat.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -10,10 +11,13 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import dat.util.Constant;
 import dat.util.StrUtil;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class GraphInfo implements IdGeneratorable,Serializable{
 	/**
 	 * 
@@ -70,15 +74,21 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	@Column(length=800)
 	private String options;
 	
-	private String dimension;
+
 	
 	private Integer state;
 	
-	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.EAGER)
+	@Column(name="`commit`",length=500)
+	private String desc;
+	
+	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.LAZY)
 	private ReportInfo report;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
-	private List<VirtualColumn> columns;
+	private List<VirtualColumn> categoryColumns;
+	
+	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
+	private List<VirtualColumn> valueColumns;
 	
 	
 	public Float getHeight() {
@@ -113,6 +123,7 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		return type;
 	}
 
+
 	public void setType(String type) {
 		this.type = type;
 	}
@@ -146,6 +157,8 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		return top;
 	}
 
+	
+
 	public void setTop(Float top) {
 		this.top = top;
 	}
@@ -159,11 +172,33 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	}
 
 	public List<VirtualColumn> getColumns() {
-		return columns;
+		ArrayList<VirtualColumn> list = new ArrayList<>();
+		List<VirtualColumn> l = getCategoryColumns();
+		if(l != null){
+			list.addAll(l);
+		}
+		List<VirtualColumn> l2 = getValueColumns();
+		if(l2!=null)
+			list.addAll(l2);
+		return list;
 	}
 
-	public void setColumns(List<VirtualColumn> columns) {
-		this.columns = columns;
+	
+
+	public List<VirtualColumn> getCategoryColumns() {
+		return categoryColumns;
+	}
+
+	public void setCategoryColumns(List<VirtualColumn> categoryColumns) {
+		this.categoryColumns = categoryColumns;
+	}
+
+	public List<VirtualColumn> getValueColumns() {
+		return valueColumns;
+	}
+
+	public void setValueColumns(List<VirtualColumn> valueColumns) {
+		this.valueColumns = valueColumns;
 	}
 
 	public String getOptions() {
@@ -175,24 +210,15 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	}
 	
 	
-
-	public String getDimension() {
-		return dimension;
-	}
-
-	public void setDimension(String dimension) {
-		this.dimension = dimension;
-	}
-
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
 
-	@Override
-	public String toString() {
-		return "GraphInfo [id=" + id + ", title=" + title + ", width=" + width
-				+ ", height=" + height + ", top=" + top + ", left=" + left
-				+ ", type=" + type + ", options=" + options + ", state="
-				+ state + "]";
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 }

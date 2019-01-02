@@ -16,11 +16,18 @@
 		</div>
 		<div id="dialog" style="display: ;">
 			<div id="addform" style="display: none;margin: 15px;">
-				<form action="#" method="" class="layui-form">
+				<form name="addform" action="#" method="" class="layui-form">
 					<div class="layui-form-item">
 						<label for="reportName" class="layui-form-label">报表名称</label>
 						<div class="layui-input-block">
-							<input class="layui-input" type="text" name="reportName" id="reportName" value=""v-model="report.name" />
+							<input class="layui-input" type="text" name="name" id="reportName" value=""v-model="report.name" />
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label" for="type">类型</label>
+						<div class="layui-input-block">
+							<input type="radio" name="type" checked="checked" lay-filter="type" value="single" title="单图表"/>
+							<input type="radio" name="type" value="multiple" lay-filter="type" title="多图表" />
 						</div>
 					</div>
 					<div class="layui-form-item">
@@ -34,7 +41,7 @@
 					<div class="layui-form-item">
 						<label for="reportComment" class="layui-form-label">描述</label>
 						<div class="layui-input-block">
-							<textarea rows="" cols="" class="layui-textarea" v-model="report.comment">
+							<textarea rows="" cols="" name="comment" class="layui-textarea" v-model="report.comment">
 								
 							</textarea>
 						</div>
@@ -170,8 +177,12 @@
 				layui.table.on("tool(reportList)",function(obj){
 					switch(obj.event){
 						case 'edit': // 编辑按钮点击
-						localStorage['report'] = JSON.stringify(obj.data)
-						window.parent.addParentTab({href:'report/create.html',title:'编辑报表:'+obj.data.name})
+						if(obj.data.type=="multiple"){
+							window.parent.addParentTab({href:'report/graphs.html?edit=true&reportId='+obj.data.id,title:'编辑报表:'+obj.data.name})
+						}else{
+							localStorage['report'] = JSON.stringify(obj.data)
+							window.parent.addParentTab({href:'report/create.html',title:'编辑报表:'+obj.data.name})
+						}
 						break;
 						case 'del': // 删除按钮点击
 						layer.confirm("您确定要删除报表\""+obj.data.name+"\"吗？",{
@@ -179,8 +190,8 @@
 						},function(index,layero){
 							layer.close(index)
 							var options = {
-								url : basePath + "report",
-								method : "post",
+								url : basePath + "report/"+obj.data.id,
+								method : "delete",
 								data : tile(obj.data),
 								success : function(res){
 									if(res.code == 1){
@@ -345,6 +356,18 @@
 						var data = res.body
 						Vue.set(this,"pkgs",data.data.content)
 					})
+				},
+				updated : function(){
+					layui.use("form",()=>{
+						layui.form.render("radio")
+						layui.form.on("radio(type)",(data)=>{
+							this.$set(this.report,"type",data.value)
+						})
+					})
+				},
+				watch : {
+					"report.type" : function(newVal,oldVal){
+					}
 				}
 			})
 			

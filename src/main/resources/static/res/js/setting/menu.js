@@ -113,7 +113,7 @@
 						// obj.value = localStorage.icon
 					},
 					success : function(){
-						localStorage.icon = "";
+						delete localStorage.icon 
 					},
 					end : function(){
 						Vue.set(addMenuVue.menu,icon,localStorage.icon)
@@ -132,6 +132,7 @@
 	
 	function editDialog(title){
 		var cloner = new Cloner(addMenuVue.menu)
+		console.log(cloner)
 		layer.open({
 			type : 1,
 			title : title,
@@ -192,11 +193,16 @@ function drawForm(){
 		var form = layui.form; 
 		form.render()
 		form.on('select(parent)', function(data){
-			addMenuVue.menu.parent = data.value
-			addMenuVue.menu.father = addMenuVue.lst.filter(function(item){
-				return item.id == parseInt(data.value)
-			}).pop()
+			if(data.value){
+				addMenuVue.menu.parent = data.value
+				addMenuVue.menu.father = addMenuVue.lst.filter(function(item){
+					return item.id == parseInt(data.value)
+				}).pop()
+			}
 		});
+		form.on("switch(expand)",function(data){
+			addMenuVue.menu.state = data.elem.checked ? 'closed' : ''
+		})
 	})
 	
 }

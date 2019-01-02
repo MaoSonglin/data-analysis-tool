@@ -215,7 +215,7 @@ public class SingleTableDataAdapter implements DataAdapter,Iterator<Map<String,S
 	 */
 	static Map<String, String> getValue(ResultSet rs, String formula,List<TableColumn> columns) throws SQLException {
 		Map<String,String> tmpMap = new HashMap<>();
-		Pattern compile = Pattern.compile("FD\\d{16}");
+		Pattern compile = Pattern.compile("(FD\\d+)|(DF\\d+)");
 		Matcher matcher = compile.matcher(formula);
 		while(matcher.find()){
 			int start = matcher.start();

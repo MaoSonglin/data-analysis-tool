@@ -9,4 +9,7 @@ public interface UploadFileService {
 
 	Response delete(String id);
 
+	String getRealPath(String id);
+	
+	String getSavePath();
 }

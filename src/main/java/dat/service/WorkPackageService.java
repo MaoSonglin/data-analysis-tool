@@ -1,8 +1,10 @@
 package dat.service;
 
 import java.sql.Connection;
+import java.util.List;
 
 import dat.controller.WorkPackageController.ExcludeTable;
+import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
 import dat.vo.PkgPageBean;
 import dat.vo.Response;
@@ -78,5 +80,9 @@ public interface WorkPackageService {
 	 * @return
 	 */
 	Connection getConnection(String object);
+
+	List<VirtualTable> getTablesAndColumns(String id);
+
+	Response findTree(String id);
 
 }

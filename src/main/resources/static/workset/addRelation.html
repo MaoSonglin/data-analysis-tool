@@ -16,27 +16,37 @@
 		</style>
 	</head>
 	<body>
-		<div id="setRelation" class="col-md-6 col-md-offset-3">
-			<form class="" action="#" method="">
+		<div id="setRelation" class="container">
+			<form class="form-horizontal" action="#" method="">
 				<div class="form-group">
-					<label class="control-label">数据包</label>
-					<input class="form-control" type="text" readonly="readonly" v-model="pkg.name" />
+					<label class="control-label col-md-2">当前字段：</label>
+					<div class="col-md-10">
+						<input class="form-control" type="text" name="" id="" value="" readonly="readonly" v-model="targetField.chinese?targetField.chinese:tragetField.name"/>
+					</div>
 				</div>
 				<div class="form-group">
-					<label class="control-label" >数据表</label>
-					<select class="form-control" name=""  v-model="table">
-						<option value="">请选择数据表</option>
-						<option value="" v-for="table in tables" :value="table.id"
-						 v-html="table.chinese?table.chinese:table.name"></option>
-					</select>
+					<label class="control-label col-md-2">数据包：</label>
+					<div class="col-md-10">
+						<input class="form-control" type="text" readonly="readonly" v-model="pkg.name" />
+					</div>
 				</div>
 				<div class="form-group">
-					<label class="control-label">字段</label>
-					<select class="form-control" name=""  @change="select($event)">
-						<option value ="">请选择字段</option>
-						<option v-for="field in fields" :value ="field.id"
-						 v-html="field.chinese?field.chinese:field.name"></option>
-					</select>
+					<label class="control-label col-md-2" >数据表：</label>
+					<div class="col-md-4">
+						<select class="form-control" name=""  v-model="table">
+							<option value="" >请选择数据表</option>
+							<option value="" v-for="table in tables" :value="table.id"
+							 v-html="table.chinese?table.chinese+'('+table.name+')':table.name"></option>
+						</select>
+					</div>
+					<label class="control-label col-md-2">字段：</label>
+					<div class="col-md-4">
+						<select class="form-control" v-model="field">
+							<option value ="">请选择字段</option>
+							<option v-for="field in getFields()" :value ="field.id"
+							 v-html="field.chinese?field.chinese+'('+field.name+')':field.name"></option>
+						</select>
+					</div>
 				</div>
 			</form>
 		</div>
@@ -46,42 +56,51 @@
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript">
 			// document.write(localStorage.pkgid)
+			Vue.http.options.emulateJSON=true
+			Vue.http.options.withCredentials=true
 			new Vue({
 				el:"#setRelation",
 				data:{
-					pkg : {},
+					pkg : JSON.parse(localStorage.pkg),
 					tables : [],
 					fields : [],
 					table : "",
-					field : {}
+					field : "",
+					targetField : JSON.parse(localStorage.field),
+					reference : {}
 				},
 				created:function(){
-					this.pkg = JSON.parse(localStorage.pkg)
 					this.$http.get(basePath+"pkg/tab/"+this.pkg.id).then(function(res){
 						this.tables = res.body.data
 					})
+					this.$http.get(basePath+"ref/foreign/column/"+this.targetField.id).then(function(res){
+						if(res.body.code == 1){
+							this.reference = res.body.data
+							this.table = this.reference.referencedTable.id
+							this.field = this.reference.referencedColumn.id
+						}
+					})
+					this.reference.foreignColumn = {id:this.targetField.id}
+					this.reference.primaryTable = this.targetField.table
 				},
 				methods:{
-					setTable : function(id){
-						this.$http.get(basePath+"vc/vt/"+id).then(function(res){
-							this.$set(this,"fields",res.body.data);
+					getFields : function(){
+						return this.fields.filter(elem=>{
+							return elem.id != this.targetField.id
 						})
-					},
-					select : function(event){
-						// alert(event.target.value)
-						localStorage.relationId=event.target.value
-						event.stopPropagation()
-						this.$http.get(basePath+"vc/"+event.target.value).then(function(res){
-							localStorage.relation = JSON.stringify(res.body.data)
-						})
-					},
+					}
 				},
 				watch:{
 					"table" : function(newVal,oldVal){
 						this.$http.get(basePath+"vt/vc/"+newVal).then(function(res){
 							this.$set(this,"fields",res.body.data);
 						})
+						this.reference.referencedTable = {id:newVal}
 					},
+					"field" : function(newVal,oldVal){
+						this.reference.referencedColumn = {id:newVal},
+						localStorage.reference=JSON.stringify(this.reference)
+					}
 				}
 			})
 		</script>
