@@ -159,7 +159,7 @@
 								onNodeSelected : function(event,node){
 									// alert(JSON.stringify(node))
 									// vue.$emit(signal,node.id)
-									alert(node.id)
+									// alert(node.id)
 								}
 							})
 						})
@@ -191,6 +191,9 @@
 				this.setting.series = this.setting.series.filter(elem=>{
 					return elem.columnId != serie.columnId
 				})
+			},
+			addseries : function(column){
+				
 			}
 		},
 		watch : {
@@ -217,6 +220,9 @@
 			},
 			"graph.valueColumns" : function(newVal,oldVal){
 				let array = newVal.filter(elem=>{
+					if(! elem.name){
+						return false
+					}
 					for(let i in this.setting.series){
 						if(this.setting.series[i].columnId == elem.id){
 							return false
@@ -229,7 +235,8 @@
 						this.setting.series.push({
 							columnId : array[i].id,
 							type : "bar",
-							name : array[i].chinese ? array[i].chinese:array[i].name
+							name : array[i].chinese ? array[i].chinese:array[i].name,
+							seriesLayoutBy : "row"
 						})
 					}
 				}
@@ -239,7 +246,6 @@
 			// var tree = document.querySelector("#tree")
 			// console.log(this.$el)
 			this.$on("save",function(data){
-				alert(JSON.stringify(data))
 				for(let i in data.data)
 				this.graph[data.field].push({id:data.data[i].id})
 				this.$http.post(basePath+"graph",tile(this.graph)).then(function(res){

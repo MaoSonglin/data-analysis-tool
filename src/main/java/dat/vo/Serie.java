@@ -20,7 +20,6 @@ public class Serie implements Serializable {
 
 	public Serie() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public Serie(String type, String name, String columnId,
