@@ -127,7 +127,7 @@ class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, Strin
 	 * @param columns2		带检索的虚拟字段
 	 * @throws SQLException
 	 */
-	private void queryInTable(List<DataTable> dataTables,List<TableColumn> columns2) throws SQLException {
+	protected void queryInTable(List<DataTable> dataTables,List<TableColumn> columns2) throws SQLException {
 		DataTable dataTable = dataTables.remove(0);
 		StringBuffer sb = new StringBuffer("SELECT ");
 		fromColumns(sb, columns2);
@@ -166,7 +166,7 @@ class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, Strin
 	 * @param foreignKeys	外键关系
 	 * @param sb			SQL语句
 	 */
-	private void multiplyTableJoin(List<DataTable> dataTables, List<DataTable> joinTables,
+	protected void multiplyTableJoin(List<DataTable> dataTables, List<DataTable> joinTables,
 			List<ForeignKey> foreignKeys, StringBuffer sb) {
 		// 遍历外键
 		for (ForeignKey foreignKey : foreignKeys) {
@@ -314,3 +314,7 @@ class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, Strin
 	}
 	
 }
+
+
+
+

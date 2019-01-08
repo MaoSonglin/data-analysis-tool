@@ -380,31 +380,58 @@ function generateMenu(menuId, systemName) {
 				/* 	$.each(e.children,function(i,data){
 						
 					}) */
-                    $.get(basePath+"/menu/sub/" + e.id, function (data) {// 循环创建树的项
-                        $("#tree" + e.id).tree({
-                        	data: data,
-                        	lines: false,
-                        	animate: true,
-                        	onBeforeExpand: function (node, param) {
-                        		$("#tree" + e.id).tree('options').url =basePath+"menu/sub/"+node.id 
-                        		//"./json/menu/menu_" + node.id + ".json";
-                        	},
-                        	onClick: function (node) {
-                        		if (node.url) {
-                        			/*if(typeof node.attributes != "object") {
-                        			node.attributes = $.parseJSON(node.attributes);
-                        			}*/
-                        			addTab(node);
-                        		} else {
-                        			if (node.state == "closed") {
-                        				$("#tree" + e.id).tree('expand', node.target);
-                        			} else if (node.state == 'open') {
-                        				$("#tree" + e.id).tree('collapse', node.target);
-                        			}
-                        		}
-                        	}
-                        });
-                    }, 'json');
+// 					setTimeout(function(){
+						 $("#tree" + e.id).tree({
+							data: e.children,
+							lines: false,
+							animate: true,
+							onBeforeExpand: function (node, param) {
+								$("#tree" + e.id).tree('options').url =basePath+"menu/sub/"+node.id 
+								//"./json/menu/menu_" + node.id + ".json";
+							},
+							onClick: function (node) {
+								if (node.url) {
+									/*if(typeof node.attributes != "object") {
+									node.attributes = $.parseJSON(node.attributes);
+									}*/
+									addTab(node);
+								} else {
+									if (node.state == "closed") {
+										$("#tree" + e.id).tree('expand', node.target);
+									} else if (node.state == 'open') {
+										$("#tree" + e.id).tree('collapse', node.target);
+									}
+								}
+							}
+						});
+// 					},200)
+// 					let x = e.children
+//                     $.get(basePath+"/menu/sub/" + e.id, function (data) {// 循环创建树的项
+// 						console.log(x,data)
+//                         $("#tree" + e.id).tree({
+//                         	data: data,
+//                         	lines: false,
+//                         	animate: true,
+//                         	onBeforeExpand: function (node, param) {
+//                         		$("#tree" + e.id).tree('options').url =basePath+"menu/sub/"+node.id 
+//                         		//"./json/menu/menu_" + node.id + ".json";
+//                         	},
+//                         	onClick: function (node) {
+//                         		if (node.url) {
+//                         			/*if(typeof node.attributes != "object") {
+//                         			node.attributes = $.parseJSON(node.attributes);
+//                         			}*/
+//                         			addTab(node);
+//                         		} else {
+//                         			if (node.state == "closed") {
+//                         				$("#tree" + e.id).tree('expand', node.target);
+//                         			} else if (node.state == 'open') {
+//                         				$("#tree" + e.id).tree('collapse', node.target);
+//                         			}
+//                         		}
+//                         	}
+//                         });
+//                     }, 'json');
                 });
             }, "json"
         );

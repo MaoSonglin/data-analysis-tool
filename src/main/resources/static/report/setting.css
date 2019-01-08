@@ -1,0 +1,55 @@
+.tree{
+				padding-left: 10px;
+			}
+			.tree *{
+				list-style-type: none;
+			}
+			.tree li{
+				white-space: nowrap;
+				cursor: pointer;
+			}
+			.fa{
+				cursor: pointer;
+			}
+			.flex{
+				display: flex;
+				padding: 5px;
+				flex-wrap: wrap;
+			}
+			.flex-item{
+				align-items: flex-end;
+			}
+			.column-item{
+				margin:5px 10px 3px;
+				font-size: 16px;
+			}
+			.del-icon{
+				visibility: hidden;
+				cursor: pointer;
+			}
+			.del-icon:hover{
+				color: #00BFFF;
+			}
+			.column-item:hover .del-icon{
+				visibility: visible;
+			}
+			.my-table{
+				table-layout: fixed;
+			}
+			.my-table td{
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.my-table td:hover{
+				overflow: visible;
+			}
+			.list-group-item{
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				overflow: hidden;
+			}
+			.list-group-item:hover{
+				overflow: visible;
+				color: #0092DC;
+			}

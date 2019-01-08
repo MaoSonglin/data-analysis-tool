@@ -5,6 +5,7 @@ import java.util.Map;
 
 import dat.domain.DataTable;
 import dat.domain.TableColumn;
+import dat.domain.VirtualColumn;
 import dat.vo.DataTablePaingBean;
 import dat.vo.Response;
 import dat.vo.TableData;
@@ -49,4 +50,11 @@ public interface DataTableService {
 	List<Map<String,String>> getValues(DataTable table);
 	
 	List<Map<String,String>> getValues(DataTable table,List<TableColumn> columns);
+	
+	/**
+	 * 根据虚拟字段表数组columns查询出columns引用的底层数据表
+	 * @param columns
+	 * @return
+	 */
+	List<DataTable> getByVirtualColumns(List<VirtualColumn> columns);
 }

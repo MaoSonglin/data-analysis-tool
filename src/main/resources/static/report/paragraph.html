@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+	</head>
+	<body>
+		<div id="app" class="container">
+			<form name="form1" action="#" method="post" class="form-horizontal">
+				<div id="" class="form-group">
+				</div>
+				<div class="form-group form-group-sm">
+					<label class="control-label col-md-2">位置</label>
+					<div class="col-md-5">
+						<div class="input-group">
+							<span class="input-group-addon text-info">X坐标</span>
+							<input class="form-control" type="number" name="left" id="top" v-model="graph.left" max="100" min="0" autocomplete="off"/>
+							<span class="input-group-addon">%</span>
+						</div>
+					</div>
+					<div class=" col-md-5">
+						<div class="input-group">
+							<span class="input-group-addon text-info">Y坐标</span>
+							<input class="form-control" type="number" name="top" id="top" v-model="graph.top" max="100" min="0" autocomplete="off"/>
+							<span class="input-group-addon">%</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-2">文本内容</label>
+					<div class="col-md-10">
+						<textarea name="content" id="content" rows="50" cols="">
+							
+						</textarea>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-4 col-md-offset-2">
+						<button type="button" class="btn btn-primary" @click="submit()">提交</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/ueditor/ueditor.config.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/ueditor/ueditor.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/ueditor/lang/zh-cn/zh-cn.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<!-- <script src="../static/ueditor/ueditor" type="text/javascript" charset="utf-8"></script> -->
+	<script type="text/javascript">
+		Vue.http.options.withCredentials=true
+		Vue.http.options.emulateJSON=true
+		let vue = new Vue({
+			el : "#app",
+			data : {
+				graph : {option:{}}
+			},
+			created : function(){
+				this.$http.get(basePath+"graph/"+getParameter("graphId")).then(function(res){
+					this.graph = res.body.data
+					this.graph.option =  JSON.parse(this.graph.options)
+					$("#content").val(vue.graph.option.content)
+					new UE.ui.Editor({initialFrameHeight:300}).render("content")
+				})
+			},
+			methods : {
+				submit : function(){
+					this.graph.options = JSON.stringify({content : document.form1.content.value})
+					this.$http.post(basePath+"graph",tile(this.graph)).then(function(res){
+						layer.msg(res.body.message)
+					})
+				},
+			}
+		})
+		
+		// var editor = new UE.ui.Editor({initialFrameHeight:300}).render("content")
+	</script>
+</html>

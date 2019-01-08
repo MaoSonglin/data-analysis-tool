@@ -39,7 +39,7 @@ public class VirtualTableServiceImplTest {
 		VirtualTable t = new VirtualTable();
 		t.setId("VT1811111042261129");
 		System.out.println(t.getId());
-		Map<String, List<String>> data = this.virtualTableServiceImpl.listData(t);
+		Map<String, List<Object>> data = this.virtualTableServiceImpl.listData(t);
 		System.out.println(data);
 	}
 

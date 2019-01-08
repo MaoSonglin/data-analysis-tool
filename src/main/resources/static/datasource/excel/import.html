@@ -14,11 +14,15 @@
 						
 					</div>
 					<div class="form-group">
-						<label class="control-label col-md-2">数据表：</label>
-						<div class="col-md-10">
+						<label class="control-label col-md-2">Excel工作簿：</label>
+						<div class="col-md-4">
 							<select name="" class="form-control" v-model="sheetIndex">
 								<option v-bind:value="index" v-for="(sheet,index) in sheets" v-html="sheet.sheetName"></option>
 							</select>
+						</div>
+						<label class="control-label col-md-2">数据库表：</label>
+						<div class="col-md-4">
+							<input class="form-control" type="text"v-model="sheets[sheetIndex].tableName" />
 						</div>
 					</div>
 					<div class="form-group">
@@ -68,21 +72,25 @@
 						<label class="control-label col-md-2"></label>
 						<div class="col-md-10" style="max-height: 300px;overflow: auto;">
 							<table class="table table-striped">
-								<tr><th>选择</th><th>目标栏位</th><th>类型</th><th>长度</th><th>主键</th></tr>
+								<tr><th></th><th>栏位</th><th>列名</th><th>中文名称</th><th>类型</th><th>长度</th><th>主键</th></tr>
 								<tr v-for="(name,index) in sheets[sheetIndex].columnNames">
 									<td><input type="checkbox" v-bind:value="name" v-model="sheets[sheetIndex].columnNames" /></td>
-									<td v-html="name"></td>
+									<td  class="form-group-sm"><input type="text" class="form-control" v-bind:value="name" readonly="readonly"/></td>
+									<td  class="form-group-sm"><input type="text" class="form-control" v-model="sheets[sheetIndex].fieldNames[index]" autocomplete="off"/></td>
+									<td  class="form-group-sm"><input type="text" class="form-control" v-bind:value="name" autocomplete="off"/></td>
 									<td>
 										<div class="form-group-sm">
 											<select class="form-control" v-model="sheets[sheetIndex].types[index]">
-												<option value ="varchar">varchar</option>
+												<option value ="String">字符串</option>
+												<option value ="Number">数字</option>
+												<option value ="Date">日期</option>
 											</select>
 										</div>
 									</td>
 									<td><div class="form-group-sm">
 										<input type="number" class="form-control" v-model="sheets[sheetIndex].lengths[index]"/>
 									</div></td>
-									<td><input type="radio" name="primaryKey" id="" v-bind:value="name" v-model="sheets[sheetIndex].primaryKey" /></td>
+									<td  class="form-group-sm"><input type="radio" name="primaryKey" id="" v-bind:value="name" v-model="sheets[sheetIndex].primaryKey" /></td>
 								</tr>
 							</table>
 						</div>

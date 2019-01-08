@@ -132,6 +132,17 @@ var container = new Vue({
 var layuiTable = null;
 layui.use('table',function(){
 	layuiTable = layui.table
+	layuiTable.init('kjix12312',{
+		"url" : basePath+"vc/list",
+		page : {
+			limit : 5,
+			limits : [5,10,15,20,25],
+			curr : 1
+		},
+		where : {
+			tableId : this.table.id
+		}
+	})
 	layuiTable.on('edit(kjix12312)',function(obj){
 		update(obj)
 	})
@@ -185,8 +196,20 @@ layui.use('table',function(){
 			pkgRmTab()
 			break;
 			case 'addField':// 新建字段
-			location.href = "create_field.html?tabid="+container.table.id+"&pkgid="+container.pkg.id
+			sessionStorage.tables = JSON.stringify(container.tables)
+			sessionStorage.table = JSON.stringify(container.table)
+			let href = "create_field.html?tabid="+container.table.id+"&pkgid="+container.pkg.id
+			if(window.parent && window.parent.addParentTab){
+				window.parent.addParentTab({title:container.pkg.name+"新建字段",href:"workset/"+href})
+			}else{
+				window.open(href,"_blank")
+			}
 			break;
+			case 'category':
+			if(window.parent && window.parent.addParentTab){
+				window.parent.addParentTab({title:"分类管理",href:"workset/category.html?pkgId="+container.pkg.id})
+			}
+			break
 		}
 	})
 	
@@ -237,15 +260,15 @@ layui.use('table',function(){
 			btn : ['确定','取消']
 		},function(index,layer0){
 			layer.close(index)
-			var x = container.findFieldById(obj.data.id)
-			x.state = 0;
+// 			var x = container.findFieldById(obj.data.id)
+// 			x.state = 0;
 			// TODO  请求后台删除
-			Vue.http.delete(basePath+"vc/"+x.id).then(function(res){
+			Vue.http.delete(basePath+"vc/"+obj.data.id).then(function(res){
 				if(res.body.code != 1){
 					layer.msg(res.body.message)
-					x.state = 1;
+					// x.state = 1;
 				}else{
-					container.fields = container.fields.filter((item)=>{return x != item;})
+					container.fields = container.fields.filter((item)=>{return obj.data.id != item.id;})
 					obj.del()
 				}
 			},function(error){

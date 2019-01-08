@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EchartOptions implements Serializable {
 	
 	/**
@@ -34,6 +36,8 @@ public class EchartOptions implements Serializable {
 	private Grid grid;
 	
 	private List<Serie> series;
+	
+	private List<Map<String,String>> categorys;
 	
 	private DataSet dataset;
 	
@@ -62,6 +66,14 @@ public class EchartOptions implements Serializable {
 
 	public void setyAxis(Axis yAxis) {
 		this.yAxis = yAxis;
+	}
+
+	public List<Map<String, String>> getCategorys() {
+		return categorys;
+	}
+
+	public void setCategorys(List<Map<String, String>> categorys) {
+		this.categorys = categorys;
 	}
 
 	public Tooltip getTooltip() {
@@ -149,7 +161,7 @@ public class EchartOptions implements Serializable {
 	public String toString() {
 		return JSON.toJSONString(this);
 	}
-
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Title{
 		
 		public Title() {
@@ -171,11 +183,13 @@ public class EchartOptions implements Serializable {
 			this.text = text;
 		}
 	}
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Axis{
 		private Boolean show;
 		private String type;
 		private String name;
 		private String columnId;
+		private List<Object> data;
 		public Axis() {
 			super();
 		}
@@ -183,6 +197,14 @@ public class EchartOptions implements Serializable {
 		public Axis(String type) {
 			super();
 			this.type = type;
+		}
+
+		public List<Object> getData() {
+			return data;
+		}
+
+		public void setData(List<Object> data) {
+			this.data = data;
 		}
 
 		public Axis(String type, String name) {
@@ -224,10 +246,12 @@ public class EchartOptions implements Serializable {
 	public static class YAxis extends Axis{}
 	
 	public static class XAxis extends Axis{}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Tooltip{
 		boolean show = true;
-
+		
+		private String trigger;
+		
 		public boolean isShow() {
 			return show;
 		}
@@ -235,9 +259,17 @@ public class EchartOptions implements Serializable {
 		public void setShow(boolean show) {
 			this.show = show;
 		}
+
+		public String getTrigger() {
+			return trigger;
+		}
+
+		public void setTrigger(String trigger) {
+			this.trigger = trigger;
+		}
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Grid {
 		private Boolean show;
 		
@@ -261,7 +293,7 @@ public class EchartOptions implements Serializable {
 		
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Toolbox{
 		
 		private Boolean show;
@@ -295,7 +327,7 @@ public class EchartOptions implements Serializable {
 		}
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Legend{
 		boolean show = true;
 		
@@ -328,20 +360,20 @@ public class EchartOptions implements Serializable {
 		}
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class DataSet{
 		
 		public DataSet() {
 			super();
 		}
 
-		public DataSet(List<List<String>> source) {
+		public DataSet(Object source) {
 			super();
 			this.source = source;
 		}
 
-		public DataSet(List<? extends Object> dimensions,
-				List<List<String>> source) {
+		public DataSet(List<Object> dimensions,
+				List<List<Object>> source) {
 			super();
 			this.dimensions = dimensions;
 			this.source = source;
@@ -349,15 +381,15 @@ public class EchartOptions implements Serializable {
 
 		private List<? extends Object> dimensions;
 		
-		private List<List<String>> source;
+		private Object source;
 		
 		private Boolean sourceHeader;
 
-		public List<List<String>> getSource() {
+		public Object getSource() {
 			return source;
 		}
 
-		public void setSource(List<List<String>> list) {
+		public void setSource(Object list) {
 			this.source = list;
 		}
 
@@ -378,7 +410,7 @@ public class EchartOptions implements Serializable {
 		}
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class DataZoom{
 		
 		private Boolean show;
@@ -412,7 +444,7 @@ public class EchartOptions implements Serializable {
 		}
 		
 	}
-	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class ItemStyle{
 		
 		public ItemStyle(String color) {
@@ -487,7 +519,7 @@ public class EchartOptions implements Serializable {
 		}
 		
 	}
-
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class DimensionObject{
 		String name;
 		String type;
@@ -516,7 +548,7 @@ public class EchartOptions implements Serializable {
 			this.type = type;
 		}
 	}
-
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class Feature{
 		
 		private Boolean show;

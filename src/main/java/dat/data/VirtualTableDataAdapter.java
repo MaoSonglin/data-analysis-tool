@@ -18,6 +18,7 @@ import dat.domain.VirtualTable;
 import dat.service.DataSourceService;
 import dat.service.VirtualTableService;
 
+@Deprecated
 public class VirtualTableDataAdapter implements DataAdapter,ApplicationContextAware {
 
 	private ApplicationContext context;

@@ -3,189 +3,229 @@
 	<head>
 		<meta charset="utf-8">
 		<title>新建字段</title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/plugins/bootstrap-fileinput/css/fileinput.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
-		<style type="text/css">
-			.wrapper{
-				position: absolute;
-				top: 0;
-				right: 0;
-				bottom: 0;
-				left: 0;
-			}
-			.keybord{
-				/* width: 300px; */
-				width: 100%;
-				height: 300px;
-				/* display: none; */
-				/* position: absolute; */
-				right: 40px;
-				left: 0;
-				z-index: 1000;
-			}
-			.keybord td{
-				font-size: 36px;
-				text-align: center;
-			}
-			.keybord td:hover{
-				cursor: pointer;
-				background-color: #FF5722;
-			}
-			.tab-list-wrapper{
-				height: 300px;
-				overflow: auto;
-				padding: 5px 10px;
-			}
-			.tab-list-item{
-				white-space: nowrap;
-				text-overflow: ellipsis;
-				overflow: hidden;
-				line-height: 150%;
-				font-size: 16px;
-				margin-top: 5px;
-			}
-			.tab-list-item+.tab-list-item{
-				border-top: 1px beige solid;
-			}
-			.tab-list-item:hover{
-				color: #009F95;
-				cursor: pointer;
-			}
-			.myTree ul{
-				margin-left: 20px;
-			}
-			.myTree li{
-				line-height: 26px;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-		</style>
+		<link rel="stylesheet" type="text/css" href="../res/css/workset/create_field.css"/>
 	</head>
 	<body>
 		<div id="app" class="wrapper">
-			<div style="height: 40px;line-height: 40px;margin: 5px 15px 5px;">
-				<span class="layui-breadcrumb">
-					<a href="javascript:;">当前位置：</a>
-					<a href="#">业务数据集</a>
-					<a href="wp.html">业务数据包</a>
-					<a :href="backurl">数据表</a>
-					<a href="javascript:;">新建字段</a>
-				</span>
-			</div>
-			<form class="layui-form layui-col-sm8 layui-col-md6  layui-col-sm-offset2 layui-col-md-offset3" action="#" method="">
-				<div id="" class="layui-form-item">
-					<div class="layui-inline">
-						<label class="layui-form-label" for="columnName">名称</label>
-						<div class="layui-input-inline">
-							<input class="layui-input" type="text" name="columnName" id="columnName" v-model="column.name" />
-						</div>
-					</div>
-					<div class="layui-inline">
-						<label class="layui-form-label" for="chinese">中文名称</label>
-						<div class="layui-input-inline">
-							<input class="layui-input" type="text" name="chinese" id="chinese" v-model="column.chinese" />
-						</div>
-					</div>
+			<div class="container">
+				<div class="form-group">
 				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label">数据类型</label>
-					<div class="layui-input-block">
-						<input type="radio" name="sex" value="Number" title="Number" lay-filter='typeName' v-model="column.typeName">
-						<input type="radio" name="sex" value="String" title="String" lay-filter='typeName' v-model="column.typeName" >
-						<input type="radio" name="sex" value="date" title="date" lay-filter='typeName' v-model="column.typeName">
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="#普通区" data-toggle = "tab" >普通字段</a></li>
+					<li><a href="#分类区" data-toggle="tab">分类字段</a></li>
+				</ul>
+				<div id="" class="tab-content">
+					<div class="tab-pane fade in active" id="普通区">
+						这里是编辑普通字段
 					</div>
-				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label">字段公式</label>
-					<div class="layui-input-block">
-						<input class="layui-input" type="text" name="" id="formal" v-model="column.formula"/>
-						<div id="" class="layui-row layui-col-space15">
-							<div class="layui-col-md6 layui-col-sm6">
-								<table class="keybord layui-table" @click="input($event)">
-									<tr><td>(</td><td>)</td><!-- <td>#</td> --><td colspan="2">DEL</td></tr>
-									<tr>
-										<td>7</td><td>8</td><td>9</td><td>+</td>
-									</tr>
-									<tr>
-										<td>4</td><td>5</td><td>6</td><td>-</td>
-									</tr>
-									<tr>
-										<td>1</td><td>2</td><td>3</td><td>*</td>
-									</tr>
-									<tr>
-										<td colspan="2">0</td><td>.</td><td>/</td>
-									</tr>
-								</table>
+					<div class="tab-pane fade" id="分类区">
+						<form action="#" class="form-horizontal" method="get" id="form1">
+							<div class="form-group">
+								
 							</div>
-							<div class="layui-col-sm6 layui-col-md6">
-								<!-- <select lay-filter='select_a_pkg'>
-									<option v-for="x in pkgs" :value ="x.id" v-html="x.name"></option>
-								</select>
-								<div class="tab-list-wrapper" >
-									<ul class="tab-list">
-										<li v-for="table in curPkg.tables" class="tab-list-item" @click="">
-											<i class="layui-icon layui-icon-table"></i>
-											{{table.chinese}} {{table.name}}
-										</li>
-									</ul>
-								</div> -->
-								<div class="tab-list-wrapper">
-									<!-- <ul id="myTree"></ul> -->
-									<!-- <tree v-bind:list="treeNodes" v-on:treeNodeClick="treeNodeClick($event)"></tree> -->		
-									<div class="layui-form-item">
-										<label class="layui-form-label">业务包</label>
-										<div class="layui-input-block">
-											<select lay-filter="pkgfilter">
-												<option v-for="pkg in pkgs" v-html="pkg.chinese?pkg.chinese:pkg.name" :value="pkg.id" :selected="pkg.id==curPkg.id"></option>
-											</select>
-										</div>
+							<div class="form-group">
+								<label class="control-label col-md-2 col-sm-2" for="name">字段名称</label>
+								<div class="col-md-6 col-sm-8">
+									<input class="form-control" type="text" name="name" id="name"v-model="field.name" placeholder="字段名称" autocomplete="off" />
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2 col-sm-2" for="chinese">中文名称</label>
+								<div class="col-md-6 col-sm-8">
+									<input class="form-control" type="text" name="chinese" id="chinese"v-model="field.chinese" placeholder="中文名称"autocomplete="off" />
+								</div>
+							</div>
+							<div class="form-group" id="dongge">
+								<label class="control-label col-md-2 col-sm-2" for="xdfasdf">原字段</label>
+								<div class="col-md-3 col-sm-4">
+									<!-- <input type="text" name="old" id="old" value="" /> -->
+									<div class="input-group">
+										<span class="input-group-addon">数据表</span>
+										<select name="" class="form-control" id="xdfasdf" v-on:change="changeTable($event)">
+											<option>请选择数据表</option>
+											<option :value="index" v-for="(table,index) in tables" v-html="table.chinese?table.chinese:table.name"></option>
+										</select>
 									</div>
-									<div class="layui-form-item">
-										<label class="layui-form-label">数据表</label>
-										<div class="layui-input-block">
-											<select lay-filter="tablefilter">
-												<option v-for="table in curPkg.tables" :value ="table.id" v-html="table.chinese?table.chinese:table.name" :selected="table.id==curTable.id"></option>
-											</select>
-										</div>
-									</div>
-									<div class="layui-form-item">
-										<label class="layui-form-label">数据字段</label>
-										<div class="layui-input-block">
-											<select lay-filter="columnfilter">
-												<option v-for="column in curTable.columns" :value ="column.id" v-html="column.chinese?column.chinese:column.name"></option>
-											</select>
-										</div>
+								</div>
+								<div class="col-md-3 col-sm-4">
+									<div class="input-group">
+										<span class="input-group-addon">字段</span>
+										<select class="form-control" name="formula" v-model="field.formula" v-on:change="setField($event)">
+											<option value ="">请选择字段</option>
+											<option :value="column.id" v-for="(column,index) in table.columns"
+											 v-html="column.chinese?column.chinese:column.name" v-if="column.typeName=='String'"></option>
+										</select>
 									</div>
 								</div>
 							</div>
-						</div>
-						
+							<div class="form-group" v-if="false">
+								<label class="control-label col-md-2 col-sm-2" for="algorithm" v-model="alogrithm">分类算法</label>
+								<div class="col-md-6 col-sm-8">
+									<select class="form-control" name="algorithm" id="algorithm">
+										<option value ="Bayes">贝叶斯</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2 col-sm-2">分类标准</label>
+								<div class="col-md-6 col-sm-8">
+									<input type="hidden" name="o" id="o" value="" />
+									<input class="file-loading" type="file" name="file" id="file" value=""placeholder="请上传分类标准" />
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-2 col-sm-2" for="remask">描述内容</label>
+								<div class="col-md-6 col-sm-8">
+									<textarea class="form-control" rows="5" name="remask" id="remask" v-model="field.remask" placeholder="请输入字段描述信息,100字符">
+										
+									</textarea>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-md-2 col-md-offset-2 col-sm-4 col-sm-offset-2">
+									<input class="form-control btn btn-primary" type="submit" value="提交"/>
+								</div>
+							</div>
+						</form>
 					</div>
 				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label">备注</label>
-					<div class="layui-input-block">
-						<textarea rows="" class="layui-textarea" cols="" v-model="column.remask">
-							
-						</textarea>
-					</div>
-				</div>
-				<div id="" class="layui-form-item">
-					<label class="layui-form-label"></label>
-					<div class="layui-input-inline">
-						<button type="button" class="layui-btn layui-btn-primary" @click="add($event)">添加</button>
-					</div>
-				</div>
-			</form>
+			</div>
 		</div>
 		
 		<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../static/plugins/bootstrap/plugins/bootstrap-fileinput/js/fileinput.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../static/plugins/bootstrap/plugins/bootstrap-fileinput/js/zh.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript" src="../res/js/workset/create_field.js"></script>
-		
+		<!-- <script src="../res/js/my-tree.js" type="text/javascript" charset="utf-8"></script> -->
+		<script src="../res/js/jquery.form.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/workset/addcolumn.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			$(function () {
+				$("#file").fileinput({
+					language : 'zh',
+					uploadUrl : basePath + "file/upload",
+					allowedFileExtensions : ['txt'],
+					showUpload : true,
+					showCaption : true,
+					browseClass : "btn btn-primary",
+					dropZoneEnabled : true,
+					maxFileCount : 10,
+					maxFileSize : 1024 * 100,
+					enctype: 'multipart/form-data',
+					validateInitialCount:true,
+					previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
+					msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+				})
+				$("#file").on("fileuploaded",function(event, data, previewId, index){
+					let res = data.response;
+					vue.$emit("fileInfo",res)
+				})
+			});
+		</script>
 	</body>
 </html>
+<!-- 
+ 		
+ <form class="layui-form layui-col-sm8 layui-col-md6  layui-col-sm-offset2 layui-col-md-offset3" action="#" method="">
+ 	<div id="" class="layui-form-item">
+ 		<div class="layui-inline">
+ 			<label class="layui-form-label" for="columnName">名称</label>
+ 			<div class="layui-input-inline">
+ 				<input class="layui-input" type="text" name="columnName" id="columnName" v-model="column.name" />
+ 			</div>
+ 		</div>
+ 		<div class="layui-inline">
+ 			<label class="layui-form-label" for="chinese">中文名称</label>
+ 			<div class="layui-input-inline">
+ 				<input class="layui-input" type="text" name="chinese" id="chinese" v-model="column.chinese" />
+ 			</div>
+ 		</div>
+ 	</div>
+ 	<div class="layui-form-item">
+ 		<label class="layui-form-label">数据类型</label>
+ 		<div class="layui-input-block">
+ 			<input type="radio" name="sex" value="Number" title="Number" lay-filter='typeName' v-model="column.typeName">
+ 			<input type="radio" name="sex" value="String" title="String" lay-filter='typeName' v-model="column.typeName" >
+ 			<input type="radio" name="sex" value="date" title="date" lay-filter='typeName' v-model="column.typeName">
+ 		</div>
+ 	</div>
+ 	<div class="layui-form-item">
+ 		<label class="layui-form-label">字段公式</label>
+ 		<div class="layui-input-block">
+ 			<input class="layui-input" type="text" name="" id="formal" v-model="column.formula"/>
+ 			<div id="" class="layui-row layui-col-space15">
+ 				<div class="layui-col-md6 layui-col-sm6">
+ 					<table class="keybord layui-table" @click="input($event)">
+ 						<tr><td>(</td><td>)</td><td colspan="2">DEL</td></tr>
+ 						<tr>
+ 							<td>7</td><td>8</td><td>9</td><td>+</td>
+ 						</tr>
+ 						<tr>
+ 							<td>4</td><td>5</td><td>6</td><td>-</td>
+ 						</tr>
+ 						<tr>
+ 							<td>1</td><td>2</td><td>3</td><td>*</td>
+ 						</tr>
+ 						<tr>
+ 							<td colspan="2">0</td><td>.</td><td>/</td>
+ 						</tr>
+ 					</table>
+ 				</div>
+ 				<div class="layui-col-sm6 layui-col-md6">
+ 					<div class="tab-list-wrapper">
+ 						<div class="layui-form-item">
+ 							<label class="layui-form-label">业务包</label>
+ 							<div class="layui-input-block">
+ 								<select lay-filter="pkgfilter">
+ 									<option v-for="pkg in pkgs" v-html="pkg.chinese?pkg.chinese:pkg.name" :value="pkg.id" :selected="pkg.id==curPkg.id"></option>
+ 								</select>
+ 							</div>
+ 						</div>
+ 						<div class="layui-form-item">
+ 							<label class="layui-form-label">数据表</label>
+ 							<div class="layui-input-block">
+ 								<select lay-filter="tablefilter">
+ 									<option v-for="table in curPkg.tables" :value ="table.id" v-html="table.chinese?table.chinese:table.name" :selected="table.id==curTable.id"></option>
+ 								</select>
+ 							</div>
+ 						</div>
+ 						<div class="layui-form-item">
+ 							<label class="layui-form-label">数据字段</label>
+ 							<div class="layui-input-block">
+ 								<select lay-filter="columnfilter">
+ 									<option v-for="column in curTable.columns" :value ="column.id" v-html="column.chinese?column.chinese:column.name"></option>
+ 								</select>
+ 							</div>
+ 						</div>
+ 					</div>
+ 				</div>
+ 			</div>
+ 			
+ 		</div>
+ 	</div>
+ 	<div class="layui-form-item">
+ 		<label class="layui-form-label">备注</label>
+ 		<div class="layui-input-block">
+ 			<textarea rows="" class="layui-textarea" cols="" v-model="column.remask">
+ 				
+ 			</textarea>
+ 		</div>
+ 	</div>
+ 	<div id="" class="layui-form-item">
+ 		<label class="layui-form-label"></label>
+ 		<div class="layui-input-inline">
+ 			<button type="button" class="layui-btn layui-btn-primary" @click="add($event)">添加</button>
+ 		</div>
+ 	</div>
+ </form>
+ 	
+ -->

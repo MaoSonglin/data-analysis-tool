@@ -18,35 +18,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,36 +28,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import com.alibaba.fastjson.JSON;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import dat.data.DataAdapter;
-import dat.data.QueryHelper;
+import dat.data.TableDataAdapter;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
@@ -209,9 +157,9 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		// 存放查询结果的map
 		Map<String, List<String>> m = getEmptyResultMap(columns);
 		// 查询助手
-		QueryHelper queryHelper = context.getBean(QueryHelper.class);
+//		QueryHelper queryHelper = context.getBean(QueryHelper.class);
 		// 查询开始
-		try (DataAdapter dataAdapter = queryHelper.query(table, columns);) {
+		try (DataAdapter dataAdapter = new TableDataAdapter(columns);) {
 			// 设置分页
 			dataAdapter.limit(offset, limit);
 			
@@ -232,7 +180,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	}
 	
 	@Override
-	public Map<String, List<String>> getData(VirtualTable table,List<VirtualColumn> columns,int offset,int limit) {
+	public Map<String, List<Object>> getData(VirtualTable table,List<VirtualColumn> columns,int offset,int limit) {
 		
 		// 拼接SQL语句
 		StringBuffer sql = new StringBuffer("select ");
@@ -247,7 +195,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		
 		// 数据包ID
 		String id = table.getPackages().iterator().next().getId();
-		Map<String, List<String>> query = query(id,sql.toString(),getMapListHandler());
+		Map<String, List<Object>> query = query(id,sql.toString(),getMapListHandler());
 		return query;
 	}
 	
@@ -302,7 +250,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	}
 
 	@Override
-	public Map<String, List<String>> listData(VirtualTable table) {
+	public Map<String, List<Object>> listData(VirtualTable table) {
 		if(!table.getClass().equals(VirtualTable.class))
 			table = findById(table.getId());
 		// 虚拟数据表所属数据包的ID
@@ -311,8 +259,8 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		String sql = String.format("select * from %s", table.getId());
 		logger.debug(sql);
 		// 查询结果
-		ResultSetHandler<Map<String, List<String>>> mapListResultHandler = getMapListHandler();
-		Map<String, List<String>> query = query(pkgid,sql,mapListResultHandler);
+		ResultSetHandler<Map<String, List<Object>>> mapListResultHandler = getMapListHandler();
+		Map<String, List<Object>> query = query(pkgid,sql,mapListResultHandler);
 		return query;
 		
 		/*QueryHelper helper = context.getBean(QueryHelper.class);
@@ -339,14 +287,14 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	 * array . 
 	 * @return
 	 */
-	public static ResultSetHandler<Map<String, List<String>>> getMapListHandler() {
-		ResultSetHandler<Map<String, List<String>>> mapListResultHandler = rs->{
+	public static ResultSetHandler<Map<String, List<Object>>> getMapListHandler() {
+		ResultSetHandler<Map<String, List<Object>>> mapListResultHandler = rs->{
 			// 结果集元数据信息
 			ResultSetMetaData metaData = rs.getMetaData();
 			// 结果集中包含的列的个数
 			int columnCount = metaData.getColumnCount();
 			// 存放结果的map对象
-			Map<String,List<String>> map = new HashMap<>(columnCount);
+			Map<String,List<Object>> map = new HashMap<>(columnCount);
 			for(int i = 0; i < columnCount; i++){
 				String columnLabel = metaData.getColumnLabel(i+1);
 //				System.err.println(columnLabel);
@@ -354,11 +302,11 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			}
 			// 遍历结果集
 			while(rs.next()){
-				Set<Entry<String,List<String>>> entrySet = map.entrySet();
-				for (Entry<String, List<String>> entry : entrySet) {
+				Set<Entry<String,List<Object>>> entrySet = map.entrySet();
+				for (Entry<String, List<Object>> entry : entrySet) {
 					String key = entry.getKey();
-					String avlue = rs.getString(key);
-					entry.getValue().add(avlue);
+					Object value = rs.getObject(key);
+					entry.getValue().add(value);
 				}
 			}
 			return map;
@@ -431,7 +379,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			"data_table tb " +
 			"JOIN table_column tc ON tb.id = tc.data_table_id " +
 			"JOIN virtual_column_ref_columns vcrc ON tc.id = vcrc.ref_columns_id " +
-			"JOIN virtual_column vc ON vcrc.virtual_column_id = vc.id " +
+			"JOIN virtual_column vc ON vcrc.reference_by_id = vc.id " +
 			"JOIN virtual_table vt ON vt.id = vc.table_id " +
 			"WHERE " +
 			"vt.id = ? " +
@@ -456,12 +404,12 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			table = findById(table.getId());
 		}
 		List<VirtualColumn> columns = table.getColumns();
-		// 查询助手
-		QueryHelper queryHelper = context.getBean(QueryHelper.class);
+//		// 查询助手
+//		QueryHelper queryHelper = context.getBean(QueryHelper.class);
 		WorkPackageService packageService = context.getBean(WorkPackageService.class);
 		
 		// 查询结果适配器
-		DataAdapter dataAdapter = queryHelper.query(table, columns);
+		DataAdapter dataAdapter = new TableDataAdapter(columns);//queryHelper.query(table, columns);
 		// 数据包ID，用来数据包对应的数据库连接
 		String id = table.getPackages().iterator().next().getId();
 		// 构建SQL数据

@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -63,6 +64,10 @@ public class TableColumn implements IdGeneratorable{
 	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
 	@JsonIgnore
 	private ForeignKey foreignKey;
+	
+	@ManyToMany(targetEntity=VirtualColumn.class,mappedBy="refColumns",fetch=FetchType.LAZY)
+	@JsonIgnore
+	private List<VirtualColumn> referenceBy;
 	
 	/**
 	 * 引用当前字段的外键
@@ -279,6 +284,15 @@ public class TableColumn implements IdGeneratorable{
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+	
+
+	public List<VirtualColumn> getReferenceBy() {
+		return referenceBy;
+	}
+
+	public void setReferenceBy(List<VirtualColumn> referenceBy) {
+		this.referenceBy = referenceBy;
 	}
 
 	@Override

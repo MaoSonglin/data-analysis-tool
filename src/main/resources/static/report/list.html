@@ -4,6 +4,8 @@
 		<meta charset="utf-8">
 		<title>报表列表</title>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
 	</head>
 	<body>
 		<div class="layui-container">
@@ -15,33 +17,28 @@
 			</div>
 		</div>
 		<div id="dialog" style="display: ;">
+			
 			<div id="addform" style="display: none;margin: 15px;">
-				<form name="addform" action="#" method="" class="layui-form">
-					<div class="layui-form-item">
-						<label for="reportName" class="layui-form-label">报表名称</label>
-						<div class="layui-input-block">
-							<input class="layui-input" type="text" name="name" id="reportName" value=""v-model="report.name" />
+				<form id="form9" action="#" method="post" class="form-horizontal" style="overflow: hidden;">
+					<div class="form-group">
+						<label class="control-label col-xs-4" for="name">报表名称</label>
+						<div class="col-xs-6">
+							<input class="form-control" type="text" name="name" id="name" v-model="report.name" placeholder="请输入报表名称" />
 						</div>
 					</div>
-					<div class="layui-form-item">
-						<label class="layui-form-label" for="type">类型</label>
-						<div class="layui-input-block">
-							<input type="radio" name="type" checked="checked" lay-filter="type" value="single" title="单图表"/>
-							<input type="radio" name="type" value="multiple" lay-filter="type" title="多图表" />
-						</div>
-					</div>
-					<div class="layui-form-item">
-						<label for="pkgName" class="layui-form-label">业务集</label>
-						<div class="layui-input-block">
-							<select name="" id="pkgName" class="layui-select" lay-filter="pkgfilter">
-								<option v-for="(pkg,index) in pkgs" v-bind:value="index" v-html="pkg.name"></option>
+					<div class="form-group">
+						<label class="control-label col-xs-4">业务包</label>
+						<div class="col-xs-6">
+							<select name="pkgName" class="form-control" v-on:change="setPkg($event)">
+								<option value ="">请选择数据包</option>
+								<option v-for="(pkg,index) in pkgs" v-html="pkg.name" v-bind:value="index"></option>
 							</select>
 						</div>
 					</div>
-					<div class="layui-form-item">
-						<label for="reportComment" class="layui-form-label">描述</label>
-						<div class="layui-input-block">
-							<textarea rows="" cols="" name="comment" class="layui-textarea" v-model="report.comment">
+					<div class="form-group">
+						<label class="control-label col-xs-4">描述</label>
+						<div class="col-xs-6">
+							<textarea rows="4" class="form-control" name="comment" v-model="report.comment" placeholder="不多于100字">
 								
 							</textarea>
 						</div>
@@ -54,10 +51,27 @@
 				</form>
 			</div>
 		</div>
+		<div id="setType" style="display: none;">
+			<form action="#" class="layui-form" method="">
+				<div class="layui-form-item">
+					<label class="layui-form-label" for="type">类型</label>
+					<div class="layui-input-block">
+						<input type="radio" name="type" checked="checked" lay-filter="type" value="single" title="单图表"/>
+						<input type="radio" name="type" value="multiple" lay-filter="type" title="多图表" />
+					</div>
+				</div>
+			</form>
+		</div>
 		<div id="dialog2" style="display: none;margin: 15px;">
 			<form class="layui-form" action="#" method="">
 				<div class="layui-form-item">
-					<label class="layui-form-label">节点：</label>
+					<label class="layui-form-label">菜单名称：</label>
+					<div class="layui-input-block">
+						<input class="layui-input" type="text" name="menuName" id="menuName" value="" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">父节点：</label>
 					<div class="layui-input-block">
 						<input class="layui-input" type="text" name="text" id="menuText" value="" />
 					</div>
@@ -92,6 +106,7 @@
 		<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
@@ -108,6 +123,7 @@
 						{field : 'id',width : 180, title : '编号',sort : true,fixed: 'left'},
 						{field : 'name', width : 120, title : '名称',edit:'text'},
 						{field : 'pkgName', width : 200, title : '数据包', event:'setPkg'},
+						// {field : 'type',width : 160,title : '类型',event:'setType'},
 						{field : 'comment', minWidth: 200, title : '描述',edit : 'text'},
 						{field : 'publish', title:'发布', width:110, templet: '#publich_check', unresize: true},
 						{fixed : 'right', title:'操作', toolbar: '#barDemo', width:120}
@@ -177,12 +193,7 @@
 				layui.table.on("tool(reportList)",function(obj){
 					switch(obj.event){
 						case 'edit': // 编辑按钮点击
-						if(obj.data.type=="multiple"){
-							window.parent.addParentTab({href:'report/graphs.html?edit=true&reportId='+obj.data.id,title:'编辑报表:'+obj.data.name})
-						}else{
-							localStorage['report'] = JSON.stringify(obj.data)
-							window.parent.addParentTab({href:'report/create.html',title:'编辑报表:'+obj.data.name})
-						}
+						window.parent.addParentTab({href:"report/edit.html?reportId="+obj.data.id,title:"编辑报表:"+obj.data.name})
 						break;
 						case 'del': // 删除按钮点击
 						layer.confirm("您确定要删除报表\""+obj.data.name+"\"吗？",{
@@ -209,6 +220,23 @@
 						case 'publish':
 						publish(obj.data)
 						break;
+						case 'setType':
+						layer.open({
+							type:1,
+							content : $("#setType"),
+							btn : ["取消"],
+							success : function(){
+								layui.use('form',function(){
+									layui.form.on("radio(type)",function(data){
+										alert(data.value)
+									})
+								})
+							},
+							end : function(){
+								$("#setType").hide()
+							}
+						})
+						break
 						default:
 						layer.alert("不支持的操作")
 					}
@@ -218,6 +246,11 @@
 					var that = this
 					var reportid = this.value
 					var menuid = null
+					menu = {
+						text : "",
+						url : "report/publish.html?reportId="+reportid,
+						pid : null
+					}
 					if(!obj.elem.checked){
 						Vue.http.post(basePath+"report/unpublish/"+reportid).then(function(res){
 							if(res.body.code == 1){
@@ -242,7 +275,7 @@
 										elem : "#myTree",
 										click: function(options){
 											$("#menuText").val(options.name)
-											menuid = options.id
+											menu.pid = options.id
 										},
 										nodes: nodes,
 										skin: 'shihuang'
@@ -260,16 +293,21 @@
 						},
 						end : function(){
 							$("#dialog2").hide()
-							table.reload()
 						},
 						btn1 : function(index){
-							if(menuid == null){
+							if(menu.pid == null){
 								layer.msg("请选择发布目录")
 								return false;
 							}
+							menu.text = $("#menuName").val()
+							if(!menu.text){
+								layer.msg("请输入目录名称")
+								return false;
+							}
 							layer.close(index)
-							Vue.http.post(basePath+"report/publish/"+reportid+"/"+menuid).then(function(res){
+							Vue.http.post(basePath+"report/publish",tile({id:reportid,publish:menu})).then(function(res){
 								layer.msg(res.body.message)
+								table.reload()
 							},function(error){layer.msg("网络异常");})
 						}
 					})
@@ -300,6 +338,23 @@
 				})
 				
 				function ok(index,layero){
+					$("#form9").validate({
+						rules : {
+							name : {required : true,maxlength:20},
+							commit : {maxlength:100},
+							pkgName : {required : true}
+						},
+						messages : {
+							name : {required : "请输入报表名称",maxlength:"报表名称不能操作20个字符"},
+							commit : {maxlength : "说明不能操作100个字符"},
+							pkgName : {required : "请选择报表所属数据包"}
+						},
+						errorPlacement : function(error,element){
+							error.css("color","red")
+							error.insertAfter(element)
+						}
+					})
+					if($("#form9").valid())
 					layer.confirm("您确定要提交吗？",{
 						title : "确认",
 						btn : ["确定","取消"]
@@ -310,6 +365,7 @@
 					})
 					
 					function submit(){
+						
 						$.ajax({
 							url : basePath + "report",
 							method : "post",
@@ -367,6 +423,12 @@
 				},
 				watch : {
 					"report.type" : function(newVal,oldVal){
+					}
+				},
+				methods : {
+					setPkg : function(event){
+						let index = event.target.value
+						this.report.pkg = this.pkgs[index]
 					}
 				}
 			})

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="graphs.css"/>
+		<style type="text/css">
+			#app .abs{
+				/* overflow: auto; */
+			}
+			.echart{
+				margin: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<template v-for="(graph,index) in graphs">
+				<div class="bg-info graph" :style="position(graph)">
+					<echart v-if="graph.type=='graph'||graph.type=='child-graph'" v-bind:graph="graph" v-bind:id="'graph-'+index" v-bind:cls="'abs echart'"
+					  v-on:draw="afterDraw($event)" v-on:mounted="test($event)" 
+					  v-on:data="dataChange(graph,$event)"
+					  v-on:echart="echartClick(graph,$event)"
+					  v-on:drill="drill($event)"></echart>
+					<sheet v-if="graph.type=='table'" v-bind:graph="graph" v-on:mounted="test($event)"></sheet>
+					<paragraph  v-if="graph.type=='paragraph'" v-bind:graph="graph"></paragraph>
+				</div>
+			</template>
+		</div>
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/context-mune/BootstrapMenu.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/jquery/jquery-smartMenu-min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="component.js" type="text/javascript" charset="utf-8"></script>
+	<script src="edit.js" type="text/javascript" charset="utf-8"></script>
+</html>

@@ -1,6 +1,7 @@
 package dat.util;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -92,5 +93,19 @@ public class SqlHelper {
 	public static void addFunction(StringBuffer buffer, String functionName,
 			String fieldName,String alias) {
 		buffer.append(functionName.toUpperCase()).append("(").append(fieldName).append(") AS ").append(alias);
+	}
+	
+	public static List<Object> addWhere(List<String> where, StringBuffer buffer) {
+		int size = where.size();
+		if(size > 1)
+			buffer.append(" where ");
+		List<Object> param = new ArrayList<>();
+		for(int i = 0; i < size-1; i += 2){
+			buffer.append(where.get(i)).append(" = ? and ");
+			param.add(where.get(i+1));
+		}
+		if(size > 1)
+		SqlHelper.deleteLast(buffer, 5);
+		return param;
 	}
 }

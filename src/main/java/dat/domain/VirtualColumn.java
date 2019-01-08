@@ -16,6 +16,7 @@ import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import dat.util.StrUtil;
 
@@ -25,6 +26,7 @@ import dat.util.StrUtil;
  */ 
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VirtualColumn implements Serializable{
 	
 	/**
@@ -78,6 +80,10 @@ public class VirtualColumn implements Serializable{
 //	@JsonIgnore
 	private VirtualTable table;
 
+//	@JsonIgnore()
+//	@ManyToMany(targetEntity=Category.class,fetch=FetchType.LAZY)
+//	private List<Category> categories;
+	
 	public String getId() {
 		return id;
 	}
@@ -141,6 +147,14 @@ public class VirtualColumn implements Serializable{
 	public void setChinese(String chinese) {
 		this.chinese = chinese;
 	}
+
+//	public List<Category> getCategories() {
+//		return categories;
+//	}
+//
+//	public void setCategories(List<Category> categories) {
+//		this.categories = categories;
+//	}
 
 	public Integer getState() {
 		return state;

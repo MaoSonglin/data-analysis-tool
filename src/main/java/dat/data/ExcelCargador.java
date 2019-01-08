@@ -63,12 +63,12 @@ public class ExcelCargador implements Iterable<List<String>>, Iterator<List<Stri
 	}
 	
 	public String dropSql(){
-		return "drop table if exists "+sheetConfig.getSheetName();
+		return "drop table if exists "+sheetConfig.getTableName();
 	}
 	
 	public String createSql(){
 		// 字段名称数组
-		List<String> columnNames = sheetConfig.getColumnNames();
+		List<String> columnNames = sheetConfig.getFieldNames();sheetConfig.getColumnNames();
 		// 字段类型数组
 		List<String> types = sheetConfig.getTypes();
 		// 主键字段名称
@@ -82,7 +82,7 @@ public class ExcelCargador implements Iterable<List<String>>, Iterator<List<Stri
 		// SQL语句缓存
 		StringBuffer buffer = new StringBuffer("create table ");
 		
-		buffer.append(sheetConfig.getSheetName());
+		buffer.append(sheetConfig.getTableName());
 		buffer.append(" ( ");
 		while(iter1.hasNext() && iter2.hasNext() && iter3.hasNext()){
 			buffer.append(iter1.next()).append(" ");
@@ -101,9 +101,9 @@ public class ExcelCargador implements Iterable<List<String>>, Iterator<List<Stri
 	
 	public String insertSql(){
 		// 字段名称数组
-		List<String> columnNames = sheetConfig.getColumnNames();
+		List<String> columnNames = sheetConfig.getFieldNames();//sheetConfig.getColumnNames();
 		StringBuffer buffer = new StringBuffer("insert into ");
-		buffer.append(sheetConfig.getSheetName());
+		buffer.append(sheetConfig.getTableName());
 		buffer.append(" ( ");
 		for(String name : columnNames){
 			buffer.append(name).append(" , ");

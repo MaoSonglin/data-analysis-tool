@@ -136,6 +136,17 @@ function showModalDialog(title,selector,callback,destory){
 		}
 	}
 	
+	function concat(){
+		let obj = new Object()
+		for(let i in arguments){
+			let a = arguments[i]
+			for(let j in a){
+				obj[j] = a[j]
+			}
+		}
+		return obj
+	}
+	
 	function tile(obj){
 		var that = new Object()
 		doObject(obj,"")

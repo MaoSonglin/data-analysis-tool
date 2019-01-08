@@ -20,6 +20,9 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
 import org.jboss.logging.Logger;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -31,6 +34,7 @@ import org.springframework.util.StringUtils;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
+import dat.domain.VirtualColumn;
 import dat.repos.DataTableRepository;
 import dat.repos.DsRepository;
 import dat.repos.TableColumnRepository;
@@ -44,7 +48,7 @@ import dat.vo.Response;
 import dat.vo.TableData;
 
 @Service
-public class DataTableServiceImpl implements DataTableService {
+public class DataTableServiceImpl implements DataTableService ,ApplicationContextAware{
 	
 	private static Logger logger = Logger.getLogger(DataTableServiceImpl.class);
 	
@@ -59,6 +63,8 @@ public class DataTableServiceImpl implements DataTableService {
 	
 	@Resource(name="dataSourceServiceImpl")
 	private DataSourceService dsService;
+
+	private ApplicationContext context;
 	
 	@Override
 	public Response search(DataTablePaingBean pageBean) {
@@ -233,6 +239,58 @@ public class DataTableServiceImpl implements DataTableService {
 		}
 		List<Map<String, String>> list = queryValues(selection, table, source, columns);
 		return list;
+	}
+
+	@Override
+	public List<DataTable> getByVirtualColumns(List<VirtualColumn> columns) {
+		List<Object> list = getDataTableIds(columns);
+		if(!list.isEmpty()){
+			List<DataTable> tables = tabRepos.findAll((root,query,cb)->{
+				return root.get("id").in(list);
+			});
+			return tables;
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+	 * @param columns
+	 * @return
+	 */
+	private List<Object> getDataTableIds(List<VirtualColumn> columns) {
+		String sql = "SELECT DISTINCT "
+					+ "d.id id "
+				+ "FROM "
+					+ "data_table d, "
+					+ "table_column t, "
+					+ "virtual_column_ref_columns r "
+				+ "WHERE "
+					+ "r.ref_columns_id = t.id "
+					+ "AND d.id = t.data_table_id "
+					+ "AND r.reference_by_id IN ";
+		StringBuffer sb = new StringBuffer(sql);
+		sb.append("( ");
+		List<Object> params = new ArrayList<>();
+		columns.forEach(elem->{
+			sb.append("? , ");
+			params.add(elem.getId());
+		});
+		sb.delete(sb.length()-3, sb.length());
+		sb.append(")");
+		sql = sb.toString();
+		logger.debug(sb);
+		JdbcTemplate jdbcTemplate = this.context.getBean("jdbcTemplate",JdbcTemplate.class);
+		List<Object> list = jdbcTemplate.query(sql, (rs,i)->{
+			Object object = rs.getObject("id");
+			return object;
+		},params.toArray());
+		return list;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
+		this.context = applicationContext;
 	}
 
 }

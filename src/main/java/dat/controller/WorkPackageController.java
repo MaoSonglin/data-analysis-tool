@@ -3,6 +3,7 @@ package dat.controller;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import org.jboss.logging.Logger;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,7 +60,7 @@ public class WorkPackageController {
 	}
 	
 	@GetMapping("/tab/col/{id}")
-	public Object getTablesAndColumns(@PathVariable String id) throws Exception{
+	public Object getTablesAndColumns(@PathVariable String id,HttpServletResponse response) throws Exception{
 		List<VirtualTable> tables = wpService.getTablesAndColumns(id);
 		JSONArray jsonArray = new JSONArray();
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -76,6 +77,8 @@ public class WorkPackageController {
 		object.put("tables", jsonArray);
 		String writeValueAsString = objectMapper.writeValueAsString(App.getContext().getBean(ReferenceService.class).findByPkgId(id));
 		object.put("refs", JSON.parseArray(writeValueAsString));
+//		response.addHeader("", "");
+		response.setContentType("application/json;charset=utf-8");
 		return object.toJSONString();
 	}
 	

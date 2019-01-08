@@ -239,19 +239,11 @@ public class DataSourceServiceImpl implements DataSourceService {
 			throw new IllegalArgumentException("this data source is not contain excel file");
 		}
 		Workbook workbook = null;
-		// springboot配置对象
-		Environment env = context.getBean(Environment.class);
-		// 获取HTTPServletRequest对象
-		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		HttpServletRequest request = requestAttributes.getRequest();
+		File file = getSourceFile(save);
 		
-		// 文件保存目录
-		String dir = env.getProperty("file.upload.savepath", request.getServletContext().getRealPath("/WEB-INF/upload"));
 		// 文件在文件保存目录下的虚拟路径
 		String virtualPath = save.getAssociation().getVirtualPath();
 
-		// 文件对象
-		File file = Paths.get(dir, virtualPath).toFile();
 		if(!file.isFile()){
 			throw new IllegalArgumentException("file '"+file.getAbsolutePath()+"' is not exist !");
 		}
@@ -263,6 +255,26 @@ public class DataSourceServiceImpl implements DataSourceService {
 			throw new IllegalArgumentException("文件类型不匹配:" + virtualPath);
 		}
 		return workbook;
+	}
+
+
+
+	/**
+	 * @param save
+	 * @return
+	 */
+	private File getSourceFile(Source save) {
+		// springboot配置对象
+		Environment env = context.getBean(Environment.class);
+		// 获取HTTPServletRequest对象
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpServletRequest request = requestAttributes.getRequest();
+		
+		// 文件保存目录
+		String dir = env.getProperty("file.upload.savepath", request.getServletContext().getRealPath("/WEB-INF/upload"));
+		// 文件对象
+		File file = Paths.get(dir,save.getAssociation().getVirtualPath()).toFile();
+		return file;
 	}
 
 
@@ -342,6 +354,12 @@ public class DataSourceServiceImpl implements DataSourceService {
 		try {
 			Source source = optional.get();
 			source.setState(Constant.DELETE_STATE);
+			source.getTables().forEach(table->{
+				table.setState(Constant.DELETE_STATE);
+				table.getColumns().forEach(column->{
+					column.setState(Constant.DELETE_STATE);
+				});
+			});
 		} catch (Exception e) {
 			return new Response(Constant.ERROR_CODE,"删除失败",e.getMessage());
 		}
@@ -388,14 +406,14 @@ public class DataSourceServiceImpl implements DataSourceService {
 			String url = source.getUrl();
 			String username = source.getUsername();
 			String password = source.getPassword();
-			if(source.getDatabaseName().equalsIgnoreCase("excel")){
+			if(url == null){
 				String realPath = context.getBean(UploadFileService.class).getRealPath(source.getAssociation().getId());
-				url = realPath.replaceFirst("\\.xls|\\.xlsx", ".db3");
+				url = "jdbc:sqlite:"+realPath;
 				driverClass = "org.sqlite.JDBC";
 			}
 			
 			if(logger.isDebugEnabled()){
-				logger.debug("jdbcTemplate instance named '"+beanName+"' is not exist, attempt created new one");
+				logger.debug("jdbcTemplate instance '"+beanName+"' is not exist, attempt created new one");
 				logger.debug("get database connection with url "+url+" and username="+username+" and password="+password);
 			}
 			// define a data source the jdbcTemplate needed 
@@ -474,18 +492,75 @@ public class DataSourceServiceImpl implements DataSourceService {
 					}
 					ps.executeBatch();
 				}
+				
+				saveMetadata(source, sheet);
+//				dataTable.set
 			}
-			conn.commit();
-			// 解析
-			MetaDataParser parser = MetaDataParser.getSourceMetaData(source);
-			saveTableAndColumn(parser);
+			
 			source.setState(Constant.ACTIVATE_SATE);
-			Source save = dsRepos.save(source);
+			Source save = dsRepos.save(source);			
+			
+			// 删除Excel文件
+			File file = getSourceFile(save);
+			file.delete();
+			// 更新数据源文件信息
+			UploadFile association = save.getAssociation();
+			String fileName = association.getFileName();
+			int lastIndexOf = fileName.lastIndexOf('.');
+			String dbFileName = fileName.substring(0, lastIndexOf);
+			String replace = association.getVirtualPath().replace(fileName, dbFileName);
+			association.setFileName(dbFileName);
+			association.setVirtualPath(replace);
+			context.getBean(UploadFileService.class).save(association);
+			
+			conn.commit();
 			return save;
 		} catch (IOException | SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
-		};
-		return source;
+			throw new RuntimeException(e);
+		}
+	}
+
+
+
+	/**
+	 * @param source
+	 * @param sheet
+	 */
+	private DataTable saveMetadata(Source source, ExcelSheet sheet) {
+		String tableName = sheet.getTableName();
+		DataTable dataTable = new DataTable();
+		dataTable.setName(tableName);
+		dataTable.generateId();
+		dataTable.setChinese(sheet.getChineseName());
+		dataTable.setDesc(sheet.getDesc());
+		dataTable.setState(Constant.ACTIVATE_SATE);
+		dataTable.setSource(source);
+		context.getBean(DataTableRepository.class).save(dataTable);
+		List<String> columnNames = sheet.getColumnNames();
+		List<String> types = sheet.getTypes();
+		List<String> chineseNames = sheet.getFieldChineseNames();
+		List<String> fieldNames = sheet.getFieldNames();
+		List<Integer> lengths = sheet.getLengths();
+		ArrayList<TableColumn> columns = new ArrayList<>();
+		for(int i = 0, size = columnNames.size(); i < size; i++){
+			String fieldName = fieldNames.get(i);
+			Integer length = lengths.get(i);
+			String chineseName = chineseNames.get(i);
+			String typeName = types.get(i);
+			TableColumn tableColumn = new TableColumn();
+			tableColumn.setColumnName(fieldName);
+			tableColumn.setChinese(chineseName);
+			tableColumn.setColumnSize(length);
+			tableColumn.setTypeName(typeName == null ? "String": typeName);
+			tableColumn.setDataTable(dataTable);
+			tableColumn.generateId();
+			tableColumn.setState(Constant.ACTIVATE_SATE);
+			columns.add(tableColumn);
+		}
+		context.getBean(TableColumnRepository.class).saveAll(columns);
+		dataTable.setColumns(columns);
+		return dataTable;
 	}
 
 

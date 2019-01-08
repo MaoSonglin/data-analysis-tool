@@ -12,6 +12,10 @@ public class GraphDrillData {
 	
 	private String columnId;
 	
+	private String itemName;
+	
+	private List<String> seriesName;
+	
 	private List<String> wheres;
 
 	public String getGraphId() {
@@ -44,6 +48,22 @@ public class GraphDrillData {
 	public String toString() {
 		String jsonString = JSON.toJSONString(this);
 		return jsonString;
+	}
+
+	public String getItemName() {
+		return itemName;
+	}
+
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+
+	public List<String> getSeriesName() {
+		return seriesName;
+	}
+
+	public void setSeriesName(List<String> seriesName) {
+		this.seriesName = seriesName;
 	}
 
 	

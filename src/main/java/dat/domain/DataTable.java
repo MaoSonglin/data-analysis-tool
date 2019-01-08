@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
@@ -22,6 +24,8 @@ import dat.util.StrUtil;
  * 数据表实体类，该实体类对应某个数据源中实际存在的数据表，表中的数据字段与该实体类中的属性一一对应
  */
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataTable implements IdGeneratorable,Serializable{
 
 	/**

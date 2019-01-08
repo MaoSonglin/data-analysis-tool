@@ -4,8 +4,11 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import dat.util.Constant;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Response implements Serializable{
 
 	private static final long serialVersionUID = 1L;

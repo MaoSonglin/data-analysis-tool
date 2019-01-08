@@ -37,4 +37,6 @@ public interface GraphInfoService {
 	TreeNode findTree(String id);
 
 	Response addColumn(String gpid, String vcid);
+
+	Response getAthers(String id);
 }

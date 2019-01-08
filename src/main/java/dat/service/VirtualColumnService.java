@@ -3,6 +3,7 @@ package dat.service;
 import java.util.List;
 
 import dat.domain.VirtualColumn;
+import dat.vo.ClassifyFormula;
 import dat.vo.Response;
 import dat.vo.VirtualColumnParam;
 
@@ -27,5 +28,7 @@ public interface VirtualColumnService {
 	VirtualColumn getById(String id);
 
 	List<VirtualColumn> getByPage(VirtualColumnParam param);
+
+	Response createField(VirtualColumn column, ClassifyFormula classifyFormula);
 
 }

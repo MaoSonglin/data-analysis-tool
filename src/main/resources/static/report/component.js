@@ -106,7 +106,7 @@ var option = {
 
 
 let component = Vue.component("echart", {
-	template: '<div :class="cls" :id="id">' +
+	template: '<div :class="cls" :id="id"><div class="abs echart"></div>' +
 		'</div>',
 	props: {
 		graph: {
@@ -123,32 +123,54 @@ let component = Vue.component("echart", {
 		}
 	},
 	created: function() {
-		if(this.graph.columns && this.graph.columns.length){
-			this.drillList = new Array()	// 已经钻取了的维度
-			this.unDrillList = new Array()	// 还未钻取的维度
-			this.wheres = new Array()		// 过滤条件
-			for(let i in this.graph.categoryColumns){
-				this.unDrillList.push(this.graph.categoryColumns[i])
+		this.categories = this.graph.option.categorys.filter(elem=>{return true})
+// 		this.drillList = []
+// 		this.wheres = []
+		let series = this.graph.option.series
+		this.drillData = {}
+		let drillData = this.drillData
+		for(let i in series){
+			let serie = series[i]
+			let name = 'x',category = 'y'
+			if(serie.type == 'pie'){
+				name = "itemName"
+				category = 'value'
 			}
+			if(!drillData.itemName){
+				drillData.graphId = this.graph.id
+				drillData.itemName = serie.encode[name]
+				drillData.seriesName = []
+				drillData.wheres = []
+			}
+			drillData.seriesName.push(serie.encode[category])
 		}
-		let column = this.unDrillList.shift()
-		if(column){
-			this.request(column,this.wheres)
-			this.drillList.push(column)
-		}
+		this.getData(drillData)
 	},
 	mounted: function() {
-		this.echart = echarts.init(this.$el)
+		this.echart = echarts.init(this.$el.querySelector(".echart"))
+		this.graph.option = JSON.parse(this.graph.options)
+		this.echart.setOption(this.graph.option)
+		console.log(JSON.parse(this.graph.options))
 		this.$emit("draw",this.echart)
+		this.echart.on("click",(param)=>{
+			console.log("echart click")
+			this.$emit("echart",param)
+		})
+		this.echart.on("datazoom",param=>{
+			this.$emit("echart",param)
+		})
 		let drill = false,param = null
 		this.echart.on('mouseover',(args)=>{
 			drill = true
 			param = args
+			this.$emit("echart",args)
 		})
 		this.echart.on('mouseout',(args)=>{
 			drill = false
+			this.$emit("echart",args)
 		})
 		let that = this
+		// alert(JSON.stringify(that.graph))
 		let menu = new BootstrapMenu('#' + this.id, {
 			actionsGroups: [
 				['setting',"delete"],
@@ -167,7 +189,7 @@ let component = Vue.component("echart", {
 						return drill
 					},
 					isEnabled : function(row){
-						return that.drillList.length > 1
+						return that.drillData.wheres.length > 1
 					}
 				},
 				"drillDown": {
@@ -179,7 +201,7 @@ let component = Vue.component("echart", {
 						return drill
 					},
 					isEnabled : function(row){
-						return that.unDrillList.length > 0
+						return that.categories.length  > 0
 					}
 				},
 				"rotate": {
@@ -196,72 +218,187 @@ let component = Vue.component("echart", {
 		this.$emit("mounted",this)
 	},
 	methods : {
+		getData : function(data){
+			console.log(data)
+			this.$http.post(basePath+"graph/drill",tile(data)).then(function(res){
+				if(res.body.data){
+					formatOption(this.graph.option,res.body.data)
+					this.echart.clear()
+					this.echart.setOption(this.graph.option)
+					this.echart.setOption({dataset:res.body.data})
+					this.echart.hideLoading()
+					this.$emit("data",res.body.data)
+				}
+			})
+		},
 		test : function(){
 			alert("test")
 		},
-		request : function(category,wheres){
-			this.$http.post(basePath + "graph/drill",tile({
-				graphId : this.graph.id,
-				columnId : category.id,
-				wheres : wheres
-			})).then(function(res){
-				if(res.body.code == 1){
-					this.echart.setOption(res.body.data)
-					this.$emit("data",res.body.data)
-				}
-				this.$emit("requestFinish",res.body)
-			},function(error){
-				layer.msg("网络异常")
-			})
-		},
 		drillDown : function(param){ // 下钻
-			console.log(param)
-			let curCategory = this.drillList.pop()	// 取已经钻取的最后一个
-			this.drillList.push(curCategory)
-			curCategory.value = param.name
-			this.wheres.push(curCategory.name)
-			this.wheres.push(param.name)
+			let serie = this.graph.option.series[param.seriesIndex],value = param.name
+			let itemName = serie.encode[serie.type == "pie" ? "itemName" : "x"]
+			this.drillData.wheres.push(itemName)
+			this.drillData.wheres.push(value)
 			// this.request()
-			showDialog(this.unDrillList,function(id){drill(id)})
-			// this.$on("drill",)
-			let that = this
-			function drill(id){
-				let column = {}
-				for(let i in that.unDrillList){
-					if(that.unDrillList[i].id == id){
-						column = that.unDrillList[i]
+			showDialog(this.categories.filter(elem=>{
+				for(let i in this.drillData.wheres){
+					if(this.drillData.wheres[i] == elem.name){
+						return false
+					}
+				}
+				return true
+			}),(id)=>{
+				for(let i in this.categories){
+					if(this.categories[i].id == id){
+						this.drillData.itemName = this.categories[i].name
+						this.graph.option.xAxis.name=this.categories[i].chinese?this.categories[i].chinese:this.categories[i].name
+						for(let j in this.graph.option.series){
+							let serie = this.graph.option.series[j]
+							serie.encode[serie.type == "pie" ? "itemName" : "x"] = this.categories[i].name
+						}
 						break
 					}
 				}
-				that.echart.clear()
-				that.request(column,that.wheres)
-				that.unDrillList = that.unDrillList.filter(elem=>{return elem.id != column.id})
-				that.drillList.push(column)
+				this.$emit("drill",this.drillData)
+			})
+			// this.$on("drill",)
+		},
+		setSeriesName : function(seriesName){
+			for(let i in this.graph.option.series){
+				let serie = this.graph.option.series[i]
+				serie.encode[serie.type == "pie" ? "itemName" : "x"] = seriesName
+			}
+		},
+		setAxisName : function(itemName){
+			for(let i in this.categories){
+				if(this.categories[i].name == itemName){
+					this.graph.option.xAxis.name = this.categories[i].chinese?this.categories[i].chinese:this.categories[i].name
+					break
+				}
 			}
 		},
 		drillUp : function(param){
-			this.wheres.pop()
-			this.wheres.pop()
-			let column = this.drillList.pop()
-			this.request(column,this.wheres)
-			this.unDrillList.push(column)
+			this.drillData.wheres.pop()
+			let itemName = this.drillData.wheres.pop()
+			
+			this.setSeriesName(itemName)
+			
+			this.setAxisName(itemName)
+			
+			if(itemName){
+				this.drillData.itemName = itemName
+				this.$emit("drill",this.drillData)
+			}
+		},
+		drill : function(param){
+			if(param != this.drillData){
+				param.itemName = this.drillData.itemName
+			}
+			this.echart.showLoading()
+			this.getData(param)
 		},
 		rotate : function(){
-			showDialog(this.graph.categoryColumns,(id)=>{
-				this.wheres = []
-				for(let i in this.graph.categoryColumns){
-					if(this.graph.categoryColumns[i].id == id){
-						let x = this.graph.categoryColumns[i]
-						this.request(x,this.wheres)
-						this.unDrillList = this.graph.categoryColumns.filter(elem=>{return x.id != elem.id})
-						this.drillList = [x]
+			let array = this.graph.option.categorys.filter(elem=>{return true})
+			showDialog(array,(id)=>{
+				this.drillData.wheres = []
+				let column = {}
+				for(let i in this.categories){
+					if(this.categories[i].id == id){
+						column = this.categories[i]
+						this.graph.option.xAxis.name=column.chinese?column.chinese : column.name,
+						this.drillData.itemName = column.name
 						break
 					}
 				}
+				
+				for(let i in this.graph.option.series){
+					let serie = this.graph.option.series[i]
+					if(serie.type == 'line' || serie.type == 'bar'){
+						serie.encode.x = column.name
+					}else{
+						serie.encode.itemName = column.name
+					}
+				}
+				this.$emit("drill",this.drillData)
 			})
 		},
 	}
 })
+
+
+
+
+Vue.component("subchart",{
+	template : "<div class='abs'></div>",
+	props : {
+		graph : {
+			type : Object,
+			required : true
+		}
+	},
+	created : function(){
+		this.graph.option = JSON.parse(this.graph.options)
+	},
+	mounted : function(){
+		this.echart = echarts.init(this.$el)
+		this.echart.setOption(this.graph.option)
+		this.$emit("draw",this.echart)
+		this.$emit("mounted",this)
+		this.$on("parentEvent",function(param){
+			// alert("parentEvent")
+			// console.log(param)
+			let option = {type:param.type}
+			switch(param.type){
+				case 'datazoom':
+				option.type = 'dataZoom'
+				option.start = param.start,
+				option.end = param.end
+				break;
+				case 'mouseover' :
+				// option.startValue = param.dataIndex
+				this.echart.dispatchAction({
+					type : 'highlight',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				this.echart.dispatchAction({
+					type : 'showTip',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				break;
+				case 'mouseout':
+				this.echart.dispatchAction({
+					type :'downplay',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				this.echart.dispatchAction({
+					type : 'hideTip',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				break
+			}
+			this.echart.dispatchAction(option)
+		})
+	},
+	methods : {
+		setOption : function(data){
+			try{
+				this.echart.clear()
+				let option = JSON.parse(this.graph.options)
+				this.echart.setOption(JSON.parse(this.graph.options))
+				console.log(option)
+				console.log({dataset:data})
+				this.echart.setOption({dataset:data})
+			}catch(e){
+				console.log(e)
+			}
+		}
+	}
+})
+
 
 function choose(id){
 	localStorage.columnId = id
@@ -304,12 +441,47 @@ function rotate(matrix){
 	return a
 }
 
+
+function formatOption(option,dataset){
+	for(let i in option.series){
+		let serie = option.series[i]
+		if(serie.type == 'line' || serie.type == 'bar'){
+			if(dataset.source.length > 8){
+				option.dataZoom = {
+					show : true,
+					type : 'slider',
+					start : 10,
+					end : 8 / dataset.source.length * 100 + 10
+				}
+				return
+			}else{
+				option.dataZoom = { show : false}
+			}
+		}else if(serie.type == 'pie'){
+			if(dataset.source.length >= 5){
+				option.type = 'scroll'
+				option.legend.selected = {}
+				// option.legend.data = []
+				for(let j in dataset.dimensions){
+					if(dataset.dimensions[j] == serie.encode.itemName){
+						for(let k in dataset.source){
+							option.legend.selected[dataset.source[k][j]] = k < 5 ? true : false
+						}
+						break
+					}
+				}
+			}
+		}
+	}
+}
+
+
 Vue.component("sheet",{
-	template : '<div class="abs">'+
+	template : '<div class="abs" style="overflow:auto;padding:15px">'+
 					'<table class="sheet" border="" cellspacing="" cellpadding="">'+
 						'<caption v-html="title"></caption>'+
-						'<tr><th v-for="item in data[0]" v-html="item">Header</th></tr>'+
-					'	<tr v-for="(row,j) in data" v-if="j > 0"><td v-for="item in row" v-html="item">Data</td></tr>'+
+						'<tr><th v-for="(key,value) in header" v-html="key">Header</th></tr>'+
+					'	<tr v-for="(row,j) in data"><td v-for="(key,value) in row" v-html="key">Data</td></tr>'+
 					'</table>'+
 					'</div>',
 	props : {
@@ -326,13 +498,129 @@ Vue.component("sheet",{
 			default : "数据表"
 		}
 	},
-	created : function(){},
+	created : function(){
+		// console.log(this.graph.report)
+		this.$http.get(basePath+"report?id="+this.graph.report.id).then(function(res){
+			this.graph.report = res.body.data
+		})
+		this.header = []
+	},
 	methods : {
-		setSource : function(source){
-			this.data = source
-		}
+		setOption : function(option){
+			this.data = option.source
+			let columns = this.graph.report.columns
+			this.header = this.header.filter(elem=>{return false})
+			for(let i in option.dimensions){
+				for(let j in columns){
+					if(option.dimensions[i] == columns[j].name){
+						this.header.push(columns[j].chinese ? columns[j].chinese : columns[j].name)
+					}
+				}
+			}
+		},
 	},
 	mounted : function(){
 		this.$emit("mounted",this)
+		this.$on("parentEvent",function(param){
+			var trs = this.$el.querySelectorAll("table tr")
+			let size = trs.length
+			let height = $(trs[0]).height()
+			switch(param.type){
+				case 'datazoom':
+				// let height = $(this.$el).height()
+				$(this.$el).scrollTop(size * height * param.start / 100)
+				break;
+				case 'mouseover':
+				let h = 0
+				for(let i = 0 ; i <= param.dataIndex; i++){
+					h += height;
+				}
+				$(this.$el).scrollTop(h)
+				$(trs[param.dataIndex+1]).css("background-color","rgb(122,200,109)")
+				$($(trs[param.dataIndex+1])[param.seriesIndex+1]).css("color","rgb(109,105,67)")
+				break;
+				case 'mouseout':
+				$(trs[param.dataIndex+1]).css("background-color","")
+				$($(trs[param.dataIndex+1])[param.seriesIndex+1]).css("color","")
+			}
+		})
+	}
+})
+
+Vue.component("paragraph",{
+	template : "<div class='abs' v-html='graph.option.content' style='padding:15px 20px'><div>",
+	props : {
+		graph:{
+			type :Object,
+			required : true
+		}
+	},
+	created : function(){
+		this.graph.option = JSON.parse(this.graph.options)
+	}
+})
+
+function pie(myOption,newOption){
+	let s1 = myOption.series
+	let s2 = newOption.series
+	let serieIndexs = []
+	for(let i = 0; i < s1.length; i++){
+		for(let j = 0; j < s2.length; j++){
+			if(s1[i].columnId == s2[j].columnId){
+				serieIndexs.push(j)
+			}
+		}
+	}
+	let source = newOption.dataset.source
+	let a = source.shift()
+	a.shift()
+	let array = [a]
+	for(let m = 0 ; m < serieIndexs.length; m++){
+		source[m].shift()
+		array.push(source[m])
+	}
+	return array
+}
+
+
+Vue.component("position",{
+	template : '<div><div class="form-group form-group-sm">'+
+					'<label class="control-label col-sm-2">位置</label>'+
+					'<div class="col-sm-5">'+
+						'<div class="input-group">'+
+							'<span class="input-group-addon bg-success">左边</span>'+
+							'<input class="form-control" type="number" v-model="obj.left" id="obj.left" placeholder="组件距容器左边的距离" />'+
+							'<span class="input-group-addon">%</span>'+
+						'</div>'+
+					'</div>'+
+					'<div class="col-sm-5">'+
+						'<div class="input-group">'+
+							'<span class="input-group-addon bg-success">右边</span>'+
+							'<input class="form-control" type="number" v-model="obj.left" id="obj.right" placeholder="组件距容器右边的距离" />'+
+							'<span class="input-group-addon">%</span>'+
+						'</div>'+
+					'</div>'+
+				'</div>'+
+				'<div class="form-group form-group-sm">'+
+					'<div class="col-sm-5 col-sm-offset-2">'+
+						'<div class="input-group">'+
+							'<span class="input-group-addon bg-success">顶部</span>'+
+							'<input class="form-control" type="number" v-model="obj.left" id="obj.top" placeholder="组件距容器顶部的距离" />'+
+							'<span class="input-group-addon">%</span>'+
+						'</div>'+
+					'</div>'+
+					'<div class="col-sm-5">'+
+						'<div class="input-group">'+
+							'<span class="input-group-addon bg-success">底部</span>'+
+							'<input class="form-control" type="number" v-model="obj.left" id="obj.bottom" placeholder="组件距容器底部的距离" />'+
+							'<span class="input-group-addon">%</span>'+
+						'</div>'+
+					'</div>'+
+				'</div></div>',
+	props : {
+		obj : {
+			type : Object,
+			required : true
+		}
 	}
 })

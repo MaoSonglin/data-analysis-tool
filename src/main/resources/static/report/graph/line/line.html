@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>配置折线图</title>
+		<link rel="stylesheet" type="text/css" href="../../../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../../static/plugins/layui/css/layui.css"/>
+	</head>
+	<body>
+		<div class="container" id="app">
+			<form action="#" method="post" class="form-horizontal">
+				<div id="" class="form-group">
+					
+				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2">系列名称</label>
+					<div class="col-sm-4">
+						<input type="text" v-model="serie.name" class="form-control" name="name" id="name" placeholder="坐标轴名称" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2">X轴映射字段</label>
+					<div class="col-sm-4">
+						<select class="form-control" name="" v-model="serie.encode.x">
+							<option :value="x.name" v-for="x in getColumns()" v-html="x.chinese?x.chinese:x.name"></option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2">Y轴映射字段</label>
+					<div class="col-sm-4">
+						<select v-model="serie.encode.y" class="form-control">
+							<option :value="x.name" v-for="x in getColumns()" v-html="x.chinese?x.chinese:x.name"></option>
+						</select>
+					</div>
+				</div>
+				<div id="" class="form-group" v-if="false">
+					<label class="control-label col-sm-2">提示框</label>
+					<div class="col-sm-4">
+						<select class="form-control" name="" v-model="serie.tooltip">
+							<option <option :value="x.name" v-for="x in getColumns()" v-html="x.chinese?x.chinese:x.name"></option>></option>
+						</select>
+					</div>
+				</div>
+				
+				
+				<div class="form-group">
+					<label class="control-label col-sm-2">X轴坐标</label>
+					<div class="col-sm-4">
+						<input type="number" class="form-control" name="xAxisIndex" id="xAxisIndex" value="" v-model="serie.xAxisIndex" readonly="readonly" />
+					</div>
+					<label class="col-sm-2 control-label">Y轴坐标</label>
+					<div class="col-sm-4">
+						<input type="number" class="form-control" name="yAxisIndex" id="yAxisIndex"v-model="serie.yAxisIndex" readonly="readonly" />
+					</div>
+				</div>
+				
+				<!-- itemStyle -->
+				<div class="form-group">
+					<label class="control-label col-sm-2">颜色</label>
+					<div class="col-sm-4">
+						<input type="text" class="form-control" v-model="serie.itemStyle.color" name="color" id="color" value="" />
+					</div>
+					<label class="control-label col-sm-2">边框颜色</label>
+					<div class="col-sm-4">
+						<input type="text" class="form-control" v-model="serie.itemStyle.borderColor" name="borderColor" id="borderColor" value="" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2">边框宽度</label>
+					<div class="col-sm-4">
+						<input type="number" class="form-control" v-model="serie.itemStyle.borderWidth" name="borderWidth" id="color" value="" />
+					</div>
+					<label class="control-label col-sm-2">边框类型</label>
+					<div class="col-sm-4">
+						<select class="form-control" name="" v-model="serie.itemStyle.borderType">
+							<option value="solid">实线</option>
+						</select>
+					</div>
+				</div>
+				<!-- itemStyle -->
+				
+				
+				
+				
+			</form>
+		</div>
+	</body>
+	<script src="../../../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		let report = JSON.parse(sessionStorage.report)
+		new Vue({
+			el : "#app",
+			data : {
+				report : report,
+				serie : {
+					encode : {
+						x : null,
+						y : null
+					},
+					itemStyle : {},
+					lineStyle : {},
+					emphasis : {},
+					seriesLayoutBy : "column",
+					xAxisIndex : 0,
+					yAxisIndex : 0
+				}
+			},
+			created : function(){
+				let tmp = JSON.parse(sessionStorage.serie)
+				this.serie = concat(this.serie,tmp)
+			},
+			methods : {
+				getColumns : function(){
+					return this.report.columns
+				}
+			},
+			updated : function(){
+				sessionStorage.serie = JSON.stringify(this.serie)
+			}
+		})
+	</script>
+</html>

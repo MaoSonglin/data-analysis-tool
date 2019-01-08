@@ -25,7 +25,7 @@ import com.alibaba.fastjson.JSON;
 
 import dat.data.DataAdapter;
 import dat.data.Extractor;
-import dat.data.QueryHelper;
+import dat.data.TableDataAdapter;
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.VirtualTable;
@@ -43,14 +43,14 @@ public class TestController {
 	
 	@RequestMapping("/adapter")
 	public Object testAdapter(String id) throws IOException{
-		QueryHelper helper = context.getBean(QueryHelper.class);
 //		helper.query(table, columns)
 		VirtualTable virtualTable = context.getBean(VirtualTableRepository.class).findById(id).orElse(null);
-		DataAdapter adapter = helper.query(virtualTable, virtualTable.getColumns());
-		adapter.limit(200, 20);
+		DataAdapter adapter = new TableDataAdapter(virtualTable.getColumns());
+//		adapter.limit(200, 20);
 		Iterator<Map<String, String>> iterator = adapter.iterator();
 		List<Map<String,String>> list = new ArrayList<>();
-		while(iterator.hasNext()){
+		int i = 100;
+		while(iterator.hasNext() && i-- > 0){
 			Map<String, String> next = iterator.next();
 			list.add(next);
 		}

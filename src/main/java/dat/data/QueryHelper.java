@@ -14,7 +14,7 @@ import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.service.VirtualTableService;
 
- 
+@Deprecated
 public class QueryHelper implements Serializable,ApplicationContextAware{
 	
 	
@@ -30,6 +30,7 @@ public class QueryHelper implements Serializable,ApplicationContextAware{
 			columns.forEach(virtualColumn->{
 				logger.debug(virtualColumn.getName());
 			});
+			return new TableDataAdapter(columns);
 		}
 		// 虚拟数据表的服务层接口
 		VirtualTableService virtualTableService = context.getBean(VirtualTableService.class);

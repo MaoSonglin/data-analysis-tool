@@ -16,6 +16,7 @@ import dat.domain.GraphInfo;
 import dat.domain.ReportInfo;
 import dat.service.ReportInfoService;
 import dat.util.Constant;
+import dat.vo.GraphDrillData;
 import dat.vo.ReportPagingBean;
 import dat.vo.Response;
 
@@ -75,7 +76,7 @@ public class ReportInfoController {
 	 * @return
 	 */
 	@PostMapping()
-	public Response add(ReportInfo report){
+	public Response save(ReportInfo report){
 		logger.debug(report);
 		String name = report.getName();
 		if(name == null || name.trim().isEmpty()){
@@ -87,9 +88,15 @@ public class ReportInfoController {
 		return save;
 	}
 	
-	@RequestMapping("publish/{reportid}/{menuid}")
-	public Response publish(@PathVariable String reportid,@PathVariable  Integer menuid){
-		Response response = reportInfoService.pulish(reportid,menuid);
+//	@RequestMapping("publish/")
+//	public Response publish(@PathVariable String reportid,@PathVariable  Integer menuid){
+//		Response response = reportInfoService.pulish(reportid,menuid);
+//		return response;
+//	}
+	
+	@RequestMapping("/publish")
+	public Response publish(ReportInfo report){
+		Response response = reportInfoService.pulish(report);
 		return response;
 	}
 	
@@ -105,5 +112,16 @@ public class ReportInfoController {
 		return response;
 	}
 	
+	
+	@GetMapping("/tree/{id}")
+	public Response tree(@PathVariable String id){
+		Response response = reportInfoService.getTableTree(id);
+		return response;
+	}
+	
+	@RequestMapping("/data")
+	public Response data(GraphDrillData data){
+		return reportInfoService.getData(data);
+	}
 	
 }

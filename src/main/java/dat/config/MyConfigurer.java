@@ -27,7 +27,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.alibaba.druid.pool.DruidDataSource;
 
 import dat.config.ConstantConfig.Cors;
-import dat.data.QueryHelper;
 import dat.web.AddUserServlet;
 import dat.web.ImageServlet;
 import dat.web.IsLoginFilter;
@@ -113,7 +112,7 @@ public class MyConfigurer implements WebMvcConfigurer {
 	/**
 	 * @return 生成验证码的servlet
 	 */
-	@Bean
+//	@Bean
 	public ServletRegistrationBean<ImageServlet> createServlet(){
 		ServletRegistrationBean<ImageServlet> servletRegistrationBean = 
 				new ServletRegistrationBean<ImageServlet>();
@@ -123,13 +122,13 @@ public class MyConfigurer implements WebMvcConfigurer {
 		servletRegistrationBean.setUrlMappings(urlMappingSet);
 		return servletRegistrationBean;
 	}
-	@Bean
+//	@Bean
 	public ServletRegistrationBean<HttpServlet> create(){
 		ServletRegistrationBean<HttpServlet> bean = new ServletRegistrationBean<HttpServlet>(new AddUserServlet(),"/add/user");
 		return bean;
 	}
 	
-	@Bean
+//	@Bean
 	public FilterRegistrationBean<IsLoginFilter> createFilter(){
 		FilterRegistrationBean<IsLoginFilter> registrationBean = new FilterRegistrationBean<>();
 		registrationBean.setFilter(new IsLoginFilter(context));
@@ -151,9 +150,6 @@ public class MyConfigurer implements WebMvcConfigurer {
 		return multipartResolver;
 	}
 	
-	@Bean
-	public QueryHelper queryHelper(){
-		return new QueryHelper();
-	}
+	
 
 }

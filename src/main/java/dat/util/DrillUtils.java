@@ -1,5 +1,6 @@
 package dat.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -9,12 +10,12 @@ import com.alibaba.fastjson.JSONObject;
 import dat.data.LocalDataAdapter.SqlBuilder;
 import dat.domain.VirtualColumn;
 import dat.vo.EchartOptions;
-import dat.vo.GraphDrillData;
-import dat.vo.Serie;
 import dat.vo.EchartOptions.Axis;
 import dat.vo.EchartOptions.DataSet;
 import dat.vo.EchartOptions.DataZoom;
 import dat.vo.EchartOptions.ItemStyle;
+import dat.vo.GraphDrillData;
+import dat.vo.Serie;
 
 /**
  * @author MaoSonglin
@@ -47,7 +48,7 @@ public class DrillUtils {
 	 * @param echartOptions
 	 * @param list
 	 */
-	public static void setDataSet(EchartOptions echartOptions, List<List<String>> list) {
+	public static void setDataSet(EchartOptions echartOptions, List<? extends Object> list) {
 		DataSet dataSet = new DataSet();
 		dataSet.setSource(list);
 		echartOptions.setDataset(dataSet);
@@ -150,7 +151,65 @@ public class DrillUtils {
 				sqlInfo.getParams().add(wheres.get(i+1));
 			}
 			buffer.append(" GROUP BY ").append(virtualColumn.getName());
+			buffer.append(" ORDER BY ").append(virtualColumn.getName());
 			sqlInfo.setSql(buffer.toString());
 		};
 	}
+
+
+	public static SqlBuilder getSqlBuilder(List<VirtualColumn> columns,List<String> where){
+		return (tableName,sqlInfo)->{
+			ArrayList<String> list1 = new ArrayList<String>();
+			ArrayList<String> list2 = new ArrayList<String>();
+			for (VirtualColumn virtualColumn : columns) {
+				boolean b = "Number".equalsIgnoreCase(virtualColumn.getTypeName());
+				if(b){
+					list2.add(virtualColumn.getName());
+				}else{
+					list1.add(virtualColumn.getName());
+				}
+			}
+			StringBuffer buffer = new StringBuffer("SELECT ");
+			list1.forEach(elem->{
+				buffer.append(elem).append(" , ");
+			});
+			list2.forEach(elem->{
+				SqlHelper.addFunction(buffer, "SUM", elem, elem);
+				buffer.append(" , ");
+			});
+			SqlHelper.deleteLast(buffer, 3);
+			buffer.append(" FROM ").append(tableName);
+			buffer.append(" GROUP BY ");
+			
+//			list1.forEach(elem->{
+//				buffer.append(elem).append(" , ");
+//			});
+			String first = list1.iterator().next();
+			buffer.append(first);
+//			SqlHelper.deleteLast(buffer, 3);
+			List<Object> param = addWhere(where, buffer);
+			sqlInfo.setSql(buffer.toString());
+			sqlInfo.setParams(param);
+		};
+	}
+
+	/**
+	 * @param where
+	 * @param buffer
+	 * @return
+	 */
+	private static List<Object> addWhere(List<String> where, StringBuffer buffer) {
+		int size = where.size();
+		if(size > 1)
+			buffer.append(" where ");
+		List<Object> param = new ArrayList<>();
+		for(int i = 0; i < size-1; i += 2){
+			buffer.append(where.get(i)).append(" = ? and ");
+			param.add(where.get(i+1));
+		}
+		if(size > 1)
+		SqlHelper.deleteLast(buffer, 5);
+		return param;
+	}
+
 }

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>字段分类</title>
+	<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/plugins/font-awesome/css/font-awesome.css"/>
+	<style type="text/css">
+		.xx .layui-table{
+			border-width: none;
+			border-style: none;
+		}
+		.xx .layui-table td{
+			border: none;
+		}
+	</style>
+	</head>
+	<body>
+		<div class="" style="position: absolute;top:0;left: 0;right: 0;bottom: 0;" id="app">
+			<div class="layui-main">
+				<div class="form-group">
+					
+				</div>
+				<form class="form-inline" action="#" method="post">
+					<div class="form-group">
+						<label class="sr-only">查询</label>
+						<input type="text" name="name" id="name" value="" v-model="page.keyword"
+						 class="form-control" placeholder="查询" />
+					</div>
+					<div class="form-group">
+						<button class="btn btn-primary" type="button" onclick="add()">添加</button>
+					</div>
+					<!-- <input type="submit" value=""/> -->
+				</form>
+				<table class="layui-table">
+					<colgroup>
+						<col width="80">
+						<col width="260">
+						<col width="180">
+						<col width="180">
+						<col>
+					</colgroup>
+					<thead>
+						<tr><th>编号</th><th>分类名称</th><th>子类个数</th><th>父类个数</th><th>操作</th></tr>
+					</thead>
+					<tbody>
+						<tr v-for="(category,index) in categories">
+							<td v-html="index+1"></td>
+							<td v-html="category.name"></td>
+							<td v-html="category.children ? category.children.length : 0"></td>
+							<td v-html="category.parents ? category.parents.length : 0"></td>
+							<td><i class="layui-icon layui-icon-delete" @click="del(category)"></i><i class="layui-icon layui-icon-edit" @click="edit(category)"></i></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="5"><div id="page">
+								
+							</div></td>
+						</tr>
+					</tfoot>
+				</table>
+				
+			</div>
+			<tree v-bind:data="{categories:categories,style:'layui-col-md3 xx'}"></tree>
+			<a href="www.baidu.com" >百度</a>
+		</div>
+		<div id="dialog" style="display: none;">
+			<form action="" method="" class="form-horizontal" style="margin: 0;overflow: hidden;">
+				<div class="form-group">
+					
+				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-2 col-xs-offset-1">分类名称</label>
+					<div class="col-xs-8">
+						<input class="form-control" type="text" name="name" id="name" value="" v-model="category.name" placeholder="请输入分类名称" />
+					</div>
+				</div>
+				<div class="form-group" v-if="category.parents == null || category.parents.length == 0">
+					<label class="control-label col-xs-2 col-xs-offset-1">父级分类</label>
+					<div class="col-xs-8">
+						<button type="button" class="btn btn-primary btn-sm" @click="addParents()">添加</button>
+					</div>
+				</div>
+				<div class="form-group form-group-sm" v-for="(c,index) in category.parents">
+					<label class="control-label col-xs-2 col-xs-offset-1">父级分类{{index+1}}</label>
+					<div id="" class="col-xs-8">
+						<div id="" class="input-group input-group-sm">
+							<input class="form-control" type="text" name="" id="" value="" v-model="c.name" readonly="readonly" />
+							<span class="input-group-btn">
+								<button type="button" class="btn btn-primary" @click="addParents()">添加</button>
+								<button type="button" class="btn btn-danger" @click="removeParent(c)">删除</button>
+							</span>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		
+		<div id="parentDialog" style="display: none;">
+			<form action="#" class="form-horizontal" style="overflow: hidden;" method="">
+				<div class="form-group">
+					
+				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-2 col-xs-offset-1">父类</label>
+					<div class="col-xs-6">
+						<select id="first" style="display: none;">
+						</select>
+					</div>
+				</div>
+			</form>
+		</div>
+		
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/bootstrap/plugins/context-mune/BootstrapMenu.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/my-tree.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		Vue.http.options.withCredentials=true
+		Vue.http.options.emulateJSON=true
+		let app = new Vue({
+			el : "#app",
+			data : {
+				categories : [],
+				page : {
+					curPage : 1,
+					pageSize : 10,
+					count : 100,
+				}
+			},
+			created : function(){
+				
+			},
+			methods : {
+				addParents : function(){
+					
+				},
+				del : function(category){
+					layer.confirm("您确定要删除该分类吗",{
+						title : "确认",
+						btn : ["确定","取消"]
+					},(index)=>{
+						layer.close(index)
+						this.$http.delete(basePath+"category/"+category.id).then(function(res){
+							layer.msg(res.body.message)
+							this.reload()
+						})
+					})
+				},
+				reload : function(){
+					UI(this.page,(res)=>{
+						this.page.curPage = res.data.number+1
+						this.page.pageSize = res.data.size
+						this.$set(this,"categories",res.data.content)
+					})
+				},
+				edit : function(category){
+					layer.open({
+						title : "修改",
+						type : 1,
+						content : $("#dialog"),
+						btn : ["确定","取消"],
+						area : ["500px","350px"],
+						success : function(){a.category = category},
+						end : function(){
+							$("#dialog").hide()
+							a.category = {}
+						},
+						btn1 : function(index){
+							a.$emit("save",index)
+						}
+					})
+				}
+			},
+			mounted : function(){
+				console.log("mounted")
+				// alert("mounted")
+			}
+		})
+		
+		app.reload()
+		
+		function UI(page,callback){
+			request(page)
+			function request(page){
+				$.ajax({
+					url : basePath+"category/page",
+					data : page,
+					xhrFields : {
+						withCredentials : true
+					},
+					success : success,
+					error : function(error){
+						console.log(error)
+					}
+				})
+			}
+			 function success(res){
+				layui.use('laypage', function(){
+					var laypage = layui.laypage;
+					//执行一个laypage实例
+					laypage.render({
+						elem: 'page' //注意，这里的 test1 是 ID，不用加 # 号
+						,count: res.data.totalElements ,//数据总数，从服务端得到
+						limit : res.data.size,
+						limits : [5,10,15,20,25,30],
+						layout : ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip'],
+						curr : res.data.number+1,
+						jump : function(obj,first){
+							if(!first){
+								page.curPage = obj.curr
+								page.pageSize = obj.limit
+								request(page)
+							}
+						}
+					}); 
+				});
+				if(callback) callback(res)
+			}
+		}
+	
+		
+		let a = new Vue({
+			el : "#dialog",
+			data : {
+				category : {}
+			},
+			methods : {
+				addParents : function(){
+					layer.open({
+						title : false,
+						type : 1,
+						close : false,
+						shade : false,
+						content : $("#parentDialog"),
+						area : ["350px","200px"],
+						btn : ["确定","取消"],
+						success : function(){
+							get(null,document.querySelector("#first"))
+						},
+						end  : function(){
+							$("#first").nextUntil().remove()
+							$("#parentDialog").hide()
+						},
+						btn1 : function(index){
+							layer.close(index)
+							a.$emit("addParent")
+						}
+					})
+				},
+				removeParent : function(p){
+					this.category.parents = this.category.parents.filter(e=>{return e.id != p.id})
+				}
+			}
+		})
+		function add(){
+			layer.open({
+				type : 1,
+				content : $("#dialog"),
+				btn : ["确定","取消"],
+				area : ["500px","350px"],
+				success : function(){},
+				end : function(){
+					$("#dialog").hide()
+					a.category = {}
+				},
+				btn1 : function(index){
+					a.$emit("save",index)
+				},
+				success : function(){
+					
+				}
+			})
+		}
+		a.$on("save",function(i){
+			if(!a.category.name){
+				layer.msg("请输入分类名称")
+				return 
+			}
+			layer.close(i)
+			this.$http.post(basePath+"category",tile(a.category)).then(function(res){
+				layer.msg(res.body.message)
+				app.reload()
+			})
+		})
+		a.$on("tmpParent",function(id){
+			this.tmp = id
+		})
+		a.$on("addParent",function(){
+			if(!this.category.parents){
+				this.$set(this.category,"parents",[])
+			}
+			if(this.tmp)
+			this.category.parents.push(this.tmp)
+		})
+		function select(obj){
+			get(obj.value,obj)
+		}
+		function get(id,obj){
+			$(obj).nextUntil().remove()
+			let data = id != null ? {id : id} : {}
+			$.ajax({
+				url : basePath + "category/byParentId" ,
+				data : data,
+				xhrFields : {
+					withCredentials : true
+				},
+				success : function(res){
+					try{
+						res.data = res.data.filter(elem=>{
+							return ! a.category.parents.includes(elem)
+						})
+					}catch(e){
+						console.log(e)
+					}
+					if(!res.data.length) return
+					let $select = $("<select></select>")
+					$select.addClass("form-control")
+					$select.append("<option></option>")
+					for(let i in res.data){
+						let $opt = $("<option></option>")
+						$opt.html(res.data[i].name)
+						$opt.val(res.data[i].id)
+						$opt.appendTo($select)
+					}
+					
+					$select.insertAfter($(obj))
+					$select.bind("change",function(){
+						select(this)
+						for(let i in res.data){
+							if(res.data[i].id == this.value){
+								a.$emit("tmpParent",res.data[i])
+								return
+							}
+						}
+						a.$emit("tmpParent",null)
+					})
+				}
+			})
+		}
+		
+	</script>
+</html>

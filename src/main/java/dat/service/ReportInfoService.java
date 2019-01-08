@@ -4,6 +4,7 @@ import java.util.List;
 
 import dat.domain.GraphInfo;
 import dat.domain.ReportInfo;
+import dat.vo.GraphDrillData;
 import dat.vo.ReportPagingBean;
 import dat.vo.Response;
 
@@ -38,14 +39,6 @@ public interface ReportInfoService {
 	List<GraphInfo> getGraphs(String id);
 
 	/**
-	 * 将设计好的报表发布到指定ID的菜单目录下
-	 * @param reportid	待发布的报表
-	 * @param menuid	发布指定的目录ID
-	 * @return
-	 */
-	Response pulish(String reportid, Integer menuid);
-
-	/**
 	 * 取消置顶ID的报表发布状态
 	 * @param reportid
 	 * @return
@@ -53,6 +46,12 @@ public interface ReportInfoService {
 	Response unpublish(String reportid);
 
 	Response delete(String id);
+
+	Response getTableTree(String id);
+
+	Response getData(GraphDrillData data);
+
+	Response pulish(ReportInfo report);
 
 
 }

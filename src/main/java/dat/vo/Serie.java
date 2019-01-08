@@ -1,9 +1,14 @@
 package dat.vo;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import dat.vo.EchartOptions.ItemStyle;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Serie implements Serializable {
 
 	private static final long serialVersionUID = -869530856370072439L;
@@ -15,6 +20,10 @@ public class Serie implements Serializable {
 	private String columnId;
 	
 	private String seriesLayoutBy;
+	
+	private List<Object> data;
+	
+	private Map<String,Object> encode;
 	
 	private ItemStyle itemStyle;
 
@@ -29,6 +38,14 @@ public class Serie implements Serializable {
 		this.name = name;
 		this.columnId = columnId;
 		this.seriesLayoutBy = seriesLayoutBy;
+	}
+
+	public Map<String, Object> getEncode() {
+		return encode;
+	}
+
+	public void setEncode(Map<String, Object> encode) {
+		this.encode = encode;
 	}
 
 	public String getType() {
@@ -73,6 +90,15 @@ public class Serie implements Serializable {
 
 	public void setItemStyle(ItemStyle itemStyle) {
 		this.itemStyle = itemStyle;
+	}
+	
+
+	public List<Object> getData() {
+		return data;
+	}
+
+	public void setData(List<Object> data) {
+		this.data = data;
 	}
 
 	@Override

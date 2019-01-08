@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dat.domain.VirtualColumn;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
+import dat.vo.ClassifyFormula;
 import dat.vo.Response;
 import dat.vo.VirtualColumnParam;
 
@@ -59,4 +60,11 @@ public class VirtualColumnController {
 		virtualColumnService.getByPage(param);
 		return param;
 	}
+	
+	
+	@RequestMapping("/add/classify")
+	public Response classifyField(VirtualColumn column,ClassifyFormula classifyFormula){
+		return virtualColumnService.createField(column,classifyFormula);
+	}
+	
 }

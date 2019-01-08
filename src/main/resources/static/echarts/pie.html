@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+	</head>
+	<body>
+		<div id="a" style="height: 500px; width: 60%;margin: auto;">
+		</div>
+			<div id="drill-com" class="" style="position: absolute; top: 0; left: 0; width: 100%;text-align: center;display: none;" >
+				<div class="layui-btn-group">
+					<button type="button" class="layui-btn layui-btn-xs layui-bg-blue drillUp">
+						<i class="layui-icon layui-icon-up"></i>上钻</button>
+					<a type="button" class="layui-btn layui-btn-primary layui-btn-xs">&nbsp;&nbsp;钻取&nbsp;&nbsp;</a>
+					<button type="button" class="layui-btn layui-btn-xs layui-bg-blue drillDown">
+						下钻 <i class="layui-icon layui-icon-down "></i></button>
+				</div>
+			</div>
+			
+	</body>
+	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../res/js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		let echart = echarts.init(document.querySelector("#a"))
+		$.get("test.json",{},function(res){
+			echart.setOption(res)
+		},"json")
+		window.onresize = echart.resize
+		echart.on("click",function(param){
+			$("#drill-com").slideDown() 
+		})
+		$(document).on("click",function(){
+			// $("#drill-com").slideUp()
+		}) 
+		$(".drillUp").on("click",function(event){
+			console.log(event) 
+			let content = '<div style="display: ;position: fixed;top:'+(event.currentTarget.offsetHeight+event.currentTarget.offsetTop)+'px;left:'+event.currentTarget.offsetLeft+'px" id="menu1">'+
+				'<table class="layui-table" lay-size="sm" lay-skin="line" style="font-size:12px;margin:0px">'+
+					'<colgroup><col width="20"><col width="80"><col width="20"></colgroup>'+
+					'<tr><td><i class="layui-icon layui-icon-about" style="font-size:12px;margin:0px"></i></td><td style="font-size:12px;margin:0px">菜单一</td><td><i class="layui-icon layui-icon-right" style="font-size:12px;margin:0px"></i></td></tr>'+
+				'</table>'+
+			'</div>'
+			let menu = $(content)
+			menu.appendTo($("body"))
+			event.stopPropagation()
+		})
+		$(".drillDown").on("click",function(event){
+			console.log(event)
+			// event.preventDefault() 
+			event.stopPropagation()
+			let content = '<div style="display:none ;position: fixed;top:'+(event.currentTarget.offsetHeight+event.currentTarget.offsetTop)+'px;left:'+event.currentTarget.offsetLeft+'px" id="menu1">'+
+				'<table class="layui-table" lay-size="sm" lay-skin="line" style="font-size:12px;margin:0px">'+
+					'<colgroup><col width="20"><col width="80"><col width="20"></colgroup>'+
+					'<tr><td><i class="layui-icon layui-icon-about" style="font-size:12px;margin:0px"></i></td><td style="font-size:12px;margin:0px">菜单一</td><td><i class="layui-icon layui-icon-right" style="font-size:12px;margin:0px"></i></td></tr>'+
+				'</table>'+
+			'</div>'
+			let menu = $(content)
+			menu.appendTo($("body"))
+			menu.slideDown()
+			$("body").on("click",function(){
+				menu.slideUp()
+				menu.remove()
+				// setTimeout(menu.remove,1000)
+			})
+		})
+		function Menu(selector,option){
+			
+		}
+	</script>
+</html>

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.alibaba.fastjson.JSON;
+
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.repos.TableColumnRepository;
@@ -22,6 +24,7 @@ import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
+import dat.vo.ClassifyFormula;
 import dat.vo.Response;
 import dat.vo.VirtualColumnParam;
 
@@ -40,10 +43,14 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 	VirtualTableRepository vtRepos;
 	
 	@Override
+	@Transactional
 	public Response deleteById(String id) {
-		vcRepos.deleteById(id);
-		Response response = new Response(Constant.SUCCESS_CODE,"删除成功");
-		return response;
+		if(vcRepos.existsById(id)){
+			vcRepos.deleteById(id);
+			Response response = new Response(Constant.SUCCESS_CODE,"删除成功");
+			return response;
+		}
+		return new Response(Constant.ERROR_CODE,"字段ID'"+id+"'不存在");
 	}
 	
 	// 保存虚拟字段，如果虚拟字段的ID在数据库中已经存在，name就保存，否则就添加
@@ -177,6 +184,28 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 			param.setMsg(e.getMessage());
 		}
 		return null;
+	}
+
+	@Override
+	@Transactional
+	public Response createField(VirtualColumn column,
+			ClassifyFormula classifyFormula) {
+		String formula = column.getFormula();
+		VirtualColumn orElse = vcRepos.findById(formula).orElse(null);
+		if(orElse == null)
+			return new Response(Constant.ERROR_CODE,"原字段不存在");
+		boolean empty = vcRepos.findByName(column.getName()).isEmpty();
+		if(!empty){
+			return new Response(Constant.ERROR_CODE,"字段名称'"+column.getName()+"'已存在");
+		}
+		List<TableColumn> refColumns = orElse.getRefColumns();
+		column.setRefColumns(refColumns);
+		column.setId();
+		classifyFormula.setExpression(orElse.getFormula());
+		column.setFormula("ClassifyFormula:"+JSON.toJSONString(classifyFormula));
+		logger.debug(column);
+		VirtualColumn save = vcRepos.save(column);
+		return new Response(Constant.SUCCESS_CODE,"保存成功",save);
 	}
 
 	

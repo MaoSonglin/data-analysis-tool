@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson.JSON;
-
 import dat.App;
 import dat.domain.GraphInfo;
 import dat.service.GraphInfoService;
@@ -60,7 +58,6 @@ public class GraphInfoController {
 	 */
 	@PostMapping()
 	public Response add(GraphInfo graphInfo){
-		logger.debug(JSON.toJSON(graphInfo));
 		// 检查图表的标题是否为null或者空字符
 		String title = graphInfo.getTitle();
 		if(title == null || title.trim().isEmpty()){
@@ -85,12 +82,6 @@ public class GraphInfoController {
 		return response;
 	}
 	
-//	@PutMapping()
-	public Response modify(GraphInfo graphInfo){
-		
-		return null;
-	}
-	
 	/**
 	 * 为图表添加数据字段
 	 * @param gpid	图表id
@@ -107,27 +98,6 @@ public class GraphInfoController {
 		return response;
 	}
 	
-	/**
-	 * 从某个图表中删除某个字段
-	 * @param pgid
-	 * @param vcid
-	 * @param axis
-	 * @return
-	 */
-	@DeleteMapping("/{pgid}/{vcid}")
-	public Response rmAxis(@PathVariable String pgid,@PathVariable String vcid){
-		// 根据ID获取待编辑的图表
-		GraphInfo graphInfo = graphInfoService.getById(pgid);
-		if(graphInfo == null){
-			// 图表不存在
-			return new Response(Constant.ERROR_CODE,"ID为"+pgid+"的图表不存在");
-		}
-		graphInfo.getColumns().removeIf(elem->{
-			return elem.getId().equals(vcid);
-		});
-		Response save = graphInfoService.save(graphInfo);
-		return save;
-	}
 	
 	@GetMapping({"/data/{graphId}/{curPage}/{pageSize}","/data/{graphId}"})
 	public Response getData(@PathVariable String graphId) throws Exception{
@@ -156,16 +126,27 @@ public class GraphInfoController {
 	}
 	
 	@RequestMapping("/drill")
-	public Response drill(GraphDrillData drillData) throws Exception{
+	public Object drill(GraphDrillData drillData) throws Exception{
 		logger.debug(drillData);
 		Object drill = graphInfoService.drill(drillData);
-		return new Response(Constant.SUCCESS_CODE,"查询成功",drill);
+		return drill;
 	}
 	
 	@GetMapping("/tree/{id}")
 	public Response tree(@PathVariable String id){
 		TreeNode node = graphInfoService.findTree(id);
 		return new Response(Constant.SUCCESS_CODE,"查询成功",node);
+	}
+	
+	
+	/**
+	 * @param id
+	 * @return 获取同一个报表中的其他图
+	 */
+	@RequestMapping("/athers")
+	public Response athers(String id){
+		Response response = graphInfoService.getAthers(id);
+		return response;
 	}
 	
 }

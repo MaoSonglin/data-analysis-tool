@@ -5,6 +5,10 @@ import java.util.List;
 public class ExcelSheet {
 	private String sheetName;
 	
+	private String chineseName;
+	
+	private String desc;
+	
 	private Integer fieldNameRow;
 	
 	private Integer firstDataRow;
@@ -30,6 +34,12 @@ public class ExcelSheet {
 	private String dateTimeSort;
 	
 	private List<String> columnNames;
+	
+	private List<String> fieldNames;
+	
+	private List<String> fieldChineseNames;
+	
+	private String tableName;
 	
 	private String primaryKey;
 	
@@ -105,6 +115,26 @@ public class ExcelSheet {
 		return types;
 	}
 
+	public List<String> getFieldNames() {
+		if(fieldNames == null)
+			return columnNames;
+		return fieldNames;
+	}
+
+	public void setFieldNames(List<String> fieldNames) {
+		this.fieldNames = fieldNames;
+	}
+
+	public String getTableName() {
+		if(tableName == null)
+			return sheetName;
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
 	public void setTypes(List<String> types) {
 		this.types = types;
 	}
@@ -135,5 +165,34 @@ public class ExcelSheet {
 				+ columnNames + ", primaryKey=" + primaryKey + ", types="
 				+ types + ", lengths=" + lengths + "]";
 	}
+
+	public String getChineseName() {
+		if(chineseName == null)
+			return sheetName;
+		return chineseName;
+	}
+
+	public void setChineseName(String chineseName) {
+		this.chineseName = chineseName;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+
+	public List<String> getFieldChineseNames() {
+		if(fieldChineseNames == null)
+			return getColumnNames();
+		return fieldChineseNames;
+	}
+
+	public void setFieldChineseNames(List<String> fieldChineseNames) {
+		this.fieldChineseNames = fieldChineseNames;
+	}
+	
 
 }

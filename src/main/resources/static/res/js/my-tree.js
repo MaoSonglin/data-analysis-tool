@@ -1,80 +1,105 @@
-Vue.component("tree",{
-	template : '<ul class="tree">'
-				+'		<li class="tree-node" v-for="node in nodes" @dragstart="dragstart(node,$event)">'
-				+'			<i :class="foldIcon(node)" @click="toggle(node,$event)"></i>'
-				+'			<a href="javascript:;" @click="nodeClick(node,$event)" @dblclick="toggle(node,$event)" ><i :class="nodeIcon(node)"></i>{{node.name}}</a>'
-				+'			<tree v-bind:asyn="asyn" v-bind:nodes="node.children" v-if="show(node)" v-on:nodeclick="nodeClick($event)" v-on:loadchildren="loadChildren($event)" v-on:nodedragstart="dragstart(null,$event)"></tree>'			
-				+'		</li>'
-				+'</ul>',
-	props:{
-		nodes : {
-			type : Array,
-			required :true
+
+
+Vue.component("category",{
+	template : '<div :class="category.style">'+
+			'<table class="layui-table" lay-size="sm" lay-skin="line" style="font-size:12px;margin:0px 0px">'+
+				'<colgroup><col width="30"><col width="20"><col></colgroup>'+
+				'<tbody><tr>'+
+					'<td align="right" ><i :class="getHint()" style="cursor:pointer" v-if="hasChildren(category)" @click="toggle(category)"></i></td>'+
+					'<td style="margin:0;padding:0"><i :class="category.icon" style="cursor:pointer" @click="toggle(category)"></i></td>'+
+					'<td  style="margin-left:0;padding-left:0" v-if="!category.href" v-html="category.name" @click="select(category,$event)" @dblclick="toggle(category)"></td>'+
+					'<td style="margin-left:0;padding-left:0" v-if="category.href" @click="select(category,$event)" @dblclick="toggle(category)"><a v-html="category.name" :href="category.href" :target="category.target"></a></td>'+
+					// '<td><i class="layui-icon layui-icon-delete"></i></td>'+
+				'</tr></tbody></table>'+
+			'<div style="margin:0px 0px 0px 20px" v-if="hasChildren(category)" v-show="category.open">'+
+				'<category v-for="(c,j) in getChildren(category)" v-bind:index="index+j+1" v-bind:category="c" v-on:danji="itemClick(category,$event)" v-on:xuanze="itemSelect(category,$event)"></category>'+
+			'</div></div>',
+	props : {
+		category : {
+			type : Object,
+			required : true
 		},
-		asyn : {
-			type : Boolean,
-			default : false
+		index : {
+			type : Number,
+			default : 1
 		}
 	},
-	created:function(){
-		console.log(this.asyn)
+	created : function() {
+		if(this.category.open == null || this.category.open == undefined){
+			this.category.open = false
+		}
+		if(!this.category.icon ){
+			this.category.icon =  this.hasChildren() ? "fa fa-folder-o":"fa fa-file-text"
+		}
+		if(!this.category.openIcon){
+			this.category.openIcon = this.category.icon
+		}
+		if(!this.category.closeIcon){
+			this.category.closeIcon = this.category.icon
+		}
+		
 	},
-	methods:{
-		show:function(node){
-			if(node.children&&node.spread){
-				return true;
-			}else{
-				return false;
-			}
+	methods : {
+		select : function(category,event){
+			this.$emit("xuanze",category)
+			// this.$emit("danji",category)
 		},
-		foldIcon : function(node){
-			if( this.asyn ){
-				if(node.spread){
-					return "layui-icon layui-icon-triangle-d"
-				}else{
-					return "layui-icon layui-icon-triangle-r"
-				}
-			}else{
-				return node.children? node.spread ? "layui-icon layui-icon-triangle-d":"layui-icon layui-icon-triangle-r":""
-			}
+		itemClick : function(category,event){ 
+			this.$emit("danji",event)
 		},
-		nodeIcon : function(node){
-			if(node.children){
-				if(node.icon){
-					return node.spread ? node.icon.open : node.icon.close;
-				}else{
-					return "layui-icon layui-icon-table";
-				}
-			}
-			else{
-				return "layui-icon layui-icon-file"
-			}
+		itemSelect : function(category,event){ 
+			this.$emit("xuanze",event)
 		},
-		toggle : function(node,event){
-			if(this.asyn && ! node.spread && ! node.children){
-				Vue.set(node,"children",[])
-				this.$emit("loadchildren",node)
-				this.requested = true;
-			}
-			if(node.spread == undefined){
-				Vue.set(node,'spread',false)
-			}else{
-				node.spread = !node.spread
-			}
-			event.stopPropagation()
+		toggle : function(category){
+			// this.$set(category,'open',! category.open)
+			category.open = ! category.open
 		},
-		nodeClick : function(node,event){
-			this.$emit("nodeclick",node)
+		getHint : function(){
+			return this.category.open ? "fa fa-angle-down" :"fa fa-angle-right"
 		},
-		loadChildren : function(event){
-			this.$emit("loadchildren",event)
+		getFirstIcon : function(){
+			return this.category.open ? this.category.openIcon : this.category.closeIcon
 		},
-		dragstart : function(node,event){ // 向父容器发送拖动事件的消息
-			if(node){
-				event.nodeData = node;
-			}
-			this.$emit("nodedragstart",event)
-			if(event) event.stopPropagation()
+		hasChildren : function(category){
+			return category.children && category.children.length 
 		}
 	}
 })
+
+Vue.component("tree",{
+	template : '<div :class="data.style">'+
+			'<template v-for="(category,index) in data.categories">'+
+				'<category v-bind:category="category" v-bind:index="index" v-on:danji="itemClick(category,$event)"'+
+				 'v-on:xuanze="itemSelect(category,$event)"></category>'+
+			'</template>'+
+		'</div>',
+	props : {
+		data : {
+			type : Object,
+			required : true
+		}
+	},
+	methods : {
+		itemClick : function(category,event){ 
+			if(this.data.itemClick)this.data.itemClick(event)
+		},
+		itemSelect : function(category,event){
+			
+			if(this.data.url && ( event.children == [] || event.children == null || event.children == undefined)){
+				$.ajax({
+					url : this.data.url,
+					method : this.data.method ? this.data.method : 'get',
+					data : this.data.param,
+					xhrFields : {
+						withCredentials : true
+					},
+					success : (res)=>{
+						if(this.data.request) this.data.request(res,event)
+					}
+				})
+			}
+		}
+	}
+})
+
+

@@ -1,7 +1,14 @@
 package dat.service.impl;
 
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.persistence.criteria.Predicate;
 
@@ -17,16 +24,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import dat.data.LocalDataAdapter;
+import dat.data.LocalDataAdapter.RowHandler;
+import dat.data.LocalDataAdapter.SqlBuilder;
 import dat.domain.GraphInfo;
 import dat.domain.Menu;
 import dat.domain.ReportInfo;
+import dat.domain.VirtualColumn;
+import dat.domain.VirtualTable;
+import dat.domain.WorkPackage;
 import dat.repos.GraphInfoRepository;
 import dat.repos.MenuRepository;
 import dat.repos.ReportInfoRepository;
+import dat.repos.VirtualColumnRepository;
 import dat.service.ReportInfoService;
+import dat.service.impl.VirtualTableServiceImpl.ResultSetHandler;
 import dat.util.Constant;
+import dat.util.DrillUtils;
+import dat.vo.EchartOptions;
+import dat.vo.EchartOptions.Axis;
+import dat.vo.EchartOptions.DataSet;
+import dat.vo.GraphDrillData;
 import dat.vo.ReportPagingBean;
 import dat.vo.Response;
+import dat.vo.TreeNode;
 
 @Service
 public class ReportInfoServiceImpl implements ReportInfoService {
@@ -94,39 +115,7 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 		return list;
 	}
 	
-	@Override
-	@Transactional
-	public Response pulish(String reportid, Integer menuid) {
-		Response res = new Response();
-		MenuRepository repository = context.getBean(MenuRepository.class);
-		// 根据ID查找到报表发布到的目录
-		Menu menu = repository.findById(menuid).orElse(null);
-		if(menu == null){
-			res.setCode(9);
-			res.setMessage("目录不存在");
-			return res;
-		}
-		// 根据ID查询出待发布的报表
-		ReportInfo reportInfo = reportInfoRepos.findById(reportid).orElse(null);
-		if(reportInfo == null){
-			res.setCode(8);
-			res.setMessage("报表不存在");
-			return res;
-		}
-		Menu m = new Menu();
-		m.setText(reportInfo.getName());
-		m.setUrl("report/show.html?id="+reportInfo.getId());
-		m.setParent(menu.getId());
-		repository.save(m);
-		
-		reportInfo.setPublish(m);
-		ReportInfo save = reportInfoRepos.save(reportInfo);
-		
-		res.setCode(Constant.SUCCESS_CODE);
-		res.setMessage("发布成功");
-		res.setData(save);
-		return res;
-	}
+	
 	
 	@Override
 	@Transactional
@@ -162,4 +151,254 @@ public class ReportInfoServiceImpl implements ReportInfoService {
 		return new Response(Constant.SUCCESS_CODE,"删除成功");
 	}
 
+	@Override
+	public Response getTableTree(String id) {
+		ReportInfo reportInfo = reportInfoRepos.findById(id).orElse(null);
+		if(reportInfo== null){
+			return new Response(Constant.ERROR_CODE,"ID不存在");
+		}
+		List<VirtualColumn> excludes = reportInfo.getColumns();
+		WorkPackage pkg = reportInfo.getPkg();
+		TreeNode root = new TreeNode(pkg.getId(),pkg.getName(),new ArrayList<>());
+		// 数据包中包含的数据表
+		List<VirtualTable> tables = pkg.getTables();
+		for (VirtualTable virtualTable : tables) {
+			// 遍历数据包中的数据表
+			TreeNode treeNode = new TreeNode(virtualTable.getId(),virtualTable.getChinese()!=null?virtualTable.getChinese():virtualTable.getName(),new ArrayList<>());
+			// 数据表中的字段
+			List<VirtualColumn> columns = virtualTable.getColumns();
+			for (VirtualColumn virtualColumn : columns) {
+				// 不添加已经添加到图表中的字段
+				if(excludes.contains(virtualColumn))
+					continue;
+				TreeNode tn = new TreeNode();
+				tn.setId(virtualColumn.getId());
+				tn.setText(virtualColumn.getChinese() != null ? virtualColumn.getChinese():virtualColumn.getName());
+				tn.setText(tn.getText()+"("+virtualColumn.getTypeName()+")");
+				tn.setType(virtualColumn.getTypeName());
+				treeNode.getNodes().add(tn);
+			}
+			root.getNodes().add(treeNode);
+		}
+		return new Response(Constant.SUCCESS_CODE,"查询成功",root);
+	}
+
+	@Override
+	public Response getData(GraphDrillData data) {
+		// 分类id
+		String columnId = data.getColumnId();
+		String graphId = data.getGraphId();
+		GraphInfo graphInfo = graphInfoRepos.findById(graphId).orElse(null);
+		if(graphInfo == null)
+			return new Response(Constant.ERROR_CODE,"指定ID的图表不存在",data);
+		EchartOptions option = graphInfo.getOption();
+		if(columnId == null){
+			columnId = option.getxAxis().getColumnId();
+		}
+		VirtualColumn virtualColumn = context.getBean(VirtualColumnRepository.class).findById(columnId).orElse(null);
+		if(virtualColumn == null){
+			return new Response(Constant.ERROR_CODE,"分类id不存在",columnId);
+		}
+		
+		List<VirtualColumn> columns = graphInfo.getReport().getColumns();
+		columns.remove(virtualColumn);
+//		List<Serie> series = option.getSeries();
+//		columns.removeIf(elem->{
+//			for (Serie serie : series) {
+//				if(serie.getColumnId().equalsIgnoreCase(elem.getId())) return false;
+//			}
+//			return true;
+//		});
+		if(logger.isDebugEnabled()){
+			logger.debug("分类字段："+virtualColumn.getChinese());
+			for (VirtualColumn v : columns) {
+				logger.debug(v.getChinese());
+			}
+		}
+		try {
+			columns.add(0, virtualColumn);
+			LocalDataAdapter localDataAdapter = new LocalDataAdapter(context);
+			SqlBuilder sqlInfo = DrillUtils.getSqlBuilder(columns, data.getWheres());//DrillUtils.getSqlInfo(data, virtualColumn, columns);
+			Axis axis = option.getxAxis();
+			String name = null;
+			if(axis != null){
+				name = axis.getName();
+			}
+			if(name == null){
+				name = virtualColumn.getChinese() != null ? virtualColumn.getChinese() : virtualColumn.getName();
+			}
+			MatrixResultHandler matrixResultHandler = new MatrixResultHandler(columns);
+			List<List<Object>> map = localDataAdapter.query(columns,sqlInfo,matrixResultHandler);
+			if(logger.isDebugEnabled()){
+			}
+			/*for(Serie s : series){
+				HashMap<String, Object> encode = new HashMap<>();
+				encode.put("x", virtualColumn.getName());
+				encode.put("itemName", virtualColumn.getName());
+				encode.put("label", virtualColumn.getName());
+				
+				columns.forEach(elem->{
+					if(elem.getId().equals(s.getColumnId())){
+						encode.put("y", elem.getName());
+						encode.put("value", elem.getName());
+					}
+				});
+				
+				s.setEncode(encode);
+			}*/
+			DataSet dataset = new DataSet(map);
+			dataset.setDimensions(matrixResultHandler.getNames());
+//			option.setDataset(dataset);
+//			int size = map.size();
+//			
+//			if(size > 8 ){
+//				DataZoom dz = option.getDataZoom();
+//				if(dz != null){
+//					dz.setShow(true);
+//					dz.setStart(10);
+//					dz.setEnd(8f / size * 100f + 10);
+//				}
+//			}
+			Response response = new Response(Constant.SUCCESS_CODE,"查询成功",dataset);
+//			response.put("graph",graphInfo);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Response(Constant.ERROR_CODE,e.getMessage(),data);
+		}
+	}
+	
+	
+	
+	@SuppressWarnings("unused")
+	private List<List<Object>> format(List<VirtualColumn> columns,
+			Map<String, List<Object>> map) {
+		List<List<Object>> list = new ArrayList<>(map.size());
+		columns.forEach(column->{
+			String name = column.getName();
+			List<Object> list2 = map.get(name);
+			if(list2 == null)
+				return ;
+			String chinese = column.getChinese();
+			list2.add(0, chinese==null?name:chinese);
+			list.add(list2);
+		});
+		return list;
+	}
+
+	@Override
+	@Transactional
+	public Response pulish(ReportInfo report) {
+		String id = report.getId();
+		ReportInfo reportInfo = reportInfoRepos.findById(id).orElse(null);
+		if(reportInfo == null)
+			return new Response(Constant.ERROR_CODE,"报表ID不存在");
+		Menu menu = report.getPublish();
+		Menu save = context.getBean(MenuRepository.class).save(menu);
+		reportInfo.setPublish(save);
+		reportInfoRepos.save(reportInfo);
+		return new Response(Constant.SUCCESS_CODE,"保存成功",menu);
+	}
+	
 }
+
+class KeyValuesResulstHandler implements ResultSetHandler<Map<String,List<Object>>> {
+	
+	private Map<String,String> nameMap;
+	
+	
+	
+	public KeyValuesResulstHandler(Map<String, String> nameMap) {
+		super();
+		this.nameMap = nameMap;
+	}
+
+	public KeyValuesResulstHandler(List<VirtualColumn> columns) {
+		super();
+		nameMap = new HashMap<>();
+		for (VirtualColumn virtualColumn : columns) {
+			nameMap.put(virtualColumn.getName(), virtualColumn.getChinese());
+		}
+	}
+
+	@Override
+	public Map<String, List<Object>> doResultSet(ResultSet resultSet)
+			throws SQLException {
+		Map<String,List<Object>> map = new HashMap<>();
+		Set<Entry<String,String>> entrySet = nameMap.entrySet();
+		for (Entry<String, String> entry : entrySet) {
+			map.put(entry.getValue(),new ArrayList<>());
+		}
+		while(resultSet.next()){
+			for(Entry<String,String> entry : entrySet){
+				String key = entry.getKey();
+				Object object = resultSet.getObject(key);
+				map.get(entry.getValue()).add(object);
+			}
+		}
+		return map;
+	}
+	
+}
+
+
+class ListKeyValueResultHandler implements RowHandler<Map<String,Object>>{
+
+	@Override
+	public Map<String, Object> handRow(int rowNum, ResultSet rs)
+			throws SQLException {
+		ResultSetMetaData metaData = rs.getMetaData();
+		int columnCount = metaData.getColumnCount();
+		Map<String,Object> map = new HashMap<>();
+		for(int i = 1; i < columnCount+1; i++){
+			String key = metaData.getColumnLabel(i);
+			if(i == 1){
+				String string = rs.getString(i);
+				map.put(key, string);
+			}else{
+				Object object = rs.getObject(i);
+				map.put(key, object);
+			}
+		}
+		return map;
+	}
+	
+}
+
+class MatrixResultHandler implements RowHandler<List<Object>>{
+
+	public MatrixResultHandler() {
+		super();
+	}
+	
+	public MatrixResultHandler(List<VirtualColumn> columns){
+		names = new ArrayList<>();
+		for (VirtualColumn virtualColumn : columns) {
+			names.add(virtualColumn.getName());
+		}
+	}
+
+	List<String> names ;
+	
+	@Override
+	public List<Object> handRow(int rowNum, ResultSet rs) throws SQLException {
+		List<Object> list = new ArrayList<>();
+		for (String key : names) {
+			Object object = rs.getObject(key);
+			list.add(object);
+		}
+		return list;
+	}
+
+	public List<String> getNames() {
+		return names;
+	}
+
+	public void setNames(List<String> names) {
+		this.names = names;
+	}
+	
+}
+
+
+

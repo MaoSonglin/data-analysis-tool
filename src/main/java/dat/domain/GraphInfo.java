@@ -1,23 +1,26 @@
 package dat.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import dat.util.Constant;
 import dat.util.StrUtil;
+import dat.vo.EchartOptions;
+import dat.vo.EchartOptions.Axis;
 
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GraphInfo implements IdGeneratorable,Serializable{
 	/**
 	 * 
@@ -53,7 +56,8 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		this.top = top;
 		this.left = left;
 	}
-
+	
+	
 	@Id
 	private String id;
 	
@@ -71,7 +75,9 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	
 	private String type;
 	
-	@Column(length=800)
+	private String parent;
+	
+	@Column(length=8000)
 	private String options;
 	
 
@@ -82,14 +88,15 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	private String desc;
 	
 	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.LAZY)
+	@JsonIgnoreProperties({"pkg","columns"})
 	private ReportInfo report;
-	
+	/*
 	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
 	private List<VirtualColumn> categoryColumns;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
 	private List<VirtualColumn> valueColumns;
-	
+	*/
 	
 	public Float getHeight() {
 		return height;
@@ -153,10 +160,33 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	}
 
 
+	public String getParent() {
+		return parent;
+	}
+
+	public void setParent(String parent) {
+		this.parent = parent;
+	}
+
 	public Float getTop() {
 		return top;
 	}
 
+	public EchartOptions getOption(){
+//		JSON.toJavaObject(getOptions(), EchartOptions.class);
+		String text = getOptions();
+		if(text == null)
+			return null;
+		EchartOptions opt = JSON.parseObject(text,EchartOptions.class);
+		JSONObject parseObject = JSON.parseObject(text);
+		JSONObject jsonObject = parseObject.getJSONObject("xAxis");
+		Axis javaObject = JSON.toJavaObject(jsonObject, Axis.class);
+		opt.setXaxis(javaObject);
+		JSONObject object = parseObject.getJSONObject("yAxis");
+		Axis y = JSON.toJavaObject(object, Axis.class);
+		opt.setyAxis(y);
+		return opt;
+	}
 	
 
 	public void setTop(Float top) {
@@ -171,7 +201,7 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 		this.left = left;
 	}
 
-	public List<VirtualColumn> getColumns() {
+/*	public List<VirtualColumn> getColumns() {
 		ArrayList<VirtualColumn> list = new ArrayList<>();
 		List<VirtualColumn> l = getCategoryColumns();
 		if(l != null){
@@ -182,10 +212,10 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 			list.addAll(l2);
 		return list;
 	}
-
+*/
 	
 
-	public List<VirtualColumn> getCategoryColumns() {
+	/*public List<VirtualColumn> getCategoryColumns() {
 		return categoryColumns;
 	}
 
@@ -200,7 +230,7 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	public void setValueColumns(List<VirtualColumn> valueColumns) {
 		this.valueColumns = valueColumns;
 	}
-
+*/
 	public String getOptions() {
 		return options;
 	}

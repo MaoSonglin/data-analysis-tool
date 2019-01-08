@@ -31,22 +31,63 @@
                 data:['销量']
             },
             xAxis: {
-                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+                // data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子","羊毛衫"]
             },
             yAxis: {},
             series: [{
                 name: '销量',
                 type: 'bar',
-                data: [5, 20, 36, 10, 10, 20],
+                // data: [5, 20, 36, 10, 10, 20,5],
 				itemStyle : {
 					color : 'rgb(192,90,234)'
-				}
-            }]
+				},
+				seriesLayoutBy : "row"
+            }],
+			dataset : {
+				source : [
+					["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子","羊毛衫"],
+					[5, 20, 36, 10, 10, 20,5]
+				]
+			}
         };
+		option = {
+			legend: {},
+			tooltip: {},
+			dataset: {
+				source: [
+					['product', '2012', '2013', '2014', '2015','2012'],
+					['Matcha Latte', 41.1, 30.4, 65.1, 53.3,9],
+					['Milk Tea', 86.5, 92.1, 85.7, 83.1,10],
+					['Cheese Cocoa', 24.1, 67.2, 79.5, 86.4,11]
+				]
+			},
+			xAxis: [
+				{type: 'category', gridIndex: 0},
+				{type: 'category', gridIndex: 1}
+			],
+			yAxis: [
+				{gridIndex: 0},
+				{gridIndex: 1}
+			],
+			grid: [
+				{bottom: '55%'},
+				{top: '55%'}
+			],
+			series: [
+				// 这几个系列会在第一个直角坐标系中，每个系列对应到 dataset 的每一行。
+				{type: 'bar', seriesLayoutBy: 'row'},
+				{type: 'bar', seriesLayoutBy: 'row'},
+				{type: 'bar', seriesLayoutBy: 'row'},
+				// 这几个系列会在第二个直角坐标系中，每个系列对应到 dataset 的每一列。
+				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1, radius:['50%','75%']},
+				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1},
+				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1},
+				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1,center : ['70%','50%'],encode : {itemName:'product',value:'2013'}}
+			]
+		}
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
-		
 		
 		$("#idbxhon").bind("click",function(e){
 			myChart.dispatchAction({

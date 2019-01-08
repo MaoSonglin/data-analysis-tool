@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -45,10 +46,6 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	private String name;
 	
-	private Float width;
-	
-	private Float height;
-	
 	private String type;
 	
 	@OneToOne(targetEntity=Menu.class,fetch=FetchType.EAGER)
@@ -60,12 +57,17 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 	
 	@ManyToOne(targetEntity=WorkPackage.class,fetch=FetchType.EAGER)
 	@JoinColumn(referencedColumnName="id")
+	@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 	private WorkPackage pkg;
 	
 	@OneToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY,mappedBy="report")
 	@JsonIgnore
 	private List<GraphInfo> graphs;
 	
+	@JsonIgnoreProperties({"table"})
+	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
+	private List<VirtualColumn> columns;
+	 
 	private Integer state = Constant.ACTIVATE_SATE;
 	
 	@Override
@@ -130,21 +132,7 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 		this.pkg = pkg;
 	}
 
-	public Float getWidth() {
-		return width;
-	}
-
-	public void setWidth(Float width) {
-		this.width = width;
-	}
-
-	public Float getHeight() {
-		return height;
-	}
-
-	public void setHeight(Float height) {
-		this.height = height;
-	}
+	 
 	
 	public String getPkgName(){
 		if(pkg != null)
@@ -153,7 +141,14 @@ public class ReportInfo implements IdGeneratorable,Serializable{
 			return null;
 	}
 
-	
+
+	public List<VirtualColumn> getColumns() {
+		return columns;
+	}
+
+	public void setColumns(List<VirtualColumn> columns) {
+		this.columns = columns;
+	}
 
 	public Menu getPublish() {
 		return publish;

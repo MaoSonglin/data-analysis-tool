@@ -25,6 +25,7 @@ import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.service.WorkPackageService;
 import dat.service.impl.VirtualTableServiceImpl;
+import dat.service.impl.VirtualTableServiceImpl.ResultSetHandler;
 import dat.util.SqlHelper;
 import dat.util.VariableTypeParser;
 
@@ -48,8 +49,20 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 		this.context = context;
 	}
 	
+	public <T> List<T> query(List<VirtualColumn> columns,SqlBuilder builder,RowHandler<T> handler)throws Exception{
+		ResultSetHandler<List<T>> x =	resultSet -> {
+			int i = 0;
+			List<T> list = new ArrayList<>();
+			while(resultSet.next()){
+				T row = handler.handRow(i++, resultSet);
+				list.add(row);
+			}
+			return list;
+		};
+		return query(columns,builder,x);
+	}
 	
-	public Map<String,List<String>> query(List<VirtualColumn> columns,SqlBuilder builder) throws Exception{
+	public <T> T query(List<VirtualColumn> columns,SqlBuilder builder,ResultSetHandler<T> handler)throws Exception{
 		// 数据表集合
 		Set<VirtualTable> tableSet = new HashSet<>();
 		// 遍历数据字段获取对应的字段所在的数据表
@@ -74,15 +87,19 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 						ps.setObject(i+1, params.get(i));
 					}
 					try(ResultSet rs = ps.executeQuery()){
-						Map<String, List<String>> data = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
-						return data;
+						T t = handler.doResultSet(rs);
+						return t;
 					}
 				}
 			}
 		}
 	}
+	
+	public Map<String, List<Object>> query(List<VirtualColumn> columns,SqlBuilder builder) throws Exception{
+		return query(columns,builder,VirtualTableServiceImpl.getMapListHandler());
+	}
 
-	public Map<String, List<String>> query(List<VirtualColumn> columns) throws Exception{
+	public Map<String, List<Object>> query(List<VirtualColumn> columns) throws Exception{
 		// 数据表集合
 		Set<VirtualTable> tableSet = new HashSet<>();
 		// 遍历数据字段获取对应的字段所在的数据表
@@ -100,7 +117,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 				String sql = querySql(conn, tableName, columns);
 				logger.debug(sql);
 				try(PreparedStatement ps = conn.prepareStatement(sql);ResultSet rs = ps.executeQuery()){
-					Map<String, List<String>> data = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
+					Map<String, List<Object>> data = VirtualTableServiceImpl.getMapListHandler().doResultSet(rs);
 					return data;
 				}
 			}
@@ -444,4 +461,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 		void build(String tableName,SqlInfo sqlInfo);
 	}
 
+	public static interface RowHandler<T>{
+		T handRow(int rowNum,ResultSet rs) throws SQLException;
+	}
 }

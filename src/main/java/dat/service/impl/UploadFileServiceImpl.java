@@ -32,6 +32,7 @@ public class UploadFileServiceImpl implements UploadFileService {
 	}
 	@Transactional
 	public Response save(UploadFile uploadFile) {
+		if(uploadFile.getId()==null)
 		uploadFile.generateId();
 		UploadFile save = fileRepos.save(uploadFile);
 		return new Response(Constant.SUCCESS_CODE,"保存成功",save);
@@ -75,6 +76,8 @@ public class UploadFileServiceImpl implements UploadFileService {
 		Path absolutePath = Paths.get(dir, virtualPath).toAbsolutePath();
 		return absolutePath.toString();
 	}
+	
+	
 	@Override
 	public String getSavePath() {
 		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -83,7 +86,5 @@ public class UploadFileServiceImpl implements UploadFileService {
 		String dir = env.getProperty("file.upload.savepath",request.getServletContext().getRealPath("/WEB-INF/upload"));
 		return dir;
 	}
-
-	
 	
 }
