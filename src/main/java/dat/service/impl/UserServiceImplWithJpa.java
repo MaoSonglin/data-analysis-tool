@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import dat.domain.User;
 import dat.repos.UserRepository;
@@ -73,6 +74,7 @@ public class UserServiceImplWithJpa implements UserService {
 		String password = Md5Util.MD5(Md5Util.MD5(user.getPassword())+userBean.getSalt());
 		if(password.equals(userBean.getPassword())){
 			return new Response(Constant.SUCCESS_CODE,"登录成功！",userBean);
+			
 		}else{
 			return new Response(Constant.ERROR_CODE,"密码错误！");
 		}
@@ -102,8 +104,26 @@ public class UserServiceImplWithJpa implements UserService {
 
 	@Override
 	public Response save(User user) {
-		// TODO Auto-generated method stub
-		return null;
+		boolean existsById = user.getId() != null && userRepos.existsById(user.getUsername());
+		if(existsById){
+			return new Response(Constant.ERROR_CODE,"用户名已存在");
+		}
+		String password = user.getPassword();
+		// 生成一个随机字符串用来加密密码
+		String salt = StrUtil.randomStr(Constant.SALT_LENGTH);
+		// 重新生成加密后的密码
+		password = Md5Util.MD5(Md5Util.MD5(password)+salt);
+		if(user.getId() == null){
+			String id = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+			user.setId(id);
+		}
+		user.setSalt(salt);
+		user.setPassword(password);
+		user.setState(Constant.ACTIVATE_SATE);
+		
+		User save = userRepos.save(user);
+		
+		return new Response(Constant.SUCCESS_CODE,"保存成功",save);
 	}
 
 	@Override
@@ -112,6 +132,11 @@ public class UserServiceImplWithJpa implements UserService {
 		Page<User> page = userRepos.findAll((root,query,cb)->{
 			Path<Integer> path = root.get("state");
 			Predicate notEqual = cb.notEqual(path, Constant.DELETE_STATE);
+			String keyword = bean.getKeyword();
+			if(!StringUtils.isEmpty(keyword)){
+				Predicate like = cb.like(root.get("username"), "%"+bean.getKeyword()+"%");
+				return cb.and(notEqual,like);
+			}
 			return notEqual;
 		},pageRequest);
 		Response res = new Response(Constant.SUCCESS_CODE,"查询成功",page);

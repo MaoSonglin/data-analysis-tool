@@ -2,7 +2,6 @@ package dat.domain;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -15,7 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author MaoSonglin
  *
  */
-@Entity
+//@Entity
+@Deprecated
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class ForeignKey implements Serializable{
 	

@@ -1,7 +1,10 @@
 package dat.config;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,6 +18,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -89,8 +93,29 @@ public class MyConfigurer implements WebMvcConfigurer {
 	public void addViewControllers(ViewControllerRegistry registry) {
 		// 
 		registry.addViewController("/").setViewName("index.html");
+//		registry.addViewController("/report/publish.html").setViewName("report/publish.html");
 	}
 
+
+	@Bean
+	public Converter<String, Date> stringToDate() {
+		Converter<String, Date> converter = new Converter<String,Date>(){
+
+			@Override
+			public Date convert(String source) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+				try {
+					log.debug(source);
+					return sdf.parse(source);
+				} catch (ParseException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+			
+		};
+		return converter;
+	}
 	/**
 	 * 配置数据源
 	 * @return

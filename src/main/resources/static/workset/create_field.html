@@ -15,14 +15,14 @@
 				<div class="form-group">
 				</div>
 				<ul class="nav nav-tabs">
-					<li class="active"><a href="#普通区" data-toggle = "tab" >普通字段</a></li>
+					<!-- <li class="active"><a href="#普通区" data-toggle = "tab" >普通字段</a></li> -->
 					<li><a href="#分类区" data-toggle="tab">分类字段</a></li>
 				</ul>
 				<div id="" class="tab-content">
-					<div class="tab-pane fade in active" id="普通区">
+					<!-- <div class="tab-pane fade in active" id="普通区">
 						这里是编辑普通字段
-					</div>
-					<div class="tab-pane fade" id="分类区">
+					</div> -->
+					<div class="tab-pane fade in active" id="分类区">
 						<form action="#" class="form-horizontal" method="get" id="form1">
 							<div class="form-group">
 								
@@ -74,7 +74,8 @@
 								<label class="control-label col-md-2 col-sm-2">分类标准</label>
 								<div class="col-md-6 col-sm-8">
 									<input type="hidden" name="o" id="o" value="" />
-									<input class="file-loading" type="file" name="file" id="file" value=""placeholder="请上传分类标准" />
+									<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">上传分类文件</button>
+									<!-- <input class="file-loading" type="file" name="file" id="file" value=""placeholder="请上传分类标准" /> -->
 								</div>
 							</div>
 							<div class="form-group">
@@ -91,6 +92,24 @@
 								</div>
 							</div>
 						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="modal fade" id="uploadModal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h3 class="modal-title">文件上传</h3>
+					</div>
+					<div class="modal-body">
+						<input type="file" name="file" id="file" value=""  class="file-loading" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 					</div>
 				</div>
 			</div>

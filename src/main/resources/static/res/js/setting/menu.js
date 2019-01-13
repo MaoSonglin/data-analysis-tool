@@ -203,6 +203,9 @@ function drawForm(){
 		form.on("switch(expand)",function(data){
 			addMenuVue.menu.state = data.elem.checked ? 'closed' : ''
 		})
+		form.on("radio(level)",function(data){
+			addMenuVue.menu.level = data.value
+		})
 	})
 	
 }

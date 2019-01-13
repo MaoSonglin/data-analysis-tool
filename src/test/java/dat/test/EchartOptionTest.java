@@ -2,6 +2,9 @@ package dat.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -42,4 +45,12 @@ public class EchartOptionTest {
 		System.out.println(readValue);
 	}
 	
+	@Test
+	public void Run3() throws ParseException{
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SZ");
+		String format = sdf.format(new Date());
+		System.out.println(format);
+		Date parse = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse("2019-01-12T12:36:25.714+0000");
+		System.out.println(parse);
+	}
 }

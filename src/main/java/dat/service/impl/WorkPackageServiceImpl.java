@@ -13,8 +13,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
+
+
+
+
+
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
+
+
+
+
+
+
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +40,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+
+
+
+
+
+
 import dat.controller.WorkPackageController.ExcludeTable;
 import dat.domain.DataTable;
+import dat.domain.Relevance;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
 import dat.repos.DataTableRepository;
+import dat.repos.RelevanceRepository;
 import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
@@ -164,7 +184,22 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		// 保存虚拟数据表
 		List<VirtualTable> saveAll = vtRepos.saveAll(virtualTables);
 		// 保存虚拟字段
-		vcRepos.saveAll(virtualColumnList);
+		List<VirtualColumn> list = vcRepos.saveAll(virtualColumnList);
+		
+		// 关联关系
+		for(int i = 0, size = list.size(); i < size-1; i++){
+			for(int j = i+1; j < size; j++){
+				VirtualColumn v1 = list.get(i);
+				VirtualColumn v2 = list.get(j);
+				if(v1.getName().equalsIgnoreCase(v2.getName()) && ! v1.getName().equalsIgnoreCase("id")){
+					Relevance relevance = new Relevance();
+					relevance.setColumn1(v1);
+					relevance.setColumn2(v2);
+					relevance.setStrong(1000f);
+					context.getBean(RelevanceRepository.class).save(relevance);
+				}
+			}
+		}
 		
 		// 将虚拟数据表和数据包关联
 		workPackage.getTables().addAll(saveAll);

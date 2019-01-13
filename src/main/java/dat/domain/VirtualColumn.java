@@ -11,8 +11,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -51,15 +49,15 @@ public class VirtualColumn implements Serializable{
 	 * 字段备注
 	 */
 	private String remask;
-	
+	/*
 	@OneToOne(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="foreignColumn")
 	@JsonIgnore
 	private Reference reference;
-	
+	*//*
 	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedColumn")
 	@JsonIgnore
 	private List<Reference> referencedBy;
-	
+	*/
 //	@OneToOne(fetch=FetchType.EAGER,targetEntity=VirtualColumn.class)
 //	@JoinColumn(referencedColumnName="id")
 //	private VirtualColumn relation;
@@ -108,7 +106,7 @@ public class VirtualColumn implements Serializable{
 		return name;
 	}
 
-	public Reference getReference() {
+	/*public Reference getReference() {
 		return reference;
 	}
 
@@ -122,7 +120,7 @@ public class VirtualColumn implements Serializable{
 
 	public void setReferencedBy(List<Reference> referencedBy) {
 		this.referencedBy = referencedBy;
-	}
+	}*/
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
@@ -225,7 +223,7 @@ public class VirtualColumn implements Serializable{
 
 	
 	public String getRela(){
-		Reference reference = getReference();
+		/*Reference reference = getReference();
 		if(reference != null){
 			VirtualTable virtualTable = reference.getReferencedTable();
 			String chinese = virtualTable.getChinese();
@@ -234,7 +232,7 @@ public class VirtualColumn implements Serializable{
 			chinese = virtualColumn.getChinese();
 			String columnName = chinese == null ? virtualColumn.getName() : chinese;
 			return tableName+"."+columnName;
-		}
+		}*/
 		return null;
 	}
 }

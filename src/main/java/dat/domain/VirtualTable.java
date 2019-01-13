@@ -57,17 +57,17 @@ public class VirtualTable implements IdGeneratorable{
 	/**
 	 * 该表引用的其他对象
 	 */
-	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="primaryTable")
+/*	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="primaryTable")
 	@JsonIgnore
-	private List<Reference> references;
+	private List<Reference> references;*/
 	
 	/**
 	 * 引用该表的对象
 	 */
-	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedTable")
+/*	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedTable")
 	@JsonIgnore
 	private List<Reference> referencedBy;
-
+*/
 	public VirtualTable() {
 		super();
 	}
@@ -144,7 +144,7 @@ public class VirtualTable implements IdGeneratorable{
 	}
 
 	 
-	public List<Reference> getReferences() {
+	/*public List<Reference> getReferences() {
 		return references;
 	}
 
@@ -158,7 +158,7 @@ public class VirtualTable implements IdGeneratorable{
 
 	public void setReferencedBy(List<Reference> referencedBy) {
 		this.referencedBy = referencedBy;
-	}
+	}*/
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;

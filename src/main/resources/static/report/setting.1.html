@@ -152,6 +152,9 @@
 								<div class="col-sm-10 col-sm-offset-2">
 									<div class="checkbox">
 										<label class="checkbox-inline">
+											<input type="checkbox"v-model="setting.title.show"/>
+											显示标题</label>
+										<label class="checkbox-inline">
 											<input type="checkbox" v-model="setting.xAxis.show"/>显示X轴
 										</label>
 										<label class="checkbox-inline">
@@ -173,6 +176,32 @@
 									</div>
 								</div>
 							</div><!-- 显示配置 -->
+							
+							<template v-if="setting.title.show">
+								<div class="form-group form-group-sm">
+									<label class="control-label col-sm-2">标题位置</label>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<span class="input-group-addon">水平</span>
+											<select class="form-control" name="" v-model="setting.title.left">
+												<option value="left">左</option>
+												<option value ="right">右</option>
+											<option value ="center">居中</option>
+											</select>
+										</div>
+									</div>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<span class="input-group-addon">垂直</span>
+											<select class="form-control" name="" v-model="setting.title.top">
+												<option value="top">顶部</option>
+												<option value ="bottom">底部</option>
+											<option value ="middle">居中</option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</template>
 							
 							<!-- x轴配置 -->
 							<div class="form-group form-group-sm" v-if="setting.xAxis.show">
@@ -215,27 +244,31 @@
 							</div><!-- y轴配置 -->
 							
 							<!-- 图例 -->
-							<div class="form-group form-group-sm" v-if="setting.legend.show">
-								<label class="control-label col-sm-2">图例</label>
-								<div class="col-sm-4">
-									<div class="input-group">
-										<span class="input-group-addon">类型</span>
-										<select class="form-control" v-model="setting.legend.type">
-											<option :value="'plain'">普通图例</option>
-											<option :value="'scroll'">可滚动图例</option>
-										</select>
+							<template v-if="setting.legend.show">
+								<div class="form-group form-group-sm" >
+									<label class="control-label col-sm-2">图例</label>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<span class="input-group-addon">类型</span>
+											<select class="form-control" v-model="setting.legend.type">
+												<option :value="'plain'">普通图例</option>
+												<option :value="'scroll'">可滚动图例</option>
+											</select>
+										</div>
 									</div>
-								</div>
-								<div class="col-sm-4">
-									<div class="input-group">
-										<span class="input-group-addon">方向</span>
-										<select class="form-control" v-model="setting.legend.orient">
-											<option value="horizontal">水平</option>
-											<option value ="vertical">垂直</option>
-										</select>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<span class="input-group-addon">方向</span>
+											<select class="form-control" v-model="setting.legend.orient">
+												<option value="horizontal">水平</option>
+												<option value ="vertical">垂直</option>
+											</select>
+										</div>
 									</div>
-								</div>
-							</div><!-- 图例 -->
+								</div><!-- 图例 -->
+								<position v-bind:obj="setting.legend" v-bind:label="'图例位置'" v-bind:width="'col-sm-4'"></position>
+							</template>
+							
 							
 							<!-- 工具栏 -->
 							<div class="form-group form-group-sm" v-if="setting.toolbox.show">
@@ -401,5 +434,6 @@
 	<script src="../res/js/my-tree.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/layui/lay/modules/layer.js" charset="UTF-8"></script>
 	<script src="../static/plugins/bootstrap/plugins/bootstrap-treeview/bootstrap-treeview.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="component.js" type="text/javascript" charset="utf-8"></script>
 	<script src="setting.1.js" type="text/javascript" charset="utf-8"></script>
 </html>

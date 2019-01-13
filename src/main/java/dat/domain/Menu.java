@@ -36,6 +36,8 @@ public class Menu {
     private String iconCls;
     
     private String state;
+    
+    private Integer level;
 
     public String getUrl() {
 		return url;
@@ -61,6 +63,14 @@ public class Menu {
 
 	public void setState(String state) {
 		this.state = state;
+	}
+
+	public Integer getLevel() {
+		return level;
+	}
+
+	public void setLevel(Integer level) {
+		this.level = level;
 	}
 
 	public Integer getPid() {

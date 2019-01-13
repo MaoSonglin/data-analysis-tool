@@ -34,7 +34,7 @@ public class UserController implements Serializable {
 	@RequestMapping(value="/add",method=RequestMethod.POST)
 	public Response add(User user){
 		log.info(user);
-		return userService.register(user.getUsername(), user.getPassword());
+		return userService.save(user);
 	}
 	
 	@PostMapping("/login")
@@ -42,13 +42,21 @@ public class UserController implements Serializable {
 			Boolean autologin,HttpServletRequest req,HttpServletResponse res ,
 			HttpSession session){
 		Response response = userService.login(user);
+		if(response.getCode() == Constant.SUCCESS_CODE){
+			session.setAttribute(Constant.SESSION_USER_BEAN, response.getData());
+			log.debug("用户'"+user.getUsername()+"'登录系统");
+		}
 		return response;
 	}
 
 	@RequestMapping("/logout")
 	public Response logout(HttpServletRequest req,HttpServletResponse response,HttpSession session){
 		// 让session失效
-		session.invalidate();
+		User user = (User) session.getAttribute(Constant.SESSION_USER_BEAN);
+		if(user != null){
+			log.debug("用户"+user.getUsername()+"登出系统");
+			session.invalidate();
+		}
 		// 消除自动登录的cookie
 //		setAutoLoginCookie(null,req,response,0);
 		return new Response(Constant.SUCCESS_CODE);

@@ -6,7 +6,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import dat.domain.Reference;
 import dat.domain.VirtualColumn;
@@ -16,6 +15,7 @@ import dat.repos.VirtualColumnRepository;
 import dat.util.Constant;
 import dat.vo.Response;
 
+@Deprecated
 public interface ReferenceService {
 
 	/**
@@ -31,7 +31,8 @@ public interface ReferenceService {
 
 }
 
-@Service
+//@Service
+@Deprecated
 class ReferenceServiceImpl implements ReferenceService{
 	
 	@Autowired

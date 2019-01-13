@@ -1,5 +1,6 @@
 package dat.domain;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,7 +15,12 @@ import org.springframework.cglib.proxy.MethodProxy;
 
 @Entity
 @Table(name="t_user")
-public class User {
+public class User implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8677548115671041462L;
 
 	@Id
 	private String id;
@@ -26,6 +32,8 @@ public class User {
 	private String salt;
 	
 	private Date createTime;
+	
+	private Integer role;
 	
 	private Integer state;
 
@@ -63,6 +71,14 @@ public class User {
 
 	
 
+	public Integer getRole() {
+		return role;
+	}
+
+	public void setRole(Integer role) {
+		this.role = role;
+	}
+
 	public Date getCreateTime() {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(Date.class);
@@ -93,11 +109,12 @@ public class User {
 		this.state = state;
 	}
 
+	
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", password="
 				+ password + ", salt=" + salt + ", createTime=" + createTime
-				+ ", state=" + state + "]";
+				+ ", role=" + role + ", state=" + state + "]";
 	}
 
 	@Override

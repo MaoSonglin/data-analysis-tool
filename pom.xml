@@ -105,11 +105,6 @@
 		<version>5.1.6</version>
 	</dependency>
 	<dependency>
-		<groupId>oracle</groupId>
-		<artifactId>OracleDriver</artifactId>
-		<version>5</version>
-	</dependency>
-	<dependency>
 	    <groupId>commons-dbutils</groupId>
 	    <artifactId>commons-dbutils</artifactId>
 	    <version>1.6</version>
@@ -129,7 +124,12 @@
 	    <artifactId>poi-ooxml</artifactId>
 	    <version>3.17</version>
 	</dependency>
-	
+
+	<dependency>
+		<groupId>oracle</groupId>
+		<artifactId>OracleDriver</artifactId>
+		<version>5</version>
+	</dependency>
   </dependencies>
 
   <build>

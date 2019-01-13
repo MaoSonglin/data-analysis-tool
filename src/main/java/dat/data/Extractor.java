@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@Deprecated
 public class Extractor implements Iterable<Map<String,String>>,Closeable,Iterator<Map<String,String>>{
 	
 	private static Logger logger = LoggerFactory.getLogger(Extractor.class);

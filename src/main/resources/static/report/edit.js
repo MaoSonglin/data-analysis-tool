@@ -49,10 +49,10 @@
 				echartClick : function(graph,param){
 					for(let i in this.components){
 						let c = this.components[i]
-						if(c.graph.parent && c.graph.parent == graph.id){
-							// if(c.setOption) c.setOption(data)
+// 						if(c.graph.parent && c.graph.parent == graph.id){
+// 							// if(c.setOption) c.setOption(data)
+// 						}
 							c.$emit("parentEvent",param)
-						}
 					}
 				},
 				del : function(e){ // 删除

@@ -9,16 +9,32 @@
 	<body>
 		<div class="container" id="app">
 			<div class="">
-				<button type="button" class="btn btn-default" data-toggle="modal" data-target="#addDialog">添加用户</button>
+				<div class="form-group">
+				</div>
+				<form class="form-inline" action="#" method="post">
+					<div class="form-group">
+						<label class="control-label sr-only" for="searchKey">用户名</label>
+						<input class="form-control" type="text" name="keywork" id="keywork"
+						 v-model="page.keyword" placeholder="搜索" @change="getPages(page)" />
+					</div>
+					<div class="form-group">
+						<button type="button" class="btn btn-primary" @click="getPages(page)">搜索</button>
+					</div>
+					<div class="form-group">
+						<button type="button" class="btn btn-default" @click="addUser()">添加用户</button>
+					</div>
+				</form>
+				<div class="form-group">
+				</div>
 				<table class="table table-striped">
 					<tr>
-						<th>编号</th><th>用户名</th><th>添加时间</th><th>状态</th><th>操作</th>
+						<th>编号</th><th>用户名</th><th>添加时间</th><th>角色</th><th>操作</th>
 					</tr>
 					<tr v-for="(user,index) in users">
 						<td v-html="index+1 + (page.curPage - 1) * page.pageSize"></td>
 						<td v-html="user.username"></td>
-						<td v-html="user.createTime"></td>
-						<td v-html="user.state"></td>
+						<td v-html="getTime(user.createTime)"></td>
+						<td v-html="getRole(user.role)"></td>
 						<td>
 							<div class="btn-group btn-group-sm">
 								<button type="button" class="btn btn-primary dropdown-toggle btn-sm" data-toggle="dropdown">
@@ -26,7 +42,7 @@
 								</button>
 								<ul class="dropdown-menu">
 									<li ><a href="javascript:void(0);" @click="remove(user,$event)">删除</a></li>
-									<!-- <li><a href="javascript:void(0);" @click="edit(user,$event)">修改</a></li> -->
+									<li><a href="javascript:void(0);" @click="edit(user,$event)">修改</a></li>
 								</ul>
 							</div>
 						</td>
@@ -47,22 +63,36 @@
 						<form id="addform" action="#" method="post" class="form-horizontal">
 							<div class="form-group">
 								<label class="control-label col-md-2" for="username">用户名</label>
-								<div class="col-md-10">
-									<input type="text"class="form-control" id="username" name="username" v-model="user.username" placeholder="请输入用户名"/>
+								<div class="col-md-8">
+									<input type="text"class="form-control" id="username" name="username"
+									 v-model="user.username" placeholder="请输入用户名" autocomplete="off" v-bind:readonly="user.id" />
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="control-label col-md-2">密码</label>
-								<div class="col-md-10">
-									<input type="password" class="form-control" name="password" id="password" v-model="user.password" placeholder="请输入密码"/>
+								<label class="control-label col-md-2">用户角色</label>
+								<div class="col-md-8">
+									<select class="form-control" v-model="user.role">
+										<option value ="1">浏览用户</option>
+										<option value ="2">业务人员</option>
+										<option value ="3">管理员</option>
+									</select>
 								</div>
 							</div>
-							<div class="form-group">
-								<label class="control-label col-md-2" for="repassword">确认密码</label>
-								<div class="col-md-10">
-									<input type="password" name="repassword" id="repassword" class="form-control" v-model="user.repassword" placeholder="请输入确认密码" />
+							<template v-if="!user.id">
+								<div class="form-group">
+									<label class="control-label col-md-2">密码</label>
+									<div class="col-md-8">
+										<input type="password" class="form-control" name="password" id="password"
+										 v-model="user.password" placeholder="请输入密码" autocomplete="off" />
+									</div>
 								</div>
-							</div>
+								<div class="form-group">
+									<label class="control-label col-md-2" for="repassword">确认密码</label>
+									<div class="col-md-8">
+										<input type="password" name="repassword" id="repassword" class="form-control" v-model="user.repassword" placeholder="请输入确认密码" />
+									</div>
+								</div>
+							</template>
 							<!-- <input type="submit" value=""/> -->
 						</form>
 					</div>
@@ -96,7 +126,8 @@
 					curPage : 1,
 					pageSize : 5,
 					totalCount : 0,
-					totalPage : 1
+					totalPage : 1,
+					keyword : ""
 				}
 			},
 			created : function(){
@@ -151,13 +182,33 @@
 						}
 					})
 				},
+				addUser : function(){
+					dialog.$emit("add",{})
+				},
 				edit : function(user,event){
 					dialog.$emit("edit",user)
+				},
+				getRole : function(index){
+					if(index != undefined && index != null){
+						let a = ["浏览用户","业务人员","管理员"]
+						return a[index-1]
+					}
+					return "未定义"
+				},
+				getTime : function(timestr){
+					return new Date(Date.parse(timestr)).toLocaleDateString()
 				}
 			},
 			mounted : function(){
 				
+			},
+			filters : {
+				getRole : function(value){
+					console.log("getRole",value)
+					return "管理员"
+				}
 			}
+		
 		})
 		
 		vue.$on("refresh",function(){
@@ -168,12 +219,14 @@
 			rules : {
 				username : {required: true},
 				password : {required : true},
-				repassword : {equalTo : "#password"}
+				repassword : {equalTo : "#password"},
+				role : {required : true}
 			},
 			messages : {
 				username : {required:"请输入用户名"},
 				password : {required:"请输入密码"},
-				repassword : {equalTo : "两次密码输入不一致"}
+				repassword : {equalTo : "两次密码输入不一致"},
+				role : {required:"请选择用户"}
 			},
 			errorPlacement : function(error,element){
 				error.css("color","red").insertAfter(element)
@@ -205,6 +258,11 @@
 				let form = this.$el.querySelector("form")
 				$(form).validate(options)
 			}
+		})
+		dialog.$on("add",function(user){
+			this.user = user
+			this.title = "添加用户"
+			$("#addDialog").modal("show")
 		})
 		dialog.$on("edit",function(user){
 			this.user = user

@@ -36,12 +36,14 @@ public class DSController {
 	 * @param pageSize	每页显示大小
 	 * @return	
 	 */
-	@RequestMapping(method=RequestMethod.GET,value={"/page","/{curPage}/{pageSize}/{keyword}"})
+	@RequestMapping(method=RequestMethod.GET,value={"/page"})
 	public Response list( String keyword,
 			Integer curPage,
 			 Integer pageSize){
 		log.info("分页查询数据源：curPage="+curPage+"，pageSize="+pageSize+"，keywork="+keyword);
-		Response response = dsService.list(new PagingBean(curPage-1,pageSize));
+		PagingBean pagingBean = new PagingBean(curPage-1,pageSize);
+		pagingBean.setKeyword(keyword);
+		Response response = dsService.list(pagingBean);
 		return response;
 	}
 	
@@ -122,4 +124,8 @@ public class DSController {
 		return new Response(Constant.SUCCESS_CODE,"提取成功",source);
 	}
 	
+	@RequestMapping("/excel/append")
+	public Response append(@RequestBody List<ExcelSheet> sheets,String id,String fileId) throws Exception{
+		return dsService.append(sheets,id,fileId);
+	}
 }

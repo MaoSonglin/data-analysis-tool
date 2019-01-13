@@ -73,7 +73,7 @@
 							</div>
 							<div class="layui-card-body">
 								<!-- 显示 -->
-								<table class="layui-table" lay-even >
+								<table class="layui-table" lay-even v-if="menu.id">
 									<colgroup>
 										<col width="200">
 										<col />
@@ -97,10 +97,10 @@
 										<td>状态(state)</td>
 										<td v-html="menu.state=='closed' ? '折叠':'展开'"></td>
 									</tr>
-									<!-- <tr>
-										<td>样式(cssclass)</td>
-										<td v-html="menu.cssclass"><i ></i></td>
-									</tr> -->
+									<tr>
+										<td>权限等级(level)</td>
+										<td v-html="menu.level+'级'"><i ></i></td>
+									</tr>
 									<tr>
 										<td>图标(icon)</td>
 										<td v-html="menu.iconCls"></td>
@@ -140,6 +140,14 @@
 						v-model="menu.title" class="layui-input" placeholder="请输入后指针提示" /> -->
 						<input type="checkbox" name="state" v-model="menu.state" value="closed" lay-skin="switch" lay-text="折叠|展开" lay-filter="expand" />
 						<!-- <input type="radio" name="state" id="state" value="" /> -->
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">权限</label>
+					<div class="layui-input-block">
+						<input type="radio" name="level" lay-filter="level" value="1" v-model="menu.level" title="一级" />
+						<input type="radio" name="level" lay-filter="level" value="2" v-model="menu.level" title="二级" />
+						<input type="radio" name="level" lay-filter="level" value="3" v-model="menu.level" title="三级" />
 					</div>
 				</div>
 				<div class="layui-form-item">

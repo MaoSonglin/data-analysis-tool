@@ -81,4 +81,6 @@ public interface DataSourceService {
 	 * @throws IOException 
 	 */
 	List<String> getSpecifyRow(String id, String sheetName, Integer row) throws IOException;
+
+	Response append(List<ExcelSheet> sheets, String id, String fileId) throws Exception;
 }

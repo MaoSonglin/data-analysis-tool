@@ -55,19 +55,19 @@
 			tooltip: {},
 			dataset: {
 				source: [
-					['product', '2012', '2013', '2014', '2015','2012'],
+					['product', '2012', '2013', '2014', '2015','2018'],
 					['Matcha Latte', 41.1, 30.4, 65.1, 53.3,9],
 					['Milk Tea', 86.5, 92.1, 85.7, 83.1,10],
-					['Cheese Cocoa', 24.1, 67.2, 79.5, 86.4,11]
+					['Cheese Cocoa', 24.1, 67.2, 79.5, 86.4,98]
 				]
 			},
 			xAxis: [
 				{type: 'category', gridIndex: 0},
-				{type: 'category', gridIndex: 1}
+				{type: 'value', gridIndex: 1}
 			],
 			yAxis: [
 				{gridIndex: 0},
-				{gridIndex: 1}
+				{gridIndex: 1,type : "category"}
 			],
 			grid: [
 				{bottom: '55%'},
@@ -82,7 +82,7 @@
 				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1, radius:['50%','75%']},
 				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1},
 				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1},
-				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1,center : ['70%','50%'],encode : {itemName:'product',value:'2013'}}
+				{type: 'bar', xAxisIndex: 1, yAxisIndex: 1,encode : {x : "2018",y:"product"}}
 			]
 		}
 

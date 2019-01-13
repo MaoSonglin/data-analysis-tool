@@ -14,9 +14,23 @@ public class GraphDrillData {
 	
 	private String itemName;
 	
+	private String oldName;
+	
 	private List<String> seriesName;
 	
 	private List<String> wheres;
+	
+	private List<Serie> series;
+	
+	private Boolean tag;
+
+	public Boolean getTag() {
+		return tag;
+	}
+
+	public void setTag(Boolean tag) {
+		this.tag = tag;
+	}
 
 	public String getGraphId() {
 		return graphId;
@@ -40,14 +54,22 @@ public class GraphDrillData {
 		return wheres;
 	}
 
+
 	public void setWheres(List<String> wheres) {
 		this.wheres = wheres;
 	}
 
 	@Override
 	public String toString() {
-		String jsonString = JSON.toJSONString(this);
-		return jsonString;
+		return JSON.toJSONString(this);
+	}
+
+	public String getOldName() {
+		return oldName;
+	}
+
+	public void setOldName(String oldName) {
+		this.oldName = oldName;
 	}
 
 	public String getItemName() {
@@ -66,5 +88,11 @@ public class GraphDrillData {
 		this.seriesName = seriesName;
 	}
 
-	
+	public List<Serie> getSeries() {
+		return series;
+	}
+
+	public void setSeries(List<Serie> series) {
+		this.series = series;
+	}
 }

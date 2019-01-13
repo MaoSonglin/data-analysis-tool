@@ -188,3 +188,17 @@ function showModalDialog(title,selector,callback,destory){
 	} 
 	
 	
+	
+	function Stack(){
+		this.array = new Array()
+		this.top = function(){
+			return this.array[this.array.length-1]
+		}
+		this.pop = function(){
+			return this.array.pop()
+		}
+		this.push = function(obj){
+			this.array.push(obj);
+		}
+	}
+	

@@ -2,10 +2,11 @@ package dat.vo;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import dat.vo.EchartOptions.Encode;
 import dat.vo.EchartOptions.ItemStyle;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -23,7 +24,7 @@ public class Serie implements Serializable {
 	
 	private List<Object> data;
 	
-	private Map<String,Object> encode;
+	private Encode encode;
 	
 	private ItemStyle itemStyle;
 
@@ -40,13 +41,6 @@ public class Serie implements Serializable {
 		this.seriesLayoutBy = seriesLayoutBy;
 	}
 
-	public Map<String, Object> getEncode() {
-		return encode;
-	}
-
-	public void setEncode(Map<String, Object> encode) {
-		this.encode = encode;
-	}
 
 	public String getType() {
 		return type;
@@ -103,9 +97,15 @@ public class Serie implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Serie [type=" + type + ", name=" + name + ", columnId="
-				+ columnId + ", seriesLayoutBy=" + seriesLayoutBy
-				+ ", itemStyle=" + itemStyle + "]";
+		return JSON.toJSONString(this);
+	}
+
+	public Encode getEncode() {
+		return encode;
+	}
+
+	public void setEncode(Encode encode) {
+		this.encode = encode;
 	}
 	
 	

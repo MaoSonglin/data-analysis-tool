@@ -49,19 +49,6 @@ public class DataTable implements IdGeneratorable,Serializable{
 	@JsonIgnore
 	private List<TableColumn> columns;
 	
-	/**
-	 * 当前数据表中包含的外键数组
-	 */
-	@OneToMany(targetEntity=ForeignKey.class,fetch=FetchType.LAZY,mappedBy="foreignTable")
-	@JsonIgnore
-	private List<ForeignKey> foreignKeys;
-	
-	/**
-	 * 参考了当前数据表的外键
-	 */
-	@OneToMany(targetEntity=ForeignKey.class,fetch=FetchType.LAZY,mappedBy="primaryTable")
-	@JsonIgnore
-	private List<ForeignKey> quotes;
 	
 	private Date addTime;
 	
@@ -158,37 +145,7 @@ public class DataTable implements IdGeneratorable,Serializable{
 		this.columns = columns;
 	}
 
-	/**
-	 * 返回当前数据表的外键
-	 * @return
-	 */
-	public List<ForeignKey> getForeignKeys() {
-		return foreignKeys;
-	}
-
-	/**
-	 * 设置当前数据表的外键
-	 * @param foreignKeys
-	 */
-	public void setForeignKeys(List<ForeignKey> foreignKeys) {
-		this.foreignKeys = foreignKeys;
-	}
-
-	/**
-	 * 返回参考了当前数据表的外键
-	 * @return
-	 */
-	public List<ForeignKey> getQuotes() {
-		return quotes;
-	}
-
-	/**
-	 * 设置参考了当前数据表的外键
-	 * @param quotes
-	 */
-	public void setQuotes(List<ForeignKey> quotes) {
-		this.quotes = quotes;
-	}
+	
 
 	@Override
 	public int hashCode() {

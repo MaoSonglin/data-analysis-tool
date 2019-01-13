@@ -3,6 +3,9 @@ package dat.vo;
 import java.util.List;
 
 public class ExcelSheet {
+	
+	private Boolean append;
+	
 	private String sheetName;
 	
 	private String chineseName;
@@ -119,6 +122,14 @@ public class ExcelSheet {
 		if(fieldNames == null)
 			return columnNames;
 		return fieldNames;
+	}
+
+	public Boolean getAppend() {
+		return append;
+	}
+
+	public void setAppend(Boolean append) {
+		this.append = append;
 	}
 
 	public void setFieldNames(List<String> fieldNames) {

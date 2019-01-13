@@ -50,7 +50,7 @@
 					<div class="col-sm-4">
 						<div class="input-group">
 							<span class="input-group-addon">横坐标</span>
-							<input type="number" class="form-control" name="xAxisIndex" id="xAxisIndex" value="" v-model="serie.center[0]"  />
+							<input type="number" class="form-control" name="xAxisIndex" id="xAxisIndex" value="" v-model="center1"  />
 							<span class="input-group-addon">%</span>
 						</div>
 					</div>
@@ -60,7 +60,7 @@
 					<div class="col-sm-4">
 						<div class="input-group">
 							<span class="input-group-addon">纵坐标</span>
-							<input type="number" class="form-control" name="xAxisIndex" id="xAxisIndex" value="" v-model="serie.center[1]" />
+							<input type="number" class="form-control" name="xAxisIndex" id="xAxisIndex" value="" v-model="center2" />
 							<span class="input-group-addon">%</span>
 						</div>
 					</div>
@@ -70,11 +70,11 @@
 				<div class="form-group">
 					<label class="control-label col-sm-2">颜色</label>
 					<div class="col-sm-4">
-						<input type="text" class="form-control" v-model="serie.itemStyle.color" name="color" id="color" value="" />
+						<input type="text" class="form-control" v-model="serie.itemStyle.color" name="color" id="color" />
 					</div>
 					<label class="control-label col-sm-2">边框颜色</label>
 					<div class="col-sm-4">
-						<input type="text" class="form-control" v-model="serie.itemStyle.borderColor" name="borderColor" id="borderColor" value="" />
+						<input type="text" class="form-control" v-model="serie.itemStyle.borderColor" name="borderColor" id="borderColor" />
 					</div>
 				</div>
 				<div class="form-group">
@@ -89,6 +89,17 @@
 						</select>
 					</div>
 				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2">半径</label>
+					<div class="col-sm-4">
+						<div class="input-group">
+							<input type="number" class="form-control" v-model="radius1" name="borderWidth" id="color" value="" />
+							<span class="input-group-addon">~</span>
+							<input class="form-control" type="number" v-model="radius2" name="" id="" value="" />
+						</div>
+					</div>
+				</div>
+				<!-- <position v-bind:obj=""></position> -->
 				<!-- itemStyle -->
 				
 				
@@ -103,6 +114,7 @@
 	<script src="../../../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../component.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		let report = JSON.parse(sessionStorage.report)
 		new Vue({
@@ -121,11 +133,27 @@
 					xAxisIndex : 0,
 					yAxisIndex : 0,
 					center : ["50%","50%"]
-				}
+				},
+				radius1 : 50,
+				radius2 : 50,
+				center1 : 50,
+				center2 : 50
 			},
 			created : function(){
 				let tmp = JSON.parse(sessionStorage.serie)
 				this.serie = concat(this.serie,tmp)
+				try{
+					this.radius1 = toNumber(this.serie.radius[0])
+					this.radius2 = toNumber(this.serie.radius[1])
+				}catch(e){
+					//TODO handle the exception
+				}
+				try{
+					this.center1 = toNumber(this.serie.center[0])
+					this.center2 = toNumber(this.serie.center[1])
+				}catch(e){
+					//TODO handle the exception
+				}
 			},
 			methods : {
 				getColumns : function(){
@@ -134,7 +162,30 @@
 			},
 			updated : function(){
 				sessionStorage.serie = JSON.stringify(this.serie)
+			},
+			watch : {
+				"center1":function(newVal){
+					this.serie.center = [this.center1+"%",this.center2+"%"]
+				},
+				"center2" : function(newVal){
+					this.serie.center = [this.center1+"%",this.center2+"%"]
+				},
+				"radius1" : function(newVal){
+					this.serie.radius = [this.radius1+"%",this.radius2+"%"]
+				},
+				"radius2" : function(newVal){
+					this.serie.radius = [this.radius1+"%",this.radius2+"%"]
+				}
 			}
 		})
+		
+		function toNumber(baifenbi){
+			let index = baifenbi.indexOf("%")
+			if(index > -1){
+				let x = baifenbi.substring(0,index)
+				return parseFloat(x)
+			}
+			return 50
+		}
 	</script>
 </html>

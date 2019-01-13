@@ -6,10 +6,29 @@
 		<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/css/bootstrap.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../../static/plugins/layui/css/modules/layer/default/layer.css"/>
+			<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/plugins/bootstrap-fileinput/css/fileinput.min.css"/>
+			<link rel="stylesheet" type="text/css" href="../../static/plugins/bootstrap/plugins/bootstrap-fileinput/css/fileinput-rtl.min.css"/>
+		
 	</head>
+		<div class="modal fade" id="uploadModal" role="modal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h3 class="modal-title">上传文件</h3>
+					</div>
+					<div class="modal-body">
+						<input type="file" name="file" id="txt_file" class="file-loading" data-allowed-file-extensions='["xls","xlsx"]' placeholder="请选择文件" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="container" id="app">
 			<div id="" class="row">
-				<form action="#" method="post" class="form-horizontal">
+				<form action="#" method="post" class="form-horizontal" v-if="true">
 					<div class="form-group">
 						
 					</div>
@@ -22,7 +41,10 @@
 						</div>
 						<label class="control-label col-md-2">数据库表：</label>
 						<div class="col-md-4">
-							<input class="form-control" type="text"v-model="sheets[sheetIndex].tableName" />
+							<select name="" class="form-control" @change="getFields($event)">
+								<option :value="table.id" v-for="(table,index) in tables">{{table.chinese?table.chinese:table.name}}</option>
+							</select>
+							<!-- <input class="form-control" type="text"v-model="sheets[sheetIndex].tableName" /> -->
 						</div>
 					</div>
 					<div class="form-group">
@@ -72,27 +94,25 @@
 						<label class="control-label col-md-2"></label>
 						<div class="col-md-10" style="max-height: 300px;overflow: auto;">
 							<table class="table table-striped">
-								<tr><th></th><th>栏位</th><th>列名</th><th>中文名称</th><th>类型</th><th>长度</th><th>主键</th></tr>
+								<tr><th></th><th>栏位</th><th>列名</th></tr>
 								<tr v-for="(name,index) in sheets[sheetIndex].columnNames">
 									<td><input type="checkbox" v-bind:value="name" v-model="sheets[sheetIndex].columnNames" /></td>
 									<td  class="form-group-sm"><input type="text" class="form-control" v-bind:value="name" readonly="readonly"/></td>
-									<td  class="form-group-sm"><input type="text" class="form-control" v-model="sheets[sheetIndex].fieldNames[index]" autocomplete="off"/></td>
-									<td  class="form-group-sm"><input type="text" class="form-control" v-bind:value="name" autocomplete="off"/></td>
-									<td>
-										<div class="form-group-sm">
-											<select class="form-control" v-model="sheets[sheetIndex].types[index]">
-												<option value ="String">字符串</option>
-												<option value ="Number">数字</option>
-												<option value ="Date">日期</option>
-											</select>
-										</div>
+									<td  class="form-group-sm">
+										<select class="form-control" v-model="sheets[sheetIndex].fieldNames[index]">
+											<option v-for="(field,j) in fields" v-bind:value="field.columnName" v-html="field.chinese?field.chinese:field.columnName" v-bind:selected="index == j"></option>
+										</select>
 									</td>
-									<td><div class="form-group-sm">
-										<input type="number" class="form-control" v-model="sheets[sheetIndex].lengths[index]"/>
-									</div></td>
-									<td  class="form-group-sm"><input type="radio" name="primaryKey" id="" v-bind:value="name" v-model="sheets[sheetIndex].primaryKey" /></td>
 								</tr>
 							</table>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-10 col-md-offset-2">
+							<div class="radio">
+								<label class="radio-inline"><input type="radio" name="append" v-model="sheets[sheetIndex].append" value="true" />追加</label>
+								<label class="radio-inline"><input type="radio" name="append" v-model="sheets[sheetIndex].append" value = "false"/>覆盖</label>
+							</div>
 						</div>
 					</div>
 					<div class="form-group">
@@ -109,38 +129,37 @@
 	<script src="../../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/plugins/bootstrap/plugins/bootstrap-fileinput/js/fileinput.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/plugins/bootstrap/plugins/bootstrap-fileinput/js/zh.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../static/plugins/layui/lay/modules/layer.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		Vue.http.options.withCredentials=true
 		Vue.http.options.emulateJSON=true
-		let sheets
-		$.ajax({
-			url : basePath + "ds/excel",
-			data : {
-				id : getParameter("id")
-			},
-			async : false,
-			dataType : "json",
-			success : function(res){
-				sheets = res.data
-			},
-			xhrFields : {
-				withCredentials : true
-			}
-		})
-		// let sheets = JSON.parse(localStorage.excel)
-		// delete localStorage.excel
-		console.log(sheets)
+		
 		let vue = new Vue({
 			el : "#app",
 			data : {
-				sheets : sheets,
-				sheetIndex : 0
+				ds : JSON.parse(sessionStorage.source),
+				sheets : [{}],
+				sheetIndex : 0,
+				tables : [],
+				fields : [],
+				url : "ds/excel/append",
+				file : null
 			},
 			created : function(){
-				
+				this.$http.get(basePath+"ds/"+this.ds.id+"/tables").then(function(res){
+					this.tables = res.body.data
+					this.getFields({target:{value:this.tables[0].id}})
+				})
+				this.$on("sheets",function(sheets){
+					this.$set(this,"sheets",sheets)
+				})
+				this.$on("fileInfo",function(file){
+					this.file = file
+				})
 			},
 			methods : {
 				save : function(){
@@ -149,7 +168,7 @@
 						btn : ["确认","取消"]
 					},(index,layero)=>{
 						layer.close(index)
-						Vue.http.post(basePath+"ds/excel",JSON.stringify(this.sheets),{params:{id:getParameter("id")},emulateJSON:false}).then(function(res){
+						Vue.http.post(basePath+this.url,JSON.stringify(this.sheets),{params:{id:getParameter("id"),fileId:this.file.id},emulateJSON:false}).then(function(res){
 							layer.msg(res.body.message)
 							setTimeout(function(){
 								if(window.parent.closeActive){
@@ -163,15 +182,56 @@
 				},
 				getNewRow : function(event){
 					let row = event.target.value
-					this.$http.get(basePath+"ds/excel/"+getParameter("id")+"/"+this.sheets[this.sheetIndex].sheetName+"/"+row).then(function(res){
+					this.$http.get(basePath+"file/excel/row?id="+this.file.id+"&sheetName="+this.sheets[this.sheetIndex].sheetName+"&index="+row).then(function(res){
 						this.sheets[this.sheetIndex].columnNames = res.body.data
 					})
 				},
+				getFields : function(event){
+					let id = event.target.value
+					this.$http.get(basePath+"tab/"+id+"/columns").then(function(res){
+						this.$set(this,"fields",res.body.data)
+					})
+				}
 			},
 			updated : function(){
 				
 			}
 		})
+		
+		$(function () {
+			$("#txt_file").fileinput({
+				language : 'zh',
+				uploadUrl : basePath + "file/upload",
+				allowedFileExtensions : ['xls','xlsx'],
+				showUpload : true,
+				showCaption : true,
+				browseClass : "btn btn-primary",
+				dropZoneEnabled : true,
+				maxFileCount : 10,
+				maxFileSize : 1024 * 100,
+				enctype: 'multipart/form-data',
+				validateInitialCount:true,
+				previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
+				msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+			})
+			$("#txt_file").on("fileuploaded",function(event, data, previewId, index){
+				let res = data.response;
+				vue.$emit("fileInfo",res.data)
+				$.ajax({
+					url : basePath+"file/excel",
+					data : res.data,
+					success : function(res){
+						vue.$emit("sheets",res.data)
+						vue.sheetIndex = 0
+					},
+					error : function(){
+						layer.msg("文件解析错误")
+					}
+				})
+				$("#uploadModal").modal("hide")
+			})
+			$("#uploadModal").modal("show")
+		});
 		
 	</script>
 </html>

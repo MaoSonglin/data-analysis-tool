@@ -19,10 +19,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import dat.App;
 import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
-import dat.service.ReferenceService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
 import dat.vo.PkgPageBean;
@@ -75,8 +73,6 @@ public class WorkPackageController {
 		String jsonString = JSON.toJSONString(new Response(Constant.SUCCESS_CODE,"查询成功"));
 		JSONObject object = JSON.parseObject(jsonString);
 		object.put("tables", jsonArray);
-		String writeValueAsString = objectMapper.writeValueAsString(App.getContext().getBean(ReferenceService.class).findByPkgId(id));
-		object.put("refs", JSON.parseArray(writeValueAsString));
 //		response.addHeader("", "");
 		response.setContentType("application/json;charset=utf-8");
 		return object.toJSONString();

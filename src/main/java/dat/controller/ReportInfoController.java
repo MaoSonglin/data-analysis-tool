@@ -106,8 +106,8 @@ public class ReportInfoController {
 	}
 	
 	
-	@DeleteMapping("/{id}")
-	public Response delete(@PathVariable String id){
+	@DeleteMapping()
+	public Response delete(String id){
 		Response response = reportInfoService.delete(id);
 		return response;
 	}

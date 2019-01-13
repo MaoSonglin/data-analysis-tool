@@ -2,11 +2,13 @@
 package dat.controller;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import dat.domain.UploadFile;
 import dat.service.UploadFileService;
 import dat.util.Constant;
+import dat.vo.ExcelSheet;
 import dat.vo.Response;
 
 /**
@@ -103,4 +106,16 @@ public class UploadFileController {
 		Response response = fileService.delete(id);
 		return response;
 	}
+	
+	@RequestMapping("/excel")
+	public Response excel(String id){
+		List<ExcelSheet> sheets = fileService.getExcel(id);
+		return new Response(Constant.SUCCESS_CODE,"解析成功",sheets);
+	}
+	
+	@RequestMapping("/excel/row")
+	public Response getRow(String id,String sheetName,Integer index) throws FileNotFoundException, IOException{
+		return fileService.getRow(id,sheetName,index);
+	}
+	
 }

@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 
 
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 
+
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.repos.DataTableRepository;
@@ -34,6 +36,7 @@ import dat.service.DataSourceService;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
+@SuppressWarnings("deprecation")
 public class ExtractorTest {
 
 	@Autowired	

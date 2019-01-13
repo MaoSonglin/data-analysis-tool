@@ -13,11 +13,62 @@
 		<div id="wrapper">
 			<table class="layui-table" id="ds-table" lay-filter='table1231231'></table>
 		</div>
+		<div class="" id="dialog" style="display: none;margin: 10px;">
+			<table class="layui-table">
+				<colgroup>
+					<col width="180">
+					<col>
+				</colgroup>
+				<thead>
+				</thead>
+				<tbody>
+					<tr>
+						<td>名称</td>
+						<td v-html="ds.name"></td>
+					</tr>
+					<tr>
+						<td>数据源类型</td>
+						<td v-html="ds.databaseName"></td>
+					</tr>
+					<tr>
+						<td>驱动</td>
+						<td v-html="ds.driverClass"></td>
+					</tr>
+					<tr>
+						<td>URL</td>
+						<td v-html="ds.url"></td>
+					</tr>
+					<tr>
+						<td>用户名</td>
+						<td v-html="ds.username"></td>
+					</tr>
+					<tr>
+						<td>添加时间</td>
+						<td v-html="ds.addTime"></td>
+					</tr>
+					<tr>
+						<td>描述</td>
+						<td v-html="ds.desc"></td>
+					</tr>
+					<tr v-if="ds.association">
+						<td>更新数据</td>
+						<td><button type="button" id="uploadBtn" class="layui-btn layui-btn-xs layui-btn-primary"><i class="layui-icon layui-icon-upload"></i>上传</button></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</body>
 	<script type="text/html" id="toolbar">
 		<div class="layui-row">
 			<div class="layui-inline">
-				<h4>数据源列表</h4>		
+				<div class="form-group" style="margin-bottom: 0;">
+					<input type="form-control" name="keyword" id="keyword" value="" 
+						placeholder="查询" onchange="search(this)" />
+				</div>
+				<!-- <h4>数据源列表</h4>		 -->
+			</div>
+			<div class="layui-inline">
+				<button type="button" class="btn btn-primary btn-sm" id="searchBtn" lay-event="search">查询</button>
 			</div>
 			<div class="layui-inline">
 				<div class="btn-group">
@@ -58,7 +109,7 @@
 				  ,{field:'driverClass', width:120, title: '驱动程序',edit:'text'}
 				  ,{field:'url', title: 'URL', width: 120,edit:'text'} //minWidth：局部定义当前单元格的最小宽度，layui 2.2.1 新增
 				  ,{field:'username', title: '用户名',width : 80,edit:'text'}
-				  ,{field:'password', title: '密码',width : 80,edit:'text'}
+				  // ,{field:'password', title: '密码',width : 80,edit:'text'}
 				  ,{field:'databaseName', title: '数据源类型',width:80,edit:'text'}
 				  ,{field:'desc', title: '描述',minWidth:250,edit:'text'},
 				  {fixed: 'right', title:'操作', toolbar: '#tool', width:160}
@@ -86,11 +137,43 @@
 				switch(data.event){
 					case 'add-ds':
 					$('.dropdown-toggle').dropdown("toggle")
-					window.parent.addParentTab({href:'datasource/add.html',title:'添加数据源'})
+					if(window.parent.addParentTab){
+						window.parent.addParentTab({href:'datasource/add.html',title:'添加数据源'})
+					}else{
+						window.open("add.html")
+					}
 					break;
 					case 'add-excel':
 					$('.dropdown-toggle').dropdown("toggle")
-					window.parent.addParentTab({href:'datasource/excel/add-excel.html',title:'添加excel表格'})
+					if(window.parent.addParentTab){
+						window.parent.addParentTab({href:'datasource/excel/add-excel.html',title:'添加excel表格'})
+					}else{
+						window.open("excel/add-excel.html")
+					}
+					break
+					case 'search': // 搜索
+					let keword = $("#keyword").val()
+					tabIns.reload({
+						page : true,
+						request : {
+							pageName : 'curPage',
+							limitName : 'pageSize'
+						},
+						parseData : function(res){
+							return {
+								"code" : res.code,
+								"msg" : res.message,
+								"data" : res.data.content,
+								"count" : res.data.totalElements
+							}
+						},
+						response : {
+							statusCode : 1
+						},
+						where : {
+							keyword : keword
+						}
+					})
 					break
 				}
 			})
@@ -102,7 +185,8 @@
 					window.parent.addParentTab({href:'datasource/ds-tables.html?dsid='+data.data.id,title:data.data.name})
 					break;
 					case 'detail':
-					layer.msg(JSON.stringify(data.data))
+					// layer.msg(JSON.stringify(data.data))
+					dialog.$emit("show",data.data)
 					break;
 					case 'delete':
 					layer.confirm("您确定要删除本条数据吗？",{
@@ -143,6 +227,61 @@
 					}
 				})
 			})
+			
 		})
+		
+		let dialog = new Vue({
+			el:"#dialog",
+			data : {
+				ds : {}
+			},
+			created : function(){
+				
+			},
+			methods : {
+				render : function(){
+					layui.use("upload",function(){
+						layui.upload.render({
+							elem : "#uploadBtn",
+							accept : "file",
+							field : "file",
+							multiple : "false",
+							url : basePath+"/file/upload",
+							done : function(res){
+								layer.msg(JSON.stringify(res))
+							}
+						})
+					})
+				}
+			},
+			mounted : function(){
+				// this.render()
+			},
+			updated : function(){
+				// this.render()
+				$("#uploadBtn").click((e)=>{
+					sessionStorage.source = JSON.stringify(this.ds)
+					if(window.parent.addParentTab){
+						window.parent.addParentTab({title:"更新数据",href:"datasource/excel/update.html?id="+this.ds.id})
+					}else{
+						window.open("../datasource/excel/update.html?id="+this.ds.id)
+					}
+				})
+			}
+		})
+		dialog.$on("show",function(ds){
+			this.ds = ds
+			layer.open({
+				title : ds.name,
+				type : 1,
+				area : ["600px","450px"],
+				content : $("#dialog"),
+				btn : ["确定"],
+				end : function(){
+					$("#dialog").hide()
+				}
+			})
+		})
+		
 	</script>
 </html>

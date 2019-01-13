@@ -26,6 +26,7 @@ import dat.service.DataSourceService;
 import dat.service.DataTableService;
 import dat.util.FormulaParser;
 
+@SuppressWarnings("deprecation")
 public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 	
 	private static Logger logger = LoggerFactory.getLogger(TableDataAdapter.class);
@@ -89,7 +90,7 @@ public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 	 * @param foreignKeys
 	 * @param list
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused" })
 	private void join(JoinFragment joinFragment, List<DataTable> tables,
 			List<ForeignKey> foreignKeys, List<TableColumn> list) {
 		for (ForeignKey foreignKey : foreignKeys) {

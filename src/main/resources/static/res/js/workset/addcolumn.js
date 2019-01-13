@@ -68,6 +68,13 @@ let vue = new Vue({
 				if(res.body.code){
 					this.field = {}
 					delete this.file
+					setTimeout(function(){
+						if(window.parent.closeActive){
+							window.parent.closeActive()
+						}else{
+							window.close()
+						}
+					},2000)
 				}
 			})
 		},

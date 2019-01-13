@@ -1,13 +1,22 @@
 package dat.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.criteria.Predicate;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import dat.domain.Menu;
+import dat.domain.User;
 import dat.repos.MenuRepository;
 import dat.service.MenuService;
 import dat.util.Constant;
@@ -16,6 +25,8 @@ import dat.vo.Response;
 @Service
 @Transactional
 public class MenuServiceImplWithJpa implements MenuService {
+	
+	private static Logger logger = LoggerFactory.getLogger(MenuServiceImplWithJpa.class);
 	
 	@Autowired
 	MenuRepository menuRepos;
@@ -75,13 +86,27 @@ public class MenuServiceImplWithJpa implements MenuService {
 
 	@Override
 	public List<Menu> getChildrenByPid(Integer pid) {
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpSession session = requestAttributes.getRequest().getSession();
+		User user = (User) session.getAttribute(Constant.SESSION_USER_BEAN);
+		if(user == null) {
+			logger.debug("用户未登录系统");
+			return new ArrayList<>();
+		}
+		logger.debug(user.toString());
 		List<Menu> menus = menuRepos.findAll((root,query,cb)->{
+			Predicate to = cb.lessThanOrEqualTo(root.get("level"), user.getRole());
 			if(pid == null){
-				return cb.isNull(root.get("pid"));
+				Predicate predicate = cb.isNull(root.get("pid"));
+				Predicate and = cb.and(to,predicate);
+				return and;
 			}else{
-				return cb.equal(root.get("pid"), pid);
+				Predicate equal = cb.equal(root.get("pid"), pid);
+				Predicate and = cb.and(to,equal);
+				return and;
 			}
 		});
+		logger.debug(menus.toString());
 		return menus;
 	}
 

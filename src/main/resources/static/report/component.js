@@ -127,29 +127,15 @@ let component = Vue.component("echart", {
 // 		this.drillList = []
 // 		this.wheres = []
 		let series = this.graph.option.series
-		this.drillData = {}
-		let drillData = this.drillData
-		for(let i in series){
-			let serie = series[i]
-			let name = 'x',category = 'y'
-			if(serie.type == 'pie'){
-				name = "itemName"
-				category = 'value'
-			}
-			if(!drillData.itemName){
-				drillData.graphId = this.graph.id
-				drillData.itemName = serie.encode[name]
-				drillData.seriesName = []
-				drillData.wheres = []
-			}
-			drillData.seriesName.push(serie.encode[category])
-		}
-		this.getData(drillData)
+		this.drillData = {newCategory:null,oldCategory:null,graphId:this.graph.id,wheres:[]},
+		this.stack = new Stack()
+		this.getData(this.drillData)
 	},
 	mounted: function() {
 		this.echart = echarts.init(this.$el.querySelector(".echart"))
 		this.graph.option = JSON.parse(this.graph.options)
 		this.echart.setOption(this.graph.option)
+		this.echart.showLoading()
 		console.log(JSON.parse(this.graph.options))
 		this.$emit("draw",this.echart)
 		this.echart.on("click",(param)=>{
@@ -157,7 +143,7 @@ let component = Vue.component("echart", {
 			this.$emit("echart",param)
 		})
 		this.echart.on("datazoom",param=>{
-			this.$emit("echart",param)
+			// this.$emit("echart",param)
 		})
 		let drill = false,param = null
 		this.echart.on('mouseover',(args)=>{
@@ -216,11 +202,51 @@ let component = Vue.component("echart", {
 			}
 		})
 		this.$emit("mounted",this)
+		
+		this.$on("parentEvent",function(param){
+			// alert("parentEvent")
+			// console.log(param)
+			let option = {type:param.type}
+			switch(param.type){
+				case 'datazoom':
+				option.type = 'dataZoom'
+				option.start = param.start,
+				option.end = param.end
+				break;
+				case 'mouseover' :
+				// option.startValue = param.dataIndex
+				this.echart.dispatchAction({
+					type : 'highlight',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				this.echart.dispatchAction({
+					type : 'showTip',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				break;
+				case 'mouseout':
+				this.echart.dispatchAction({
+					type :'downplay',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				this.echart.dispatchAction({
+					type : 'hideTip',
+					seriesIndex : param.seriesIndex,
+					dataIndex : param.dataIndex
+				})
+				break
+			}
+			this.echart.dispatchAction(option)
+		})
 	},
 	methods : {
 		getData : function(data){
 			console.log(data)
 			this.$http.post(basePath+"graph/drill",tile(data)).then(function(res){
+				console.log(res.body.data)
 				if(res.body.data){
 					formatOption(this.graph.option,res.body.data)
 					this.echart.clear()
@@ -236,8 +262,10 @@ let component = Vue.component("echart", {
 		},
 		drillDown : function(param){ // 下钻
 			let serie = this.graph.option.series[param.seriesIndex],value = param.name
-			let itemName = serie.encode[serie.type == "pie" ? "itemName" : "x"]
-			this.drillData.wheres.push(itemName)
+			// 1. 获取之前的分类维度名称
+			let encode = standard(this.graph.option.xAxis,serie)
+			// let itemName = serie.encode[serie.type == "pie" ? "itemName" : "x"]
+			this.drillData.wheres.push(encode.itemName)
 			this.drillData.wheres.push(value)
 			// this.request()
 			showDialog(this.categories.filter(elem=>{
@@ -250,11 +278,27 @@ let component = Vue.component("echart", {
 			}),(id)=>{
 				for(let i in this.categories){
 					if(this.categories[i].id == id){
-						this.drillData.itemName = this.categories[i].name
-						this.graph.option.xAxis.name=this.categories[i].chinese?this.categories[i].chinese:this.categories[i].name
-						for(let j in this.graph.option.series){
-							let serie = this.graph.option.series[j]
-							serie.encode[serie.type == "pie" ? "itemName" : "x"] = this.categories[i].name
+						let category = this.categories[i]
+						this.stack.push(category)
+						
+						// 上一次查询的分类标准
+						// this.drillData.oldCategory = encode.itemName
+						// 新的分类标准
+						this.drillData.itemName = category.name
+						// 更新坐标轴名称
+						if(this.graph.option.xAxis){
+							this.setAxisName(category.chinese?category.chinese:category.name)
+						}
+						let oldName = encode.itemName
+						// 更新各个系列的维度解析方式
+						for(let i in this.graph.option.series){
+							let serie = this.graph.option.series[i]
+							let encode = standard(this.graph.option.xAxis,serie)
+							
+							// 只更新维度相同的系列
+							if(encode.itemName == oldName){
+								serie.encode[encode.index] = category.name
+							}
 						}
 						break
 					}
@@ -270,31 +314,41 @@ let component = Vue.component("echart", {
 			}
 		},
 		setAxisName : function(itemName){
-			for(let i in this.categories){
-				if(this.categories[i].name == itemName){
-					this.graph.option.xAxis.name = this.categories[i].chinese?this.categories[i].chinese:this.categories[i].name
-					break
+			if(this.graph.option.xAxis){
+				if(!this.graph.option.yAxis.type || this.graph.option.yAxis.type == 'value'){
+					this.graph.option.xAxis.name = itemName
+				}else{
+					this.graph.option.yAxis.name = itemName
 				}
 			}
 		},
 		drillUp : function(param){
 			this.drillData.wheres.pop()
-			let itemName = this.drillData.wheres.pop()
+			this.drillData.wheres.pop()
 			
-			this.setSeriesName(itemName)
-			
-			this.setAxisName(itemName)
-			
-			if(itemName){
-				this.drillData.itemName = itemName
-				this.$emit("drill",this.drillData)
+			let pop = this.stack.pop()
+			let top = this.stack.top()
+			if(top){
+				for(let i in this.graph.option.series){
+					let serie = this.graph.option.series[i]
+					let encode = standard( this.graph.option.xAxis,serie)
+					if(encode.itemName == pop.name){
+						serie.encode[encode.index] = top.name
+					}
+				}
+				this.setAxisName(top.chinese?top.chinese:top.name)
+			}else{
+				this.graph.option = JSON.parse(this.graph.options)
+				delete this.drillData.itemName 
 			}
+			this.$emit("drill",this.drillData)
 		},
 		drill : function(param){
 			if(param != this.drillData){
 				param.itemName = this.drillData.itemName
 			}
 			this.echart.showLoading()
+			param.series = this.graph.option.series
 			this.getData(param)
 		},
 		rotate : function(){
@@ -305,19 +359,15 @@ let component = Vue.component("echart", {
 				for(let i in this.categories){
 					if(this.categories[i].id == id){
 						column = this.categories[i]
-						this.graph.option.xAxis.name=column.chinese?column.chinese : column.name,
-						this.drillData.itemName = column.name
+						this.setAxisName(column.chinese?column.chinese : column.name)
 						break
 					}
 				}
 				
 				for(let i in this.graph.option.series){
 					let serie = this.graph.option.series[i]
-					if(serie.type == 'line' || serie.type == 'bar'){
-						serie.encode.x = column.name
-					}else{
-						serie.encode.itemName = column.name
-					}
+					let enc = standard(this.graph.option.xAxis,serie)
+					serie.encode[enc.index] = column.name
 				}
 				this.$emit("drill",this.drillData)
 			})
@@ -325,7 +375,29 @@ let component = Vue.component("echart", {
 	}
 })
 
-
+var standard = function(axis,serie){
+	let oldCategory = null
+	let index = null
+	switch(serie.type){
+		case 'pie':
+		oldCategory = serie.encode.itemName
+		index = 'itemName'
+		break
+		case 'line':
+		case 'bar':
+		if(axis && axis.type != 'value'){
+			oldCategory = serie.encode.x
+			index = 'x'
+		}else{
+			oldCategory = serie.encode.y
+			index = 'y'
+		}
+		break
+		default:
+		break
+	}
+	return {itemName : oldCategory , index : index}
+}
 
 
 Vue.component("subchart",{
@@ -585,35 +657,35 @@ function pie(myOption,newOption){
 
 Vue.component("position",{
 	template : '<div><div class="form-group form-group-sm">'+
-					'<label class="control-label col-sm-2">位置</label>'+
-					'<div class="col-sm-5">'+
+					'<label class="control-label col-sm-2">{{label}}</label>'+
+					'<div :class="width" class="col-sm-5">'+
 						'<div class="input-group">'+
 							'<span class="input-group-addon bg-success">左边</span>'+
 							'<input class="form-control" type="number" v-model="obj.left" id="obj.left" placeholder="组件距容器左边的距离" />'+
-							'<span class="input-group-addon">%</span>'+
+							'<span class="input-group-addon">px</span>'+
 						'</div>'+
 					'</div>'+
-					'<div class="col-sm-5">'+
+					'<div :class="width" class="col-sm-5">'+
 						'<div class="input-group">'+
 							'<span class="input-group-addon bg-success">右边</span>'+
-							'<input class="form-control" type="number" v-model="obj.left" id="obj.right" placeholder="组件距容器右边的距离" />'+
-							'<span class="input-group-addon">%</span>'+
+							'<input class="form-control" type="number" v-model="obj.right" id="obj.right" placeholder="组件距容器右边的距离" />'+
+							'<span class="input-group-addon">px</span>'+
 						'</div>'+
 					'</div>'+
 				'</div>'+
 				'<div class="form-group form-group-sm">'+
-					'<div class="col-sm-5 col-sm-offset-2">'+
+					'<div :class="width+ \' col-sm-offset-2\'" class="col-sm-5 col-sm-offset-2">'+
 						'<div class="input-group">'+
 							'<span class="input-group-addon bg-success">顶部</span>'+
-							'<input class="form-control" type="number" v-model="obj.left" id="obj.top" placeholder="组件距容器顶部的距离" />'+
-							'<span class="input-group-addon">%</span>'+
+							'<input class="form-control" type="number" v-model="obj.top" id="obj.top" placeholder="组件距容器顶部的距离" />'+
+							'<span class="input-group-addon">px</span>'+
 						'</div>'+
 					'</div>'+
-					'<div class="col-sm-5">'+
+					'<div :class="width" class="col-sm-5">'+
 						'<div class="input-group">'+
 							'<span class="input-group-addon bg-success">底部</span>'+
-							'<input class="form-control" type="number" v-model="obj.left" id="obj.bottom" placeholder="组件距容器底部的距离" />'+
-							'<span class="input-group-addon">%</span>'+
+							'<input class="form-control" type="number" v-model="obj.bottom" id="obj.bottom" placeholder="组件距容器底部的距离" />'+
+							'<span class="input-group-addon">px</span>'+
 						'</div>'+
 					'</div>'+
 				'</div></div>',
@@ -621,6 +693,14 @@ Vue.component("position",{
 		obj : {
 			type : Object,
 			required : true
+		},
+		label : {
+			type : String,
+			default : "位置"
+		},
+		width : {
+			type :String,
+			default : "col-sm-5"
 		}
 	}
 })

@@ -60,17 +60,17 @@
 				<div class="form-group">
 					<label class="control-label col-sm-2">颜色</label>
 					<div class="col-sm-4">
-						<input type="text" class="form-control" v-model="serie.itemStyle.color" name="color" id="color" value="" />
+						<input type="text" class="form-control" v-model="serie.itemStyle.color" name="color" id="color" />
 					</div>
 					<label class="control-label col-sm-2">边框颜色</label>
 					<div class="col-sm-4">
-						<input type="text" class="form-control" v-model="serie.itemStyle.borderColor" name="borderColor" id="borderColor" value="" />
+						<input type="text" class="form-control" v-model="serie.itemStyle.borderColor" name="borderColor" id="borderColor"  />
 					</div>
 				</div>
 				<div class="form-group">
 					<label class="control-label col-sm-2">边框宽度</label>
 					<div class="col-sm-4">
-						<input type="number" class="form-control" v-model="serie.itemStyle.borderWidth" name="borderWidth" id="color" value="" />
+						<input type="number" class="form-control" v-model="serie.itemStyle.borderWidth" name="borderWidth" id="" value="" />
 					</div>
 					<label class="control-label col-sm-2">边框类型</label>
 					<div class="col-sm-4">
@@ -92,7 +92,10 @@
 	<script src="../../../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../component.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
-		let report = JSON.parse(sessionStorage.report)
+		let report = null
+		if(sessionStorage.report){
+			report = JSON.parse(sessionStorage.report)
+		}
 		new Vue({
 			el : "#app",
 			data : {
@@ -112,17 +115,36 @@
 				obj:{}
 			},
 			created : function(){
-				let tmp = JSON.parse(sessionStorage.serie)
-				this.serie = concat(this.serie,tmp)
+				if(sessionStorage.serie){
+					let tmp = JSON.parse(sessionStorage.serie)
+					this.serie = concat(this.serie,tmp)
+				}
 			},
 			methods : {
 				getColumns : function(){
+					if(this.report)
 					return this.report.columns
+					else return []
 				}
 			},
 			updated : function(){
 				sessionStorage.serie = JSON.stringify(this.serie)
+			},
+			mounted : function(){
+				setTimeout(color,1000)
 			}
 		})
+		function color(){
+			layui.use('colorpicker', function(){
+				var colorpicker = layui.colorpicker;
+			   
+				colorpicker.render({
+					elem: "#color"
+					,change: function(color){
+					  console.log(color)
+					}
+				});
+			});
+		}
 	</script>
 </html>

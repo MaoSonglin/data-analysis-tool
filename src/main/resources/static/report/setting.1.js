@@ -220,7 +220,6 @@
 			},
 			"setting.tooltip.show" : function(newVal,oldVal){
 				if(newVal){
-					this.setting.tooltip.trigger = 'axis'
 					this.setting.tooltip.axisPointer =  {
 							type: 'shadow',
 							label: {

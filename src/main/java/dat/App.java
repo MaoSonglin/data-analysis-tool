@@ -28,6 +28,7 @@ public class App extends SpringBootServletInitializer implements ApplicationCont
     	int beanDefinitionCount = context.getBeanDefinitionCount();
     	Logger log = Logger.getLogger(App.class);
     	log.info("创建了"+beanDefinitionCount+"个对象...");
+    	Runtime.getRuntime().exec("cmd /c start http://localhost:8088/login.html");
     }
 
 	@Override

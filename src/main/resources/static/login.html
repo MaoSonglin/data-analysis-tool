@@ -232,9 +232,12 @@
                     type: 'POST',
                     url: basePath+'user/login',
                     data: formData,//JSON.stringify(formData),
+					xhrFields : {
+						withCredentials : true
+					},
                     success: function (data) {
                         if (data.code == 1) {
-                            location.href = basePath+"index.html";
+                            location.href = "index.html";
                         } else {
 							alert(data.message)
                         }

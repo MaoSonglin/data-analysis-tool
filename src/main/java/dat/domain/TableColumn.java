@@ -10,11 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -28,7 +23,6 @@ import dat.util.StrUtil;
 @Entity
 public class TableColumn implements IdGeneratorable{
 
-	private static Logger logger = LoggerFactory.getLogger(TableColumn.class);
 	
 	private static final long serialVersionUID = 5234868668420594840L;
 
@@ -61,9 +55,9 @@ public class TableColumn implements IdGeneratorable{
 	/**
 	 * 当前字段作为外键，参考其他表的信息
 	 */
-	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
-	@JsonIgnore
-	private ForeignKey foreignKey;
+//	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
+//	@JsonIgnore
+//	private ForeignKey foreignKey;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,mappedBy="refColumns",fetch=FetchType.LAZY)
 	@JsonIgnore
@@ -72,9 +66,9 @@ public class TableColumn implements IdGeneratorable{
 	/**
 	 * 引用当前字段的外键
 	 */
-	@OneToMany(targetEntity=ForeignKey.class,mappedBy="primaryColumn",fetch=FetchType.EAGER)
-	@JsonIgnore
-	private List<ForeignKey> quote;
+//	@OneToMany(targetEntity=ForeignKey.class,mappedBy="primaryColumn",fetch=FetchType.EAGER)
+//	@JsonIgnore
+//	private List<ForeignKey> quote;
 	
 	/*private Integer sqlDataType;
 	
@@ -236,32 +230,6 @@ public class TableColumn implements IdGeneratorable{
 	}
 
 	
-	public ForeignKey getForeignKey() {
-		return foreignKey;
-	}
-
-	public void setForeignKey(ForeignKey foreignKey) {
-		logger.debug("设置该字段的外键");
-		this.foreignKey = foreignKey;
-	}
-
-	/**
-	 * 获取引用该字段的外键
-	 * @return
-	 */
-	public List<ForeignKey> getQuote() {
-		return quote;
-	}
-
-	/**
-	 * 设置引用该字段的外键信息
-	 * @param quote
-	 */
-	public void setQuote(List<ForeignKey> quote) {
-		logger.debug("设置引用该字段的外键");
-		this.quote = quote;
-	}
-
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

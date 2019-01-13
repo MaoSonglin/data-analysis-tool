@@ -88,9 +88,9 @@
 								</ul> -->
 							</div>
 						</div>
-						<div class="layui-inline">
+					<!-- 	<div class="layui-inline">
 							<button type="button" class="btn btn-warning" @click="checkRelationShip()">查看关联关系</button>
-						</div>
+						</div> -->
 						<div class="layui-inline">
 							<button type="button" class="btn btn-info" @click="updateIndex(pkg.id,$event)">更新索引</button>
 						</div>
@@ -122,7 +122,7 @@
 									<th lay-data="{field:'name',edit:'text',minWidth:120}">名称</th>
 									<th lay-data="{field:'chinese',edit:'text',minWidth:140}">中文名称</th>
 									<th lay-data="{field:'typeName',width:120}">类型名称</th>
-									<th lay-data="{field:'rela',width:120,event:'setRelation'}">关联字段</th>
+									<!-- <th lay-data="{field:'rela',width:120,event:'setRelation'}">关联字段</th> -->
 									<th lay-data="{field:'remask',edit:'text',width:100}">备注</th>
 									<th lay-data="{fixed:'right',  toolbar: '#barDemo', width:120}">操作</th>
 								</tr>
@@ -148,7 +148,7 @@
 		<script type="text/html" id="tabtoolbar">
 			<button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-event='rmtab'>移除数据表</button>
 			<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event='addField'>新建字段</button>
-			<button type="button" class="layui-btn layui-btn-warm layui-btn-sm" lay-event='category'>字段聚类</button>
+			<!-- <button type="button" class="layui-btn layui-btn-warm layui-btn-sm" lay-event='category'>字段聚类</button> -->
 		</script>
 		<script type="text/html" id="barDemo">
 			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>

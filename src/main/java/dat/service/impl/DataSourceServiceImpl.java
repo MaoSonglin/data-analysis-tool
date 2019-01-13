@@ -1,7 +1,6 @@
 package dat.service.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -20,14 +19,11 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
-import javax.servlet.http.HttpServletRequest;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +31,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,8 +40,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.sqlite.JDBC;
 
 import com.alibaba.druid.pool.DruidDataSource;
@@ -56,7 +49,6 @@ import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.domain.UploadFile;
-import dat.repos.CustomerSpecs;
 import dat.repos.DataTableRepository;
 import dat.repos.DsRepository;
 import dat.repos.TableColumnRepository;
@@ -99,9 +91,18 @@ public class DataSourceServiceImpl implements DataSourceService {
 	EntityManager entityManager;
 	
 	public Response list(PagingBean pagingBean) {
-		logger.debug(pagingBean);
 		// 构建条件查询接口
-		Specification<Source> spec = CustomerSpecs.byKeyWord(Source.class,entityManager, pagingBean.getKeyword());
+		Specification<Source> spec = null;// CustomerSpecs.byKeyWord(Source.class,entityManager, pagingBean.getKeyword());
+		spec = (root,query,cb)->{
+			if(!StringUtils.isEmpty(pagingBean.getKeyword()))
+			{
+				Predicate like = cb.like(root.get("name"), "%"+pagingBean.getKeyword()+"%");
+				Predicate like2 = cb.like(root.get("chinese"), "%"+pagingBean.getKeyword()+"%");
+				return cb.or(like,like2);
+			}
+			
+			return null;
+		};
 		// 连接状态查询条件，过滤掉已经标记为删除状态的数据
 		Specification<Source> specification = spec.and(stateNotDelete);
 		// 构造分页接口
@@ -112,6 +113,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 		logger.debug("查询到记录条数："+page.getNumberOfElements());
 		// 返回数据类型
 		Response res = new Response(Constant.SUCCESS_CODE,"查询成功",page);
+		res.put("request", pagingBean);
 		return res;
 	}
 
@@ -153,7 +155,13 @@ public class DataSourceServiceImpl implements DataSourceService {
 				throw new RuntimeException(e);
 			}
 			// TODO 2. 读取数据表之间的关联关系
-			
+//			List<DataTable> tables = save.getTables();
+//			for (DataTable dataTable : tables) {
+//				List<TableColumn> columns = dataTable.getColumns();
+//				for (TableColumn tableColumn : columns) {
+//					tableColumn
+//				}
+//			}
 			response.setData(save);
 		}
 		
@@ -174,7 +182,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	private List<ExcelSheet> 解析Excel文件(Source save) throws IOException,
 			FileNotFoundException {
 		
-		try (Workbook workbook = getWorkbook(save)){
+		try (Workbook workbook = context.getBean(UploadFileService.class).getWorkbook(save.getAssociation());){
 			
 			List<ExcelSheet> list = new ArrayList<>();
 			for(int i = 0 , number = workbook.getNumberOfSheets(); i < number; i++){
@@ -223,60 +231,6 @@ public class DataSourceServiceImpl implements DataSourceService {
 		} finally {
 		}
 	}
-
-
-
-	/**
-	 * 获取Excel数据操作对象workbook
-	 * @param save
-	 * @return
-	 * @throws IOException
-	 * @throws FileNotFoundException
-	 */
-	private Workbook getWorkbook(Source save) throws IOException,
-			FileNotFoundException {
-		if(save.getAssociation()==null){
-			throw new IllegalArgumentException("this data source is not contain excel file");
-		}
-		Workbook workbook = null;
-		File file = getSourceFile(save);
-		
-		// 文件在文件保存目录下的虚拟路径
-		String virtualPath = save.getAssociation().getVirtualPath();
-
-		if(!file.isFile()){
-			throw new IllegalArgumentException("file '"+file.getAbsolutePath()+"' is not exist !");
-		}
-		if (virtualPath.endsWith(".xls")) {
-			workbook = new HSSFWorkbook(new FileInputStream(file));
-		} else if (virtualPath.endsWith(".xlsx")) {
-			workbook = new XSSFWorkbook(new FileInputStream(file));
-		} else {
-			throw new IllegalArgumentException("文件类型不匹配:" + virtualPath);
-		}
-		return workbook;
-	}
-
-
-
-	/**
-	 * @param save
-	 * @return
-	 */
-	private File getSourceFile(Source save) {
-		// springboot配置对象
-		Environment env = context.getBean(Environment.class);
-		// 获取HTTPServletRequest对象
-		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		HttpServletRequest request = requestAttributes.getRequest();
-		
-		// 文件保存目录
-		String dir = env.getProperty("file.upload.savepath", request.getServletContext().getRealPath("/WEB-INF/upload"));
-		// 文件对象
-		File file = Paths.get(dir,save.getAssociation().getVirtualPath()).toFile();
-		return file;
-	}
-
 
 
 	/**
@@ -468,7 +422,8 @@ public class DataSourceServiceImpl implements DataSourceService {
 		Source source = dsRepos.findById(id).get();
 		
 		// 获取Excel文件操作对象
-		try(Workbook workbook = getWorkbook(source);Connection conn = getConnection(source)){
+		try(Workbook workbook = context.getBean(UploadFileService.class).getWorkbook(source.getAssociation());
+				Connection conn = getConnection(source)){
 			conn.setAutoCommit(false);
 			// 将Excel的中数据转化为SQL语句的对象
 			ExcelCargador cargador = new ExcelCargador(workbook);
@@ -501,7 +456,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 			Source save = dsRepos.save(source);			
 			
 			// 删除Excel文件
-			File file = getSourceFile(save);
+			File file = context.getBean(UploadFileService.class).getFile(save.getAssociation());
 			file.delete();
 			// 更新数据源文件信息
 			UploadFile association = save.getAssociation();
@@ -509,8 +464,8 @@ public class DataSourceServiceImpl implements DataSourceService {
 			int lastIndexOf = fileName.lastIndexOf('.');
 			String dbFileName = fileName.substring(0, lastIndexOf);
 			String replace = association.getVirtualPath().replace(fileName, dbFileName);
-			association.setFileName(dbFileName);
-			association.setVirtualPath(replace);
+			association.setFileName(dbFileName+".db3");
+			association.setVirtualPath(replace+".db3");
 			context.getBean(UploadFileService.class).save(association);
 			
 			conn.commit();
@@ -593,7 +548,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	@Override
 	public List<String> getSpecifyRow(String id, String sheetName, Integer row) throws IOException {
 		Source source = dsRepos.findById(id).get();
-		Workbook workbook = getWorkbook(source);
+		Workbook workbook = context.getBean(UploadFileService.class).getWorkbook(source.getAssociation());
 		Sheet sheet = workbook.getSheet(sheetName);
 		Row row2 = sheet.getRow(row-1);
 		List<String> list = new ArrayList<>();
@@ -603,4 +558,68 @@ public class DataSourceServiceImpl implements DataSourceService {
 		}
 		return list;
 	}
+	
+	@Override
+	public Response append(List<ExcelSheet> sheets, String id, String fileId) throws Exception{
+		// 获取Excel表文件
+		UploadFileService uploadFileService = context.getBean(UploadFileService.class);
+		Workbook workbook = uploadFileService.getWorkbook(fileId);
+		// 数据源对象
+		Source source = dsRepos.findById(id).orElse(null);
+		// 数据源到jdbc操作模板对象
+		JdbcTemplate template = getTemplate(source);
+		// 自定义Excel文件解析工具类对象
+		ExcelCargador cargador = new ExcelCargador(workbook);
+		try(Connection conn = template.getDataSource().getConnection();){
+			conn.setAutoCommit(false);
+			for(ExcelSheet sheet : sheets){
+				// 设置Excel解析配置对象
+				cargador.setSheetConfig(sheet);
+				if(!sheet.getAppend()){
+					// 如果是覆盖
+					try(Statement st = conn.createStatement();){
+						String dropSql = cargador.dropSql();
+						String createSql = cargador.createSql();
+						st.addBatch(dropSql);
+						st.addBatch(createSql);
+						st.executeBatch();
+					};
+				}
+				// 插入SQL语句
+				String sql = cargador.insertSql();
+				try(PreparedStatement ps = conn.prepareStatement(sql);){
+					// 存放数据的列
+					int i = 1000;
+					int sum = 0;
+					
+					// 遍历Excel中的数据，将数据插入到数据中
+					for (List<String> list : cargador) {
+						int index = 1;
+						for (String str : list) {
+							ps.setString(index++, str);
+						}
+						ps.addBatch();
+						if(--i < 0){
+							i = 1000;
+							int[] batchUpdate = ps.executeBatch();
+							ps.clearBatch();
+							for (int j : batchUpdate) {
+								sum += j;
+							}
+						}
+					}
+					int[] batchUpdate = ps.executeBatch();
+					for (int j : batchUpdate) {
+						sum += j;
+					}
+					logger.debug("数据表'"+sheet.getTableName()+"'插入"+sum+"条数据");
+				}
+			}
+			conn.commit();
+		}
+		workbook.close();
+		uploadFileService.getFile(fileId).delete();
+		return new Response(Constant.SUCCESS_CODE,"更新成功");
+	}
+	
 }

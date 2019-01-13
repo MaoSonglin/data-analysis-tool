@@ -66,8 +66,12 @@
 			created : function(){
 				this.$http.get(basePath+"graph/"+getParameter("graphId")).then(function(res){
 					this.graph = res.body.data
-					this.graph.option =  JSON.parse(this.graph.options)
-					$("#content").val(vue.graph.option.content)
+					if(this.graph.options){
+						this.graph.option =  JSON.parse(this.graph.options)
+						$("#content").val(vue.graph.option.content)
+					}else{
+						this.graph.option = {}
+					}
 					new UE.ui.Editor({initialFrameHeight:300}).render("content")
 				})
 			},

@@ -19,7 +19,7 @@
 	<body>
 		<div id="app">
 			<template v-for="(graph,index) in graphs">
-				<div class="bg-info graph" :style="position(graph)">
+				<div class="graph" :style="position(graph)">
 					<echart v-if="graph.type=='graph'||graph.type=='child-graph'" v-bind:graph="graph" v-bind:id="'graph-'+index" v-bind:cls="'abs echart'"
 					  v-on:draw="afterDraw($event)" v-on:mounted="test($event)" 
 					  v-on:data="dataChange(graph,$event)"

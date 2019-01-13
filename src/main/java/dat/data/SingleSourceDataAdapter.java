@@ -30,6 +30,7 @@ import dat.service.TableColumnService;
 import dat.util.DialectUtil;
 import dat.util.FormulaParser;
 
+@Deprecated
 class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, String>>{
 	
 	private static Logger logger = LoggerFactory.getLogger(SingleSourceDataAdapter.class);
@@ -140,11 +141,11 @@ class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, Strin
 		joinTables.add(dataTable);
 		// 遍历已经加入的数据表
 		joinTables.forEach(joinTable->{
-			// 获取当前数据表jointable的外键信息
-			List<ForeignKey> foreignKeys = joinTable.getForeignKeys();
-			multiplyTableJoin(dataTables, joinTables, foreignKeys, sb);
-			List<ForeignKey> quotes = joinTable.getQuotes();
-			multiplyTableJoin(dataTables,joinTables,quotes,sb);
+//			// 获取当前数据表jointable的外键信息
+//			List<ForeignKey> foreignKeys = joinTable.getForeignKeys();
+//			multiplyTableJoin(dataTables, joinTables, foreignKeys, sb);
+//			List<ForeignKey> quotes = joinTable.getQuotes();
+//			multiplyTableJoin(dataTables,joinTables,quotes,sb);
 		});
 		String sql = sb.toString();
 		if(selection != null){

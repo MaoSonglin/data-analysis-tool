@@ -584,4 +584,50 @@ public class EchartOptions implements Serializable {
 		
 		
 	}
+	public static class Encode {
+		private String x;
+		private String y;
+		private String itemName;
+		private String value;
+		private String label;
+		public String getX() {
+			return x;
+		}
+		public void setX(String x) {
+			this.x = x;
+		}
+		public String getY() {
+			return y;
+		}
+		public void setY(String y) {
+			this.y = y;
+		}
+		public String getItemName() {
+			return itemName;
+		}
+		public void setItemName(String itemName) {
+			this.itemName = itemName;
+		}
+		public String getValue() {
+			return value;
+		}
+		public void setValue(String value) {
+			this.value = value;
+		}
+		public String getLabel() {
+			return label;
+		}
+		public void setLabel(String label) {
+			this.label = label;
+		}
+		public String getIndexDimension(){
+			if(x == null) return itemName;
+			else return x;
+		}
+		
+		public String getValueDimension(){
+			if(y == null) return value;
+			else return y;
+		}
+	}
 }

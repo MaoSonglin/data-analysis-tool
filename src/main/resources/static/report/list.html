@@ -266,7 +266,7 @@
 						btn : ["确定","取消"],
 						success : function(){
 							Vue.http.get(basePath+"menu/").then(function(res){
-								var nodes = [{id:0,spread:true,text:"目录菜单",children:res.body.data}]
+								var nodes = [{id:0,spread:true,text:"目录菜单",children:res.body.data,level:1}]
 								$("#myTree").empty()
 								$("#menuText").val("")
 								format(nodes)
