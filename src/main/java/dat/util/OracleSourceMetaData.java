@@ -3,6 +3,7 @@ package dat.util;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.jboss.logging.Logger;
 
 import dat.domain.DataTable;
+import dat.domain.ForeignKeyInfo;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 
@@ -172,5 +174,39 @@ public class OracleSourceMetaData implements MetaDataParser{
 		return MetaDataParser.super.getColumns();
 	}
 
+	public List<ForeignKeyInfo> getForeignKeyInfos() {
+		List<ForeignKeyInfo> list = new ArrayList<>();
+		try(Connection conn = getConnection();){
+			DatabaseMetaData metaData = conn.getMetaData();
+			try(ResultSet rs =  metaData.getTables(conn.getCatalog(), "%", null, new String[]{"TABLE","VIEW"})){
+				while(rs.next()){
+					String tableName = rs.getString("table_name");
+					try(ResultSet resultSet = metaData.getImportedKeys(null, null, tableName)){
+						while(resultSet.next()){
+							String pkColumnName = resultSet.getString("PKCOLUMN_NAME");
+							String pkTableName = resultSet.getString("PKTABLE_NAME");
+							String fkColumnName = resultSet.getString("FKCOLUMN_NAME");
+							String fkTableName = resultSet.getString("FKTABLE_NAME");
+							TableColumn column1 = new TableColumn();
+							TableColumn column2 = new TableColumn();
+							column1.setColumnName(fkColumnName);
+							column1.setChinese(fkTableName);
+							column2.setColumnName(pkColumnName);
+							column2.setChinese(pkTableName);
+							ForeignKeyInfo foreignKeyInfo = new ForeignKeyInfo();
+							foreignKeyInfo.setForeignKey(column1);
+							foreignKeyInfo.setReferencedColumn(column2);
+							list.add(foreignKeyInfo);
+						}
+					}
+				}
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		return list;
+	}
+	
 
 }

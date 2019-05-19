@@ -110,7 +110,7 @@
         <span style="float: right; padding-right: 10px; height: 50px; line-height: 50px;">
             <a href="javascript:void(0)" data-toggle="topjui-menubutton"
                data-options="iconCls:'fa fa-user',hasDownArrow:false"
-               style="color:#fff;">admin</a>|
+               style="color:#fff;" id="userNameElem">admin</a>|
             <a href="javascript:void(0)" id="mb3" data-toggle="topjui-menubutton"
                data-options="menu:'#mm3',iconCls:'fa fa-cog',hasDownArrow:true" style="color:#fff;">设置</a>
             <div id="mm3" style="width:74px;">
@@ -139,7 +139,10 @@
                data-options="iconCls:'fa fa-sign-out',hasDownArrow:false" style="color:#fff;">注销</a>
         </span>
     </div>
-
+	<script type="text/javascript">
+		let user = JSON.parse($.cookie("user"))
+		$("#userNameElem").html(user.username)
+	</script>
     <div id="west"
          data-options="region:'west',split:true,width:230,border:false,headerCls:'border_right',bodyCls:'border_right'"
          title="" iconCls="fa fa-dashboard">

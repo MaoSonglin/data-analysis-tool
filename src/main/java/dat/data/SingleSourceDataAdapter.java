@@ -229,19 +229,16 @@ class SingleSourceDataAdapter implements DataAdapter, Iterator<Map<String, Strin
 		}
 	}
 
-	@Override
 	public void filter(String where) {
 		filters.add(where);
 	}
 
-	@Override
 	public int clearFilter() {
 		int s = filters.size();
 		filters.clear();
 		return s;
 	}
 
-	@Override
 	public void limit(int offset, int size) {
 		selection = new RowSelection();
 		selection.setFirstRow(offset);

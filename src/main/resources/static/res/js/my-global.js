@@ -1,4 +1,17 @@
 var basePath = "http://localhost:8088/"
+
+	let server ={
+		path :function () {
+				let content = localStorage.api ? localStorage.api : "http://127.0.0.1:8088"
+				// let content = "/api"
+				for(let v in arguments){
+					content += "/" + arguments[v]
+				}
+				content += "/"
+				return content
+			}
+	} 
+
 function alertDialog(content,callback){
 	layer.open({
 		title : "提示",

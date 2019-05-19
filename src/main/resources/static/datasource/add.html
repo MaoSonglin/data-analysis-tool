@@ -129,12 +129,19 @@
 						return
 					}
 					this.$http.post(basePath+"ds/",tile(this.ds)).then(function(res){
+						layer.msg(res.body.message)
 						if(res.body.code == 1){
 							this.ds = {}
 							this.association = {}
+							setTimeout(function(){
+								if(window.parent.closeActive){
+									window.parent.closeActive()
+								}else{
+									window.close()
+								}
+							},2000)
 						}else{
 						}
-						layer.msg(res.body.message)
 					})
 				}
 			},

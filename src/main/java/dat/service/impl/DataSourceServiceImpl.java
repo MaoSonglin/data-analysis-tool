@@ -46,11 +46,13 @@ import com.alibaba.druid.pool.DruidDataSource;
 
 import dat.data.ExcelCargador;
 import dat.domain.DataTable;
+import dat.domain.ForeignKeyInfo;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.domain.UploadFile;
 import dat.repos.DataTableRepository;
 import dat.repos.DsRepository;
+import dat.repos.ForeignKeyInfoRepository;
 import dat.repos.TableColumnRepository;
 import dat.service.DataSourceService;
 import dat.service.UploadFileService;
@@ -251,7 +253,35 @@ public class DataSourceServiceImpl implements DataSourceService {
 		//}
 		List<TableColumn> list = sourceMetaData.getColumns();
 		// 保存数据字段信息
-		colRepos.saveAll(list);
+		list = colRepos.saveAll(list);
+		
+		// 保存外键
+		List<ForeignKeyInfo> foreignKeyInfos = sourceMetaData.getForeignKeyInfos();
+		for (ForeignKeyInfo foreignKeyInfo : foreignKeyInfos) {
+			foreignKeyInfo.setForeignKey(retrieve(list, foreignKeyInfo.getForeignKey()));
+			foreignKeyInfo.setReferencedColumn(retrieve(list,foreignKeyInfo.getReferencedColumn()));
+		}
+		context.getBean(ForeignKeyInfoRepository.class).saveAll(foreignKeyInfos);
+	}
+
+
+
+	/**
+	 * @param list
+	 * @param foreignKey
+	 * @return
+	 */
+	private TableColumn retrieve(List<TableColumn> list, TableColumn foreignKey) {
+		String columnName = foreignKey.getColumnName();
+		TableColumn c = null;
+		for(TableColumn column : list){
+			String tableName = column.getDataTable().getName();
+			if(column.getColumnName().equals(columnName) && tableName.equals(foreignKey.getChinese())){
+				c = column;
+				break;
+			}
+		}
+		return c;
 	}
 
 

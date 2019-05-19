@@ -17,6 +17,7 @@ import dat.data.EchartOptionUtil;
 import dat.data.EchartOptionUtil.QueryUnit;
 import dat.data.LocalDataAdapter;
 import dat.data.LocalDataAdapter.SqlBuilder;
+import dat.data.TempTableAdapter;
 import dat.domain.GraphInfo;
 import dat.repos.GraphInfoRepository;
 import dat.repos.TableColumnRepository;
@@ -137,7 +138,7 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		List<String> seriesName = data.getSeriesName();
 		
 		// 数据查询接口
-		LocalDataAdapter localDataAdapter = new LocalDataAdapter(context);
+		LocalDataAdapter localDataAdapter = new TempTableAdapter(context);
 		SqlBuilder builder = getSqlBuilder(data, itemName, seriesName);
 		
 		// 查询结果处理器
@@ -204,7 +205,7 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		MatrixResultHandler matrixResultHandler = new MatrixResultHandler();
 		for (QueryUnit queryUnit : queryUnits) {
 			
-			LocalDataAdapter dataAdapter = new LocalDataAdapter(context);
+			LocalDataAdapter dataAdapter = new TempTableAdapter(context);
 			// 查询结果各个数据列的名称
 			matrixResultHandler.setNames(queryUnit.getNames());
 			

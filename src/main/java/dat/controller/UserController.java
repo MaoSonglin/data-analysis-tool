@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dat.domain.User;
 import dat.service.UserService;
 import dat.util.Constant;
+import dat.util.Md5Util;
 import dat.vo.PagingBean;
 import dat.vo.Response;
 
@@ -101,5 +102,21 @@ public class UserController implements Serializable {
 		log.info(user);
 		Response response = userService.save(user);
 		return response;
+	}
+	
+	@RequestMapping("/modify")
+	public Response modify(String oldpwd,String password,HttpSession session,HttpServletResponse response){
+		User user = (User) session.getAttribute(Constant.SESSION_USER_BEAN);
+		if(user != null){
+			String md5 = Md5Util.MD5(Md5Util.MD5(oldpwd)+user.getSalt());
+			if(md5.equals(user.getPassword())){
+				user.setPassword(password);
+				Response save = userService.save(user);
+				return save;
+			}else{
+				return new Response(Constant.ERROR_CODE,"原密码错误");
+			}
+		}
+		return new Response(Constant.ERROR_CODE,"您还没有登录");
 	}
 }

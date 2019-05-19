@@ -6,6 +6,7 @@
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/iview/iview.css"/>
 	</head>
 	<body>
 		<div class="layui-container">
@@ -109,6 +110,7 @@
 		<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/vue-resource.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../static/plugins/iview/iview.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript">
 			Vue.http.options.emulateJSON = true
@@ -201,7 +203,7 @@
 						},function(index,layero){
 							layer.close(index)
 							var options = {
-								url : basePath + "report/"+obj.data.id,
+								url : basePath + "report?id="+obj.data.id,
 								method : "delete",
 								data : tile(obj.data),
 								success : function(res){

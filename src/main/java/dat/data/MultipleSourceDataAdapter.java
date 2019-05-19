@@ -26,7 +26,7 @@ import dat.service.DataTableService;
 import dat.service.VirtualTableService;
 import dat.util.FormulaParser;
 
-
+@Deprecated
 class MultipleTableAdapter implements DataAdapter{
 	
 	private static Logger logger = LoggerFactory.getLogger(MultipleTableAdapter.class);
@@ -252,22 +252,6 @@ class MultipleTableAdapter implements DataAdapter{
 				e.printStackTrace();
 			}
 		});
-	}
-
-	@Override
-	public void filter(String where) {
-		logger.warn("异源多表的虚拟数据表不支持该操作");
-	}
-
-	@Override
-	public int clearFilter() {
-		logger.warn("异源多表的虚拟数据表不支持该操作");
-		return 0;
-	}
-
-	@Override
-	public void limit(int offset, int size) {
-		logger.warn("异源多表的虚拟数据表不支持该操作");
 	}
 	
 }

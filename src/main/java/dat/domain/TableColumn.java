@@ -55,9 +55,9 @@ public class TableColumn implements IdGeneratorable{
 	/**
 	 * 当前字段作为外键，参考其他表的信息
 	 */
-//	@OneToOne(targetEntity=ForeignKey.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
+//	@OneToOne(targetEntity=ForeignKeyInfo.class,mappedBy="foreignColumn",fetch=FetchType.EAGER)
 //	@JsonIgnore
-//	private ForeignKey foreignKey;
+//	private ForeignKeyInfo foreignKeyInfo;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,mappedBy="refColumns",fetch=FetchType.LAZY)
 	@JsonIgnore

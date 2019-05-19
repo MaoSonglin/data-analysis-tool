@@ -104,23 +104,29 @@ public class UserServiceImplWithJpa implements UserService {
 
 	@Override
 	public Response save(User user) {
+		// 1.用户ID为null说明user是新建对象还没有保存到数据库
+		// 2.验证用户名是否在数据库中已经存在
 		boolean existsById = user.getId() != null && userRepos.existsById(user.getUsername());
 		if(existsById){
 			return new Response(Constant.ERROR_CODE,"用户名已存在");
 		}
+		// 获取用户密码
 		String password = user.getPassword();
 		// 生成一个随机字符串用来加密密码
 		String salt = StrUtil.randomStr(Constant.SALT_LENGTH);
 		// 重新生成加密后的密码
 		password = Md5Util.MD5(Md5Util.MD5(password)+salt);
 		if(user.getId() == null){
+			// 为新用户生成一个ID
 			String id = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
 			user.setId(id);
 		}
+		// 设置用户的相关属性
 		user.setSalt(salt);
 		user.setPassword(password);
 		user.setState(Constant.ACTIVATE_SATE);
 		
+		// 保存用户
 		User save = userRepos.save(user);
 		
 		return new Response(Constant.SUCCESS_CODE,"保存成功",save);

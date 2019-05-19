@@ -49,19 +49,7 @@ public class VirtualColumn implements Serializable{
 	 * 字段备注
 	 */
 	private String remask;
-	/*
-	@OneToOne(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="foreignColumn")
-	@JsonIgnore
-	private Reference reference;
-	*//*
-	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedColumn")
-	@JsonIgnore
-	private List<Reference> referencedBy;
-	*/
-//	@OneToOne(fetch=FetchType.EAGER,targetEntity=VirtualColumn.class)
-//	@JoinColumn(referencedColumnName="id")
-//	private VirtualColumn relation;
-//	
+
 	/**
 	 * 该虚拟字段相关联的实际字段
 	 */
@@ -78,9 +66,6 @@ public class VirtualColumn implements Serializable{
 //	@JsonIgnore
 	private VirtualTable table;
 
-//	@JsonIgnore()
-//	@ManyToMany(targetEntity=Category.class,fetch=FetchType.LAZY)
-//	private List<Category> categories;
 	
 	public String getId() {
 		return id;

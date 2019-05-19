@@ -39,4 +39,13 @@ public class StrUtil {
 	public static String appendLike(String key){
 		return "%"+key+"%";
 	}
+
+	public static boolean isNumbar(Object a) {
+		try {
+			Double.parseDouble(a.toString());
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 }

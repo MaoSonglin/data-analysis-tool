@@ -3,7 +3,6 @@ package dat.config;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -65,13 +64,13 @@ public class MyConfigurer implements WebMvcConfigurer {
 		ConstantConfig config = context.getBean(ConstantConfig.class);
 		Cors cors = config.getCors();
 		registry.addMapping(cors.getMapping())
-		.allowedOrigins(cors.getOrigins())
+		.allowedOrigins("*")
 		.allowedMethods(cors.getMethods())
 		.allowCredentials(cors.getCredentials()).maxAge(cors.getMaxAge());
-		log.info(String.format("允许原域%s使用方法%S访问路径%s",
-				Arrays.toString(cors.getOrigins()),
-				Arrays.toString(cors.getMethods()),
-				cors.getMapping()));
+//		log.info(String.format("允许原域%s使用方法%S访问路径%s",
+//				Arrays.toString(cors.getOrigins()),
+//				Arrays.toString(cors.getMethods()),
+//				cors.getMapping()));
 	}
 	
 	
@@ -92,7 +91,7 @@ public class MyConfigurer implements WebMvcConfigurer {
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
 		// 
-		registry.addViewController("/").setViewName("index.html");
+		registry.addViewController("/").setViewName("login.html");
 //		registry.addViewController("/report/publish.html").setViewName("report/publish.html");
 	}
 

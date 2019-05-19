@@ -71,5 +71,19 @@ public class Relevance implements Serializable {
 		this.strong = strong;
 	}
 	
+	public VirtualTable getTable1(){
+		VirtualColumn virtualColumn = getColumn1();
+		if(virtualColumn != null)
+		return virtualColumn.getTable();
+		return null;
+	}
+	
+	public VirtualTable getTable2(){
+		VirtualColumn virtualColumn = getColumn2();
+		if(virtualColumn != null)
+		return virtualColumn.getTable();
+		return null;
+	}
+	
 	
 }

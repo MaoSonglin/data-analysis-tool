@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
+
 import org.hibernate.sql.JoinFragment;
 import org.hibernate.sql.JoinType;
 import org.slf4j.Logger;
@@ -17,6 +19,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
+
+
 import dat.App;
 import dat.domain.DataTable;
 import dat.domain.ForeignKey;
@@ -26,6 +30,10 @@ import dat.service.DataSourceService;
 import dat.service.DataTableService;
 import dat.util.FormulaParser;
 
+/**
+ * @author MaoSonglin
+ * 将底层数据库数据映射到虚拟数表的数据适配器
+ */
 @SuppressWarnings("deprecation")
 public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 	
@@ -45,20 +53,18 @@ public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 	protected void init(){
 		// 待查询的虚拟字段引用的实体数据表
 		List<DataTable> dataTables = context.getBean(DataTableService.class).getByVirtualColumns(columns);
-		logger.debug("待查询的数据表个数:%d",dataTables.size());
-		// 遍历数据表
-		for(int i = 0; i < dataTables.size(); i++){
-			// 当前操作的数据表
-			DataTable dataTable = dataTables.get(i);
-			// 构建SQL语句
-			String sql = buildSql(dataTable,dataTables);
-			// 数据库操作模板
-			JdbcTemplate template = context.getBean(DataSourceService.class).getTemplate(dataTable.getSource());
+		logger.debug("待查询的数据表个数:"+dataTables.size());
+		DataSourceService dataSourceService = context.getBean(DataSourceService.class);
+
+		SqlAdapter sqlAdapter = new DataTableSqlAdapter(dataTables);
+		
+		sqlAdapter.getSqlInfo().forEach(sqlInfo->{
+			JdbcTemplate template = dataSourceService.getTemplate(sqlInfo.getSource());
+			String sql = sqlInfo.getSql();
 			logger.debug(sql);
-			// 查询结果集
 			SqlRowSet rowSet = template.queryForRowSet(sql);
 			rowSets.add(rowSet);
-		}
+		});
 	}
 	
 	protected String buildSql(DataTable dataTable,List<DataTable> tables){
@@ -130,7 +136,7 @@ public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 		// 遍历所有结果集
 		for(SqlRowSet rowSet : rowSets){
 			// 结果集游标下移一行
-			if(rowSet.next()){
+			if(! rowSet.isAfterLast() && rowSet.next()){
 				SqlRowSetMetaData metaData = rowSet.getMetaData();
 				// 结果集中字段名称数组
 				String[] columnNames = metaData.getColumnNames();
@@ -158,20 +164,6 @@ public class TableDataAdapter implements DataAdapter,ApplicationContextAware{
 		
 	}
 
-	@Override
-	public void filter(String where) {
-		throw new UnsupportedOperationException("多表适配器不支持该操作");
-	}
-
-	@Override
-	public int clearFilter() {
-		return 0;
-	}
-
-	@Override
-	public void limit(int offset, int size) {
-		throw new UnsupportedOperationException("多表适配器不支持该操作");
-	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)

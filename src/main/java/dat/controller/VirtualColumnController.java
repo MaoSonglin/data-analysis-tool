@@ -1,5 +1,7 @@
 package dat.controller;
 
+import java.util.List;
+
 import javax.annotation.Resource;
 
 import org.jboss.logging.Logger;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
@@ -55,6 +58,13 @@ public class VirtualColumnController {
 		return virtualColumnService.createField(vt);
 	}
 	
+	@PostMapping("/add")
+	public Response createField2(VirtualColumn column){
+		column.setId();
+		Response save = virtualColumnService.save(column);
+		return save;
+	}
+	
 	@GetMapping("/list")
 	public Object list(VirtualColumnParam param){
 		virtualColumnService.getByPage(param);
@@ -67,4 +77,15 @@ public class VirtualColumnController {
 		return virtualColumnService.createField(column,classifyFormula);
 	}
 	
+	/**
+	 * 获取指定ID的虚拟字段引用的实体字段
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping("/tab/{id}")
+	public Response column(@PathVariable String id){
+		VirtualColumn column = virtualColumnService.getById(id);
+		List<TableColumn> columns = column.getRefColumns();
+		return new Response(Constant.SUCCESS_CODE,"查询成功",columns);
+	}
 }

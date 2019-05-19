@@ -58,7 +58,7 @@ let vue = new Vue({
 		},
 		save : function(){
 			if(!this.file){
-				layer.msg("亲上传分类标准")
+				layer.msg("请上传分类标准")
 				return 
 			}
 			this.field.table = JSON.parse(sessionStorage.table)
@@ -104,3 +104,152 @@ $.validator.addMethod("validateName",function(value,element,param){
 
 $("#form1").validate(validateOption)
 
+let vue2 = new Vue({
+	el : "#普通区",
+	data : {
+		tables : [],
+		column : { 
+		},
+		array : [],
+		stack : [], 
+		formula : ""
+	},
+	created : function(){
+		try{
+			this.tables = JSON.parse(sessionStorage.tables)
+		}catch(e){
+			console.log(e)
+		}
+		this.$on("send",function(column){
+			if(!this.column.typeName){
+				this.column.typeName = column.typeName
+			}else{
+				if(column.typeName == 'String' && this.column.typeName == 'Number')
+				{
+					this.column.typeName = 'String'
+				}
+			}
+			this.formula += (column.chinese?column.chinese:column.name)
+			this.stack.push("("+column.formula+")")
+			this.$http.get(basePath+"vc/tab/"+column.id).then(function(res){
+				for(let i in res.body.data){
+					this.array.push(res.body.data[i])
+				}
+			})
+		})
+	},
+	methods : {
+		save : function(){
+			if($("#form2").valid()){
+				this.column.refColumns = this.array
+				this.column.formula = this.getFormula()
+				this.column.state = 1
+				this.column.table = JSON.parse(sessionStorage.table)
+				alert(JSON.stringify(this.column))
+				layer.open({
+					title : "确认",
+					content : "您确认要提交吗？",
+					btn : ["确定","取消"],
+					btn1 : (index,layero)=>{
+						layer.close(index)
+						this.$http.post(basePath+"vc/add",tile(this.column)).then(function(res){
+							layer.msg(res.body.message)
+							if(res.body.code == 1){
+								setTimeout(function(){
+									if(window.parent.closeActive){
+										window.parent.closeActive()
+									}else{
+										window.close()
+									}
+								},2000)
+							}
+						})
+					}
+				})
+			}
+		},
+		input : function(e){
+			// if(key)
+			// console.log(e)
+			if(e.keyCode == 8){
+				let tmp = this.stack.pop()
+			}
+			// this.stack.push(e.key)
+		},
+		input2 : function(e){
+			this.stack.push(e.key)
+		},
+		getFormula : function(){
+			return this.stack.join('')
+		}
+	},
+	mounted : function(){
+		$("#form2").validate(validateOption)
+	},
+	watch : {
+		"formula" : function(newVal,oldVal){
+// 			if(newVal.length > oldVal.length){
+// 				this.stack.push(newVal.substring(oldVal.length))
+// 			}else{
+// 				this.stack.pop()
+// 			}
+// 			this.column.formula = this.stack.join('');
+			
+		}
+	}
+})
+
+ new Vue({
+	 el : "#addField",
+	 data : {
+		 tables:[],
+		 columns : [],
+		 columnIndex : 0
+	 },
+	 created : function(){
+		 try{
+			this.tables = JSON.parse(sessionStorage.tables)
+		 }catch(e){
+			 console.log(e)
+		 }
+	 },
+	 methods : {
+		 getField : function(event){
+			 this.$http.get(basePath+"vt/vc/"+event.target.value).then(function(res){
+			 	this.$set(this,"columns",res.body.data)
+			 })
+		 },
+		 confirm : function(){
+			 // alert(this.columnIndex)
+			 $("#addField").modal("hide")
+			 vue2.$emit("send",this.columns[this.columnIndex])
+			 this.columnIndex = 0
+		 }
+	 }
+ })
+ 
+ 
+ var v2 = {
+ 	onkeyup : false,
+ 	rules : {
+ 		name : {required : true,validateName : true, rangelength : [4,20]},
+ 		chinese : {maxlength: 50},
+ 		remask : {maxlength : 100},
+ 		formula : {required : true}
+ 	},
+ 	messages : {
+ 		name : {required : "请输入字段名称",rangelength : "字段名称能少于4个字符，不能多于20个字符"},
+ 		chinese : {maxlength : "中文名称不能大于50个字符"},
+ 		remask : {maxlength:"描述信息不能多于100个字符"},
+ 		formula : {required : "请选择字段"}
+ 	},
+ 	errorPlacement : function(error,element){
+ 		layer.tips(error.html(),element[0],{
+ 			tips : 3,
+ 			tipsMore: true
+ 		})
+ 	},
+ 	submitHandler: function(){
+ 		vue.save()
+ 	}
+ }

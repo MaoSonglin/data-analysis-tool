@@ -5,6 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap-theme.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/bootstrap/css/bootstrap.min.css"/>
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/plugins/iview/iview.css"/>
 	</head>
 	<body>
 		<div class="container" id="app">
@@ -26,7 +27,7 @@
 				</form>
 				<div class="form-group">
 				</div>
-				<table class="table table-striped">
+				<!-- <table class="table table-striped">
 					<tr>
 						<th>编号</th><th>用户名</th><th>添加时间</th><th>角色</th><th>操作</th>
 					</tr>
@@ -47,7 +48,11 @@
 							</div>
 						</td>
 					</tr>
-				</table>
+				</table> -->
+				<i-table :columns="columns" :data="users" ></i-table>
+				<Page :total="page.totalCount"  show-elevator
+				 show-sizer show-total :page-size="page.pageSize"
+				  :page-size-opts="[5,10,15,20,25]" @on-change="pageChange" @on-page-size-change="sizeChange" />
 			</div>
 			<ul id="page">
 			</ul>
@@ -115,19 +120,70 @@
 	<script src="../res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../res/js/jquery.validate.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/layui/lay/modules/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../static/plugins/iview/iview.min.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		Vue.http.options.withCredentials=true
 		Vue.http.options.emulateJSON=true
-		let vue = new Vue({
-			el :"#app",
-			data : {
-				users : [],
-				page : {
-					curPage : 1,
-					pageSize : 5,
-					totalCount : 0,
-					totalPage : 1,
-					keyword : ""
+		new Vue({
+			el : "#app",
+			data : function() {
+				return {
+					columns : [
+						{
+							title : "编号",
+							key : "id",
+							fixed: 'left',
+							tooltip : true
+						},{
+							title : "用户名",
+							key : "username",
+							tooltip : true
+						},{
+							title : "添加时间",
+							key : "time",
+							tooltip : true
+						},{
+							title : "用户角色",
+							key : "roleName",
+							tooltip : true
+						},{
+							title : "操作",
+							key : "",
+							render : (h,params) =>{
+								return h('div',[
+									h('Button',{
+										props : {
+											type : 'primary',
+											size : 'small'
+										},
+										on : {
+											click : () => {
+												this.modify(params.row,params.index)
+											}
+										},
+										style : {
+											marginRight : "5px"
+										}
+									},'修改'),
+									h('Button',{
+										props : {
+											type : 'error',
+											size : 'small'
+										}
+									},'删除')
+								])
+							},
+							fixed : 'right'
+						}
+					],
+					users : [],
+					page : {
+						curPage : 1,
+						pageSize : 5,
+						totalCount : 0,
+						totalPage : 1,
+						keyword : null
+					}
 				}
 			},
 			created : function(){
@@ -137,84 +193,135 @@
 				getPages : function(page){
 					this.$http.get(basePath+"user/page",{params:page}).then(function(res){
 						if(res.body.code == 1){
+							doUsers(res.body.data.content)
 							this.users = res.body.data.content
 							this.page.curPage = res.body.data.number+1
 							this.page.pageSize = res.body.data.size
 							this.page.totalCount = res.body.data.totalElements
 							this.page.totalPage = res.body.data.totalPages
-							this.renderPage()
+							console.log(this.page)
 						}
 					})
 				},
-				renderPage : function(){
-					let dom = this.$el.querySelector("#page")
-					$(dom).bootstrapPaginator({
-						bootstrapMajorVersion : 3,
-						currentPage : this.page.curPage, 
-						totalPages : this.page.totalPage,
-						numberOfPages : 5,
-						itemTexts: function (type, page, current) {
-						    switch (type) {
-						        case "first":
-						            return "首页";
-						        case "prev":
-						            return "上一页";
-						        case "next":
-						            return "下一页";
-						        case "last":
-						            return "末页";
-						        case "page":
-						            return page;
-						    }
-						},
-						"onPageClicked" : (event, originalEvent, type, page)=>{
-							this.page.curPage = page
-							this.getPages(this.page)
-						},
-					});
+				modify : function(row,index){
+					this.$Message.info(JSON.stringify(row))
 				},
-				remove : function(user,event){
-					if(confirm("您确定要删除该用户吗？"))
-					this.$http.delete(basePath+"user/"+user.id).then(function(res){
-						if(res.body.code == 1){
-							alert(res.body.message)
-							this.$emit("refresh")
-						}
-					})
+				pageChange : function(curr){
+					this.page.curPage = curr
+					this.getPages(this.page)
 				},
-				addUser : function(){
-					dialog.$emit("add",{})
-				},
-				edit : function(user,event){
-					dialog.$emit("edit",user)
-				},
-				getRole : function(index){
-					if(index != undefined && index != null){
-						let a = ["浏览用户","业务人员","管理员"]
-						return a[index-1]
-					}
-					return "未定义"
-				},
-				getTime : function(timestr){
-					return new Date(Date.parse(timestr)).toLocaleDateString()
-				}
-			},
-			mounted : function(){
-				
-			},
-			filters : {
-				getRole : function(value){
-					console.log("getRole",value)
-					return "管理员"
+				sizeChange : function(size){
+					this.page.pageSize = size
+					this.getPages(this.page)
 				}
 			}
-		
 		})
 		
-		vue.$on("refresh",function(){
-			this.getPages(this.page)
-		})
+		function doUsers(users){
+			let roles = new Array("浏览用户","业务人员","管理员")
+			for(let i in users){
+				users[i].roleName = roles[users[i].role-1]
+				users[i].time = new Date(Date.parse(users[i].createTime)).toLocaleDateString()
+			}
+		}
 		
+// 		let vue = new Vue({
+// 			el :"#app",
+// 			data : {
+// 				users : [],
+// 				page : {
+// 					curPage : 1,
+// 					pageSize : 5,
+// 					totalCount : 0,
+// 					totalPage : 1,
+// 					keyword : ""
+// 				}
+// 			},
+// 			created : function(){
+// 				this.getPages(this.page)
+// 			},
+// 			methods : {
+// 				getPages : function(page){
+// 					this.$http.get(basePath+"user/page",{params:page}).then(function(res){
+// 						if(res.body.code == 1){
+// 							this.users = res.body.data.content
+// 							this.page.curPage = res.body.data.number+1
+// 							this.page.pageSize = res.body.data.size
+// 							this.page.totalCount = res.body.data.totalElements
+// 							this.page.totalPage = res.body.data.totalPages
+// 							this.renderPage()
+// 						}
+// 					})
+// 				},
+// 				renderPage : function(){
+// 					let dom = this.$el.querySelector("#page")
+// 					$(dom).bootstrapPaginator({
+// 						bootstrapMajorVersion : 3,
+// 						currentPage : this.page.curPage, 
+// 						totalPages : this.page.totalPage,
+// 						numberOfPages : 5,
+// 						itemTexts: function (type, page, current) {
+// 						    switch (type) {
+// 						        case "first":
+// 						            return "首页";
+// 						        case "prev":
+// 						            return "上一页";
+// 						        case "next":
+// 						            return "下一页";
+// 						        case "last":
+// 						            return "末页";
+// 						        case "page":
+// 						            return page;
+// 						    }
+// 						},
+// 						"onPageClicked" : (event, originalEvent, type, page)=>{
+// 							this.page.curPage = page
+// 							this.getPages(this.page)
+// 						},
+// 					});
+// 				},
+// 				remove : function(user,event){
+// 					if(confirm("您确定要删除该用户吗？"))
+// 					this.$http.delete(basePath+"user/"+user.id).then(function(res){
+// 						if(res.body.code == 1){
+// 							alert(res.body.message)
+// 							this.$emit("refresh")
+// 						}
+// 					})
+// 				},
+// 				addUser : function(){
+// 					dialog.$emit("add",{})
+// 				},
+// 				edit : function(user,event){
+// 					dialog.$emit("edit",user)
+// 				},
+// 				getRole : function(index){
+// 					if(index != undefined && index != null){
+// 						let a = ["浏览用户","业务人员","管理员"]
+// 						return a[index-1]
+// 					}
+// 					return "未定义"
+// 				},
+// 				getTime : function(timestr){
+// 					return new Date(Date.parse(timestr)).toLocaleDateString()
+// 				}
+// 			},
+// 			mounted : function(){
+// 				
+// 			},
+// 			filters : {
+// 				getRole : function(value){
+// 					console.log("getRole",value)
+// 					return "管理员"
+// 				}
+// 			}
+// 		
+// 		})
+		
+// 		vue.$on("refresh",function(){
+// 			this.getPages(this.page)
+// 		})
+// 		
 		let options = {
 			rules : {
 				username : {required: true},

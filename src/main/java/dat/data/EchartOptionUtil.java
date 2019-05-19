@@ -78,7 +78,7 @@ public class EchartOptionUtil {
 		Axis yAxis = option.getyAxis();
 		String yType = yAxis.getType();
 		yType = (yType == null || yType.isEmpty()) ? "value" : yType;
-		value = encode.getY();
+		value = "value".equalsIgnoreCase(yType) ? encode.getY() : encode.getX();
 		return value;
 	}
 

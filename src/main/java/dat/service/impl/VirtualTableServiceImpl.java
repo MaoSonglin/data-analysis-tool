@@ -161,7 +161,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		// 查询开始
 		try (DataAdapter dataAdapter = new TableDataAdapter(columns);) {
 			// 设置分页
-			dataAdapter.limit(offset, limit);
+//			dataAdapter.limit(offset, limit);
 			
 			// 遍历查询结果
 			dataAdapter.forEach(map->{

@@ -246,7 +246,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	}
 	
 	
-	private String createTemporaryTable(Connection conn,Set<VirtualTable> tableSet,
+	protected String createTemporaryTable(Connection conn,Set<VirtualTable> tableSet,
 			List<VirtualColumn> columns) throws Exception{
 		logger.debug("建立一个临时表");
 		Map<VirtualTable, Set<VirtualColumn>> map = tableMapColumn(tableSet, columns);
@@ -379,7 +379,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	 * @param sb
 	 * @throws SQLException
 	 */
-	private void createTable(Connection conn, String tableName, StringBuffer sb)
+	protected void createTable(Connection conn, String tableName, StringBuffer sb)
 			throws SQLException {
 		conn.setAutoCommit(false);
 		try(Statement statement = conn.createStatement();){
@@ -416,7 +416,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 		return map;
 	}
 
-	private String updateSql(String tableName, Set<VirtualColumn> virtualColumns) {
+	protected String updateSql(String tableName, Set<VirtualColumn> virtualColumns) {
 		StringBuffer sb = new StringBuffer("UPDATE ");
 		sb.append(tableName);
 		sb.append(" SET ");
@@ -435,7 +435,7 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	 * @param tableName
 	 * @return
 	 */
-	private StringBuffer createTableSql(List<VirtualColumn> columns,
+	protected StringBuffer createTableSql(List<VirtualColumn> columns,
 			String tableName) {
 //		StringBuffer sb = new StringBuffer("CREATE TABLE ");
 		StringBuffer sb = new StringBuffer("CREATE TEMPORARY TABLE ");

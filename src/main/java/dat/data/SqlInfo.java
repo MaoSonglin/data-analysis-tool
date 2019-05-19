@@ -3,12 +3,16 @@ package dat.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import dat.domain.Source;
+
 public class SqlInfo {
 	
 	private String sql;
 	
 	private List<Object> params;
 
+	private Source source;
+	
 	public String getSql() {
 		return sql;
 	}
@@ -25,6 +29,14 @@ public class SqlInfo {
 
 	public void setParams(List<Object> params) {
 		this.params = params;
+	}
+
+	public Source getSource() {
+		return source;
+	}
+
+	public void setSource(Source source) {
+		this.source = source;
 	}
 	
 	

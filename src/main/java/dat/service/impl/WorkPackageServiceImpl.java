@@ -19,8 +19,18 @@ import java.util.List;
 
 
 
+
+
+
+
+
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
+
+
+
+
+
 
 
 
@@ -46,14 +56,21 @@ import org.springframework.util.StringUtils;
 
 
 
+
+
+
+
+
 import dat.controller.WorkPackageController.ExcludeTable;
 import dat.domain.DataTable;
+import dat.domain.ForeignKeyInfo;
 import dat.domain.Relevance;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
 import dat.repos.DataTableRepository;
+import dat.repos.ForeignKeyInfoRepository;
 import dat.repos.RelevanceRepository;
 import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
@@ -63,6 +80,7 @@ import dat.service.TableColumnService;
 import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
 import dat.util.Constant;
+import dat.util.IterableUtil;
 import dat.vo.PkgPageBean;
 import dat.vo.Response;
 
@@ -185,21 +203,9 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		List<VirtualTable> saveAll = vtRepos.saveAll(virtualTables);
 		// 保存虚拟字段
 		List<VirtualColumn> list = vcRepos.saveAll(virtualColumnList);
-		
+
 		// 关联关系
-		for(int i = 0, size = list.size(); i < size-1; i++){
-			for(int j = i+1; j < size; j++){
-				VirtualColumn v1 = list.get(i);
-				VirtualColumn v2 = list.get(j);
-				if(v1.getName().equalsIgnoreCase(v2.getName()) && ! v1.getName().equalsIgnoreCase("id")){
-					Relevance relevance = new Relevance();
-					relevance.setColumn1(v1);
-					relevance.setColumn2(v2);
-					relevance.setStrong(1000f);
-					context.getBean(RelevanceRepository.class).save(relevance);
-				}
-			}
-		}
+		saveRelevance(list);
 		
 		// 将虚拟数据表和数据包关联
 		workPackage.getTables().addAll(saveAll);
@@ -216,6 +222,77 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		response.put("virtualColumns",virtualColumnList);// 本次请求添加的虚拟字段
 		return response;
 	}
+
+	/**
+	 * @param list
+	 */
+	private void saveRelevance(List<VirtualColumn> list) {
+		List<Relevance> relevances = new ArrayList<>();
+		for(int i = 0, size = list.size(); i < size-1; i++){
+			for(int j = i+1; j < size; j++){
+				VirtualColumn v1 = list.get(i);
+				VirtualColumn v2 = list.get(j);
+				
+				Relevance relevance = foreignRelevance(v1, v2);
+				
+				if(relevance == null && 
+						v1.getName().equalsIgnoreCase(v2.getName()) 
+						&& ! v1.getName().equalsIgnoreCase("id")){
+					relevance = new Relevance();
+					relevance.setColumn1(v1);
+					relevance.setColumn2(v2);
+					relevance.setStrong(1000f);
+				}
+				if(relevance != null){
+					relevances.add(relevance);
+				}
+			}
+		}
+		context.getBean(RelevanceRepository.class).saveAll(relevances);
+		logger.debug("获取 "+relevances.size()+" 条关联");
+	}
+
+	/**
+	 * 将v1和v2底层的字段的外键关联信息转化为为虚拟数据表之间的关联信息
+	 * @param v1
+	 * @param v2
+	 * @return
+	 */
+	private Relevance foreignRelevance(VirtualColumn v1, VirtualColumn v2) {
+		// 读取外键
+		List<ForeignKeyInfo> f1s = getRelevancedTableColumn(v1);
+		// 外键
+		List<ForeignKeyInfo> f2s = getRelevancedTableColumn(v2);
+		
+		Relevance relevance =null; 
+		for (ForeignKeyInfo f1 : f1s) {
+			for (ForeignKeyInfo f2 : f2s) {
+				if(f1.equals(f2)){
+					relevance = new Relevance();
+					relevance.setColumn1(v1);
+					relevance.setColumn2(v2);
+					relevance.setStrong(3000f/(v1.getRefColumns().size()+v2.getRefColumns().size()));
+				}
+			}
+		}
+		return relevance;
+	}
+
+	/**
+	 * @param v1
+	 * @return
+	 */
+	private List<ForeignKeyInfo> getRelevancedTableColumn(VirtualColumn v1) {
+		logger.debug("读取虚拟字段'"+v1.getName()+"'底层的实体字段关联信息");
+		List<TableColumn> columns = v1.getRefColumns();
+		List<ForeignKeyInfo> list = context.getBean(ForeignKeyInfoRepository.class).findAll((root,query,cb)->{
+			List<String> ids = IterableUtil.getIterableField(columns, "id");
+			Predicate in = root.get("foreignKey").get("id").in(ids);
+			Predicate in2 = root.get("referencedColumn").get("id").in(ids);
+			return cb.or(in,in2);
+		});
+		return list;
+	}
 	
 	@Transactional
 	public Response addTab(String pid, String tid) {
@@ -223,6 +300,11 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		WorkPackage workPackage = getPkg(pid);
 		// 获取数据表
 		DataTable dataTable = getDataTable(tid);
+		// 查找失败
+		if(workPackage == null || dataTable == null){
+			return new Response(Constant.ERROR_CODE,"没有指定的业务包或者数据表");
+		}
+		
 		// 根据数据表构建虚拟数据表
 		VirtualTable virtualTable = setup(workPackage, dataTable);
 
@@ -359,6 +441,15 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		// 如果虚拟数据表没有关联其他的业务包，则删除该数据包
 		if(virtualTable.getPackages().isEmpty()){
 			// 如果数据表中的虚拟数据列不关联其他虚拟数据表，则将其一并删除
+			List<VirtualColumn> columns = virtualTable.getColumns();
+			RelevanceRepository bean = context.getBean(RelevanceRepository.class);
+			List<Relevance> relevances = bean.findAll((root,query,cb)->{
+				List<String> ids = IterableUtil.getIterableField(columns, "id");
+				Predicate in = root.get("column1").get("id").in(ids);
+				Predicate in2 = root.get("column2").get("id").in(ids);
+				return cb.or(in,in2);
+			});
+			bean.deleteAll(relevances);
 			vtRepos.delete(virtualTable);
 		}
 		

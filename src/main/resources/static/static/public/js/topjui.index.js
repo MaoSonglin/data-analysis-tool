@@ -155,7 +155,21 @@ $(function () {
      indexTab.border = false;
      addTab(indexTab);
      }, 1);*/
-
+	// $("#userNameElem").html()
+// 	$.ajax({
+// 		url : basePath + "user/state",
+// 		xhrFields : {
+// 			withCredentials : true,
+// 		},
+// 		success : function(res){
+// 			if(res.data){
+// 				$("#userNameElem").html(res.data.username)
+// 			}else{
+// 				$("#userNameElem").html("请登录")
+// 			}
+// 		}
+// 	})
+	
 });
 
 // Tab菜单操作
@@ -337,10 +351,23 @@ if ($.cookie('topjuiThemeName')) {
 function logout() {
     $.iMessager.confirm('提示', '确定要退出吗?', function (r) {
         if (r) {
-            $.iMessager.progress({
-                text: '正在退出中...'
-            });
-            window.location.href = './login.html' + location.search;
+			$.ajax({
+				url : basePath + "user/logout",
+				xhrFields : {
+					withCredentials : true
+				},
+				beforeSend : function(){
+					$.iMessager.progress({
+						text: '正在退出中...'
+					});
+				},
+				success : function(res){
+					window.location.href = './login.html' + location.search;
+				},
+				complete : function(){
+					$.iMessager.progress('close')
+				}
+			})
         }
     });
 }
@@ -469,13 +496,14 @@ function addParentTab(options) {
 }
 
 function modifyPwd() {
-    var opts = {
+	addParentTab({title:"修改密码",href:"setting/modifyPassword.html"})
+   /* var opts = {
         id: 'pwdDialog',
         title: '修改密码',
         width: 400,
         height: 300,
         iconCls: 'fa fa-key',
-        href: '/html/user/modifyPassword.html',
+        href: 'setting/modifyPassword.html',
         buttons: [{
             text: '确定',
             iconCls: 'fa fa-save',
@@ -498,7 +526,7 @@ function modifyPwd() {
                             },
                             success: function (data, response, status) {
                                 $.iMessager.progress('close');
-                                if (data.statusCode == 200) {
+                                if (data.code == 1) {
                                     $.iMessager.show({
                                         title: '提示',
                                         msg: '操作成功'
@@ -522,7 +550,7 @@ function modifyPwd() {
             }
         }]
     };
-    $('#' + opts.id).iDialog('openDialog', opts);
+    $('#' + opts.id).iDialog('openDialog', opts); */
 };
 
 

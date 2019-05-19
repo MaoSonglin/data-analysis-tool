@@ -110,8 +110,11 @@
 						layer.msg(res.body.message)
 						if(res.body.code != 1){
 						}else{
-							var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
-							parent.layer.close(index); //再执行关闭        
+							if(window.parent.closeActive){
+								window.parent.closeActive()
+							}else{
+								window.close()
+							}
 						}
 					})
 				})
@@ -183,12 +186,21 @@
 				saveObj(basePath+"report" , this.report,"post")
 			},
 			rmseries : function(serie){
-				this.setting.series = this.setting.series.filter(elem=>{
-					return elem.columnId != serie.columnId
-				})
+				this.setting.series.splice(serie,1)
+// 				this.setting.series = this.setting.series.filter(elem=>{
+// 					return elem.columnId != serie.columnId
+// 				})
 			},
 			addseries : function(column){
-				this.setting.series.push({type : 'bar',name:column.chinese,columnId:column.id,seriesLayoutBy:"column"})
+				this.setting.series.push({
+					type : 'bar',
+					name:column.chinese,
+					columnId:column.id,
+					seriesLayoutBy:"column",
+					encode : {
+						y : column.name
+					}
+				})
 			},
 			rmColumn : function(column){
 				this.setting.categorys = this.setting.categorys.filter(e=>{return e.id != column.id})
@@ -218,8 +230,8 @@
 			},
 			"setting.yAxis" : function(newVal,oldVal){
 			},
-			"setting.tooltip.show" : function(newVal,oldVal){
-				if(newVal){
+			"setting.tooltip.trigger" : function(newVal,oldVal){
+				if(newVal == 'axis'){
 					this.setting.tooltip.axisPointer =  {
 							type: 'shadow',
 							label: {

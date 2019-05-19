@@ -237,6 +237,7 @@
 					},
                     success: function (data) {
                         if (data.code == 1) {
+							$.cookie('user',JSON.stringify(data.data),{path : '/'})
                             location.href = "index.html";
                         } else {
 							alert(data.message)
