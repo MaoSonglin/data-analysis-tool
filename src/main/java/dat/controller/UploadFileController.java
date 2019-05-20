@@ -2,9 +2,12 @@
 package dat.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,6 +15,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -118,4 +122,20 @@ public class UploadFileController {
 		return fileService.getRow(id,sheetName,index);
 	}
 	
+	/**
+	 * 下载文件
+	 * @param id 文件ID
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping("/download/{id}")
+	public void download(@PathVariable String id, HttpServletResponse response) throws IOException{
+		File file = fileService.getFile(id);
+		if(file != null && file.isFile()){
+			String contentType = Files.probeContentType(Paths.get(file.getPath()));
+			response.setContentType(contentType);// 设置文件内容         
+			response.addHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(file.getName(),"UTF-8"));
+			IOUtils.copy(new FileInputStream(file), response.getOutputStream());
+		}
+	}
 }

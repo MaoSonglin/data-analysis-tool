@@ -48,8 +48,17 @@ public interface MetaDataParser {
 		if(Constant.ORACLE.equals(databaseName)){
 			return new OracleSourceMetaData(source);
 		}
+		// Excel数据源
 		if(Constant.EXCEL.equals(databaseName)){
-			return new ExcelSourceMetaParser(source);
+			return new ExcelMetaParser(source);
+		}
+		// CSV文件数据源
+		if(Constant.CSV_FILE.equalsIgnoreCase(databaseName)){
+			return new CSVMetaParser(source);
+		}
+		// Text文档
+		if(Constant.TXT_FILE.equalsIgnoreCase(databaseName)){
+			return new TextMetaDataParser(source);
 		}
 		throw new SourceMetaDataException("unexpected datasource type of database name "+databaseName);
 	}

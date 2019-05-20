@@ -3,9 +3,8 @@ package dat.controller;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.jboss.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +24,7 @@ import dat.vo.Response;
 @RequestMapping("/ds")
 public class DSController {
 
-	@Resource(name="dataSourceServiceImpl")
+	@Autowired
 	private DataSourceService dsService;
 	
 	private static Logger log = Logger.getLogger(DSController.class);
@@ -96,7 +95,7 @@ public class DSController {
 		return dsService.getTablesById(id);
 	}
 	
-	
+	@Deprecated
 	@GetMapping("/excel")
 	public Response getSheets(String id) throws Exception{
 		List<ExcelSheet> sheets = dsService.getExcelSheet(id);
@@ -111,21 +110,24 @@ public class DSController {
 	 * @return
 	 * @throws IOException 
 	 */
+	@Deprecated
 	@GetMapping("/excel/{id}/{sheetName}/{row}")
 	public Response getExcelSheetRow(@PathVariable String id,@PathVariable String sheetName,@PathVariable Integer row) throws IOException{
 		List<String> list = dsService.getSpecifyRow(id,sheetName,row);
 		return new Response(Constant.SUCCESS_CODE,"查询成功",list);
 		
 	}
-	
+	@Deprecated
 	@PostMapping("/excel")
 	public Response sheet(@RequestBody List<ExcelSheet> sheets,String id){
 		Source source = dsService.extract(id,sheets);
 		return new Response(Constant.SUCCESS_CODE,"提取成功",source);
 	}
-	
+	@Deprecated
 	@RequestMapping("/excel/append")
 	public Response append(@RequestBody List<ExcelSheet> sheets,String id,String fileId) throws Exception{
 		return dsService.append(sheets,id,fileId);
 	}
+	
+	
 }

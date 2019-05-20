@@ -10,7 +10,6 @@ import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dat.data.EchartOptionUtil;
@@ -32,7 +31,6 @@ import dat.vo.GraphDrillData;
 import dat.vo.Response;
 import dat.vo.TreeNode;
 
-@Service
 public class GraphInfoServiceImpl implements GraphInfoService {
 	private static Logger logger = Logger.getLogger(GraphInfoServiceImpl.class);
 	@Autowired

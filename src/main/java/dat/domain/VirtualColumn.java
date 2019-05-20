@@ -66,6 +66,9 @@ public class VirtualColumn implements Serializable{
 //	@JsonIgnore
 	private VirtualTable table;
 
+	@JsonIgnore
+	@ManyToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY)
+	private List<GraphInfo> graphs;
 	
 	public String getId() {
 		return id;
@@ -109,6 +112,14 @@ public class VirtualColumn implements Serializable{
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+
+	public List<GraphInfo> getGraphs() {
+		return graphs;
+	}
+
+	public void setGraphs(List<GraphInfo> graphs) {
+		this.graphs = graphs;
 	}
 
 	public void setName(String name) {

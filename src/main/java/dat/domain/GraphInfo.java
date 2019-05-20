@@ -1,11 +1,13 @@
 package dat.domain;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
 import com.alibaba.fastjson.JSON;
@@ -80,7 +82,8 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	@Column(length=8000)
 	private String options;
 	
-
+	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
+	private List<VirtualColumn> columns;
 	
 	private Integer state;
 	
@@ -112,6 +115,14 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 
 	public void setState(Integer state) {
 		this.state = state;
+	}
+
+	public List<VirtualColumn> getColumns() {
+		return columns;
+	}
+
+	public void setColumns(List<VirtualColumn> columns) {
+		this.columns = columns;
 	}
 
 	public void generateId() {

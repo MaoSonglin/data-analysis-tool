@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.tsc9526.monalisa.core.query.datatable.DataMap;
+
 import dat.domain.DataTable;
 import dat.domain.Source;
 import dat.vo.ExcelSheet;
@@ -70,6 +72,7 @@ public interface DataSourceService {
 	 * @param sheets
 	 * @return
 	 */
+	@Deprecated
 	Source extract(String id,List<ExcelSheet> sheets);
 
 	/**
@@ -80,7 +83,18 @@ public interface DataSourceService {
 	 * @return
 	 * @throws IOException 
 	 */
+	@Deprecated
 	List<String> getSpecifyRow(String id, String sheetName, Integer row) throws IOException;
 
+	@Deprecated
 	Response append(List<ExcelSheet> sheets, String id, String fileId) throws Exception;
+	
+	/**
+	 * 获取指定数据表中的数据
+	 * @param id	数据表ID
+	 * @return		保存了数据表数据的内容
+	 */
+	default com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> getDataTableBody(String id){
+		return null;
+	}
 }

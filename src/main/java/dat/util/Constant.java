@@ -34,4 +34,6 @@ public interface Constant {
 	String ACCESS = "Access";
 	String HIVE = "hive";
 	String EXCEL = "Excel";
+	String CSV_FILE = "CSV";
+	String TXT_FILE = "Text";
 }

@@ -248,14 +248,16 @@ public class LocalDataAdapter implements ApplicationContextAware,Serializable{
 	
 	protected String createTemporaryTable(Connection conn,Set<VirtualTable> tableSet,
 			List<VirtualColumn> columns) throws Exception{
-		logger.debug("建立一个临时表");
+		
 		Map<VirtualTable, Set<VirtualColumn>> map = tableMapColumn(tableSet, columns);
 		
 		int hashCode = tableSet.hashCode();
 		// 临时表名称
 		String tableName = "temp_"+Math.abs(hashCode);
+		logger.debug("建立一个临时表"+tableName);
 		// 创建临时表的SQL语句
 		StringBuffer sb = createTableSql(columns, tableName);
+		logger.debug(sb);
 		// 建立临时表
 		createTable(conn, tableName, sb);
 		try {

@@ -130,6 +130,17 @@
 		<artifactId>OracleDriver</artifactId>
 		<version>5</version>
 	</dependency>
+	<dependency>
+		<groupId>org.projectlombok</groupId>
+		<artifactId>lombok</artifactId>
+		<version>1.16.18</version>
+		<type>pom.lastUpdated</type>
+	</dependency>
+	<dependency>
+		<groupId>com.tsc9526</groupId>
+		<artifactId>monalisa-core</artifactId>
+		<version>1.1.2</version>
+	</dependency>
   </dependencies>
 
   <build>

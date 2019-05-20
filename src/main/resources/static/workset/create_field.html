@@ -12,129 +12,49 @@
 	</head>
 	<body>
 		<div id="app" class="wrapper">
-			<div class="container">
-				<div class="form-group">
-				</div>
-				<ul class="nav nav-tabs">
-					<li class="active"><a href="#普通区" data-toggle = "tab" >编辑字段</a></li>
-					<li><a href="#分类区" data-toggle="tab">分类字段</a></li>
-				</ul>
-				<div id="" class="tab-content">
-					<div class="tab-pane fade in active" id="普通区">
-						<form action="#" id="form2" class="form-horizontal">
-							<div class="form-group"></div>
-							<div class="form-group">
-								<label for="name2" class="control-label col-md-2">字段名称</label>
-								<div class="col-md-8">
-									<input type="text" class="form-control" id="name2" name="name" v-model="column.name" placeholder="请输入后字段名称" autocomplete="off">
-								</div>
-							</div>
-							<div class="form-group">
-								<label for="chinese2" class="control-label col-md-2">中文名称</label>
-								<div class="col-md-8">
-									<input type="text" class="form-control" id="chinese2" name="chinese" v-model="column.chinese" placeholder="请输入中文名称" autocomplete="off">
-								</div>
-							</div>
-							<div class="form-group">
-								<label for="formula2" class="col-md-2 control-label">编辑字段</label>
-								<div class="col-md-8">
-									<textarea class="form-control" name="formula" id="formula2"
-									 cols="20" rows="5" v-model="formula"
-									  placeholder="编辑公式" @keydown="input($event)" @keypress="input2($event)" ></textarea>
-								</div>
-							</div>
-							<div class="form-group">
-								<div class="col-md-8 col-md-offset-2">
-									<button type="button" class="btn btn-primary" data-target="#addField" data-toggle="modal">添加已有字段</button>
-									<span>{{getFormula()}}</span>
-								</div>
-							</div>
-							<div class="form-group">
-								<label for="remask2" class="control-label col-md-2">描述</label>
-								<div class="col-md-8">
-									<textarea class="form-control" name="remask" id="remask2" cols="20" rows="5" v-model="column.remask" placeholder="请输入后字段描述信息" ></textarea>
-								</div>
-							</div>
-							<div class="form-group">
-								<div class="col-md-offset-2 col-md-8">
-									<button type="button" class="btn btn-primary" @click="save()">保存</button>
-								</div>
-							</div>
-						</form>
+			<div class="tab-pane fade in active" id="普通区">
+				<form action="#" id="form2" class="form-horizontal">
+					<div class="form-group"></div>
+					<div class="form-group">
+						<label for="name2" class="control-label col-md-2">字段名称</label>
+						<div class="col-md-8">
+							<input type="text" class="form-control" id="name2" name="name" v-model="column.name" placeholder="请输入字段名称" autocomplete="off">
+						</div>
 					</div>
-					<div class="tab-pane fade " id="分类区">
-						<form action="#" class="form-horizontal" method="get" id="form1">
-							<div class="form-group">
-								
-							</div>
-							<div class="form-group">
-								<label class="control-label col-md-2 col-sm-2" for="name">字段名称</label>
-								<div class="col-md-6 col-sm-8">
-									<input class="form-control" type="text" name="name" id="name"v-model="field.name" placeholder="字段名称" autocomplete="off" />
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="control-label col-md-2 col-sm-2" for="chinese">中文名称</label>
-								<div class="col-md-6 col-sm-8">
-									<input class="form-control" type="text" name="chinese" id="chinese"v-model="field.chinese" placeholder="中文名称"autocomplete="off" />
-								</div>
-							</div>
-							<div class="form-group" id="dongge">
-								<label class="control-label col-md-2 col-sm-2" for="xdfasdf">原字段</label>
-								<div class="col-md-3 col-sm-4">
-									<!-- <input type="text" name="old" id="old" value="" /> -->
-									<div class="input-group">
-										<span class="input-group-addon">数据表</span>
-										<select name="" class="form-control" id="xdfasdf" v-on:change="changeTable($event)">
-											<option>请选择数据表</option>
-											<option :value="index" v-for="(table,index) in tables" v-html="table.chinese?table.chinese:table.name"></option>
-										</select>
-									</div>
-								</div>
-								<div class="col-md-3 col-sm-4">
-									<div class="input-group">
-										<span class="input-group-addon">字段</span>
-										<select class="form-control" name="formula" v-model="field.formula" v-on:change="setField($event)">
-											<option value ="">请选择字段</option>
-											<option :value="column.id" v-for="(column,index) in table.columns"
-											 v-html="column.chinese?column.chinese:column.name" v-if="column.typeName=='String'"></option>
-										</select>
-									</div>
-								</div>
-							</div>
-							<div class="form-group" v-if="false">
-								<label class="control-label col-md-2 col-sm-2" for="algorithm" v-model="alogrithm">分类算法</label>
-								<div class="col-md-6 col-sm-8">
-									<select class="form-control" name="algorithm" id="algorithm">
-										<option value ="Bayes">贝叶斯</option>
-									</select>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="control-label col-md-2 col-sm-2">分类标准</label>
-								<div class="col-md-6 col-sm-8">
-									<input type="hidden" name="o" id="o" value="" />
-									<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">上传分类文件</button>
-									<!-- <input class="file-loading" type="file" name="file" id="file" value=""placeholder="请上传分类标准" /> -->
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="control-label col-md-2 col-sm-2" for="remask">描述内容</label>
-								<div class="col-md-6 col-sm-8">
-									<textarea class="form-control" rows="5" name="remask" id="remask" v-model="field.remask" placeholder="请输入字段描述信息,100字符">
-										
-									</textarea>
-								</div>
-							</div>
-							<div class="form-group">
-								<div class="col-md-2 col-md-offset-2 col-sm-4 col-sm-offset-2">
-									<input class="form-control btn btn-primary" type="submit" value="提交"/>
-								</div>
-							</div>
-						</form>
+					<div class="form-group">
+						<label for="chinese2" class="control-label col-md-2">中文名称</label>
+						<div class="col-md-8">
+							<input type="text" class="form-control" id="chinese2" name="chinese" v-model="column.chinese" placeholder="请输入中文名称" autocomplete="off">
+						</div>
 					</div>
-				</div>
+					<div class="form-group">
+						<label for="formula2" class="col-md-2 control-label">编辑字段</label>
+						<div class="col-md-8">
+							<textarea class="form-control" name="formula" id="formula2"
+							 cols="20" rows="5" v-model="formula"
+							  placeholder="编辑公式" @keydown="input($event)" @keypress="input2($event)" ></textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-8 col-md-offset-2">
+							<button type="button" class="btn btn-primary" data-target="#addField" data-toggle="modal">添加已有字段</button>
+							<span>{{getFormula()}}</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="remask2" class="control-label col-md-2">描述</label>
+						<div class="col-md-8">
+							<textarea class="form-control" name="remask" id="remask2" cols="20" rows="5" v-model="column.remask" placeholder="请输入后字段描述信息" ></textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-offset-2 col-md-8">
+							<button type="button" class="btn btn-primary" @click="save()">保存</button>
+						</div>
+					</div>
+				</form>
 			</div>
+			
 		</div>
 		
 		

@@ -37,7 +37,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.sqlite.JDBC;
@@ -65,7 +64,7 @@ import dat.vo.ExcelSheet;
 import dat.vo.PagingBean;
 import dat.vo.Response;
 
-@Service
+@Deprecated
 public class DataSourceServiceImpl implements DataSourceService {
 	
 	private static Logger logger = Logger.getLogger(DataSourceServiceImpl.class);
@@ -121,7 +120,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 
 	
 
-	@Transactional
+	@Transactional @Deprecated
 	public Response add(Source source) throws Exception {
 		try {
 			// 检查数据源的属性是否存在冲突
@@ -239,7 +238,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	 * 保存数据源中的数据表和字段列
 	 * @param sourceMetaData
 	 */
-	private void saveTableAndColumn(MetaDataParser sourceMetaData) {
+	protected void saveTableAndColumn(MetaDataParser sourceMetaData) {
 		// 读取数据源中包含的数据表
 		//List<DataTable> tables = sourceMetaData.getTables();
 		// 保存数据表信息
@@ -290,7 +289,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	 * 检查数据源source中的名称或者URL是否在数据库中已经存在了
 	 * @param source
 	 */
-	private void checkAttribute(Source source) {
+	protected void checkAttribute(Source source) {
 		List<Source> list = dsRepos.findAll((root,query,cb)->{
 			List<Predicate> predicates = new ArrayList<>();
 			predicates.add(cb.equal(root.get("name"), source.getName()));
