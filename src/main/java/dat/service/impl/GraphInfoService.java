@@ -11,7 +11,7 @@ import dat.domain.GraphInfo;
 import dat.domain.VirtualColumn;
 import dat.repos.GraphInfoRepository;
 
-@Service
+@Service("graphInfoServiceImpl")
 public class GraphInfoService extends GraphInfoServiceImpl {
 
 	/**

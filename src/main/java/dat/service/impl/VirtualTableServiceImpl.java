@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -29,16 +30,24 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
+import com.tsc9526.monalisa.core.query.datatable.DataMap;
 
 import dat.data.DataAdapter;
+import dat.data.MonaliseDataSource;
 import dat.data.TableDataAdapter;
 import dat.domain.DataTable;
+import dat.domain.ForeignKeyInfo;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
 import dat.domain.WorkPackage;
+import dat.model.Graph;
+import dat.model.TreeNode;
+import dat.model.TreeNode.Gardener;
+import dat.model.TreeNode.Tree;
 import dat.repos.DataTableRepository;
+import dat.repos.ForeignKeyInfoRepository;
 import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
@@ -46,31 +55,38 @@ import dat.service.DataTableService;
 import dat.service.TableColumnService;
 import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
+import dat.util.Connectivity;
 import dat.util.Constant;
+import dat.util.Kruskal;
 import dat.vo.Response;
+import lombok.Data;
 
 @Service
+@Data
 public class VirtualTableServiceImpl implements VirtualTableService {
 
 	private static Logger logger = Logger.getLogger(VirtualTableServiceImpl.class);
 	
-	@Resource(name="virtualTableRepository")
+	@Autowired
 	private VirtualTableRepository vtRepos;
 	
-	@Resource(name="virtualColumnRepository")
+	@Autowired
 	private VirtualColumnRepository virtualColumnRepos;
 	
-	@Resource(name="dataTableRepository")
+	@Autowired
 	private DataTableRepository dataTableRepos;
 	
-	@Resource(name="dataTableServiceImpl")
+	@Autowired
 	private DataTableService dataTableService;
 	
-	@Resource(name="tableColumnRepository")
+	@Autowired
 	private TableColumnRepository tableColumnRepos;
 
-	@Resource(name="tableColumnServiceImpl")
+	@Autowired
 	private TableColumnService tableColumnService;
+	
+	@Autowired
+	private ForeignKeyInfoRepository foreignKeyInfoRepository;
 	
 	@Autowired
 	private ApplicationContext context;
@@ -536,6 +552,106 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 	public interface ResultSetHandler<T>{
 		T doResultSet(ResultSet resultSet) throws SQLException ;
 	}
+
+
+	@Override
+	public com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> getTableBody(String id) {
+		Graph<DataTable> graph = new Graph<DataTable>();
+		
+		// 获取数据表
+		VirtualTable virtualTable = this.vtRepos.findById(id).orElse(null);
+		// 数据表中的字段
+		List<VirtualColumn> columns = virtualTable.getColumns();
+		List<DataTable> tables = new ArrayList<>();
+		// 遍历虚拟字段
+		for (VirtualColumn virtualColumn : columns) {
+			// 获取虚拟字段引用的实体字段
+			List<TableColumn> list = virtualColumn.getRefColumns();
+			// 遍历引用的实体字段
+			for (TableColumn tableColumn : list) {
+				DataTable dataTable = tableColumn.getDataTable();
+				graph.addVertex(dataTable);
+				tables.add(dataTable);
+			}
+		}
+		// 系统中的所有外键信息
+		List<ForeignKeyInfo> foreignKeys = foreignKeyInfoRepository.findAll();
+		for (ForeignKeyInfo foreignKey : foreignKeys) {
+			// 根据系统中的外键构建一张网图
+			DataTable dataTable = foreignKey.getDataTable();
+			DataTable refTable = foreignKey.getReferencedTable();
+			graph.addVertex(dataTable);
+			graph.addVertex(refTable);
+			graph.addArc(dataTable, refTable);
+		}
+		
+		Connectivity<DataTable> cty = new Connectivity<DataTable>(graph);
+		List<Graph<DataTable>> subgraph = cty.getSubgraph();
+		// 克鲁斯卡尔最小生成树算法
+		Kruskal kruskal = new Kruskal();
+		// 剪枝园丁
+		Gardener gardener = new Gardener();
+		// 查询结果
+		com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> result = null;
+		// 遍历所有子图
+		for (Graph<DataTable> tmpgraph : subgraph) {
+			// 计算最小生成树
+			Tree<DataTable> tree = kruskal.minSpanningTree(tmpgraph);
+			// 减去不需要的数据表
+			gardener.pruning(tree, tables);
+			// 剪枝后不为空树
+			if(!tree.isEmpty()){
+				// 计算每棵树中的数据
+				com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> tmpTable = build(tree.getRoot());
+				if(result == null){
+					result = tmpTable;
+				}else{
+					// 子图与子图之间按照行号连接
+					result = result.joinFull(tmpTable, "rownum", "rownum");
+				}
+			}
+			
+		}
+		
+		return result;
+	}
+
+	private com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> build(TreeNode<DataTable> treeNode) {
+		DataTable data = treeNode.getData();
+		Source source = data.getSource();
+		MonaliseDataSource monaliseDataSource = MonaliseDataSource.from(source);
+		try {
+			// 查询根节点的数据
+			com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> dataTable = monaliseDataSource.getDataTableBody(data, data.getColumns());
+			// 遍历子节点
+			for (TreeNode<DataTable> node : treeNode.getItems()) {
+				DataTable table = node.getData();
+				// 查询根节点与子节点之间的连接方式
+				List<ForeignKeyInfo> list = foreignKeyInfoRepository.findAll((root, query, cb)->{
+					Predicate equal = cb.equal(root.get("foreignKey").get("dataTable").get("id"), data.getId());
+					Predicate equal2 = cb.equal(root.get("referencedColumn").get("dataTable").get("id"), table.getId());
+					Predicate and = cb.and(equal, equal2);
+					Predicate equal3 = cb.equal(root.get("foreignKey").get("dataTable").get("id"), table.getId());
+					Predicate equal4 = cb.equal(root.get("referencedColumn").get("dataTable").get("id"), data.getId());
+					Predicate and2 = cb.and(equal3, equal4);
+					return cb.or(and, and2);
+				}).stream().distinct().collect(Collectors.toList());
+				// 查子节点中的数据
+				com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> build = build(node);
+				
+				// 连接根节点与子节点
+				ForeignKeyInfo foreignKeyInfo = list.iterator().next();
+				TableColumn foreignKey = foreignKeyInfo.getForeignKey();
+				TableColumn referencedColumn = foreignKeyInfo.getReferencedColumn();
+				dataTable = dataTable.join(build, foreignKey.getColumnName(), referencedColumn.getColumnName());
+			}
+			return dataTable;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
 }
 
 

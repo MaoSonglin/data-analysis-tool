@@ -2,6 +2,7 @@ package dat.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TreeNode<T> implements Serializable {
@@ -81,7 +82,54 @@ public class TreeNode<T> implements Serializable {
 		}
 		public Tree() {
 			super();
-			// TODO Auto-generated constructor stub
 		}
+		
+		
+		public boolean isEmpty(){
+			return root == null;
+		}
+	}
+	/**
+	 * 花匠，对树进行操作
+	 * @author MaoSonglin
+	 *
+	 */
+	public static class Gardener{
+		/**
+		 * 剪枝，将树tree中没有用的节点减掉，比如tree中的某个叶子节点，这个叶子节点即不是vertexs中的某个表，也
+		 * 不连接vertexs中的某两个节点
+		 * @param tree	待剪枝的树
+		 * @param vertexs	待比较的节点数据
+		 */
+		public <T> void pruning(Tree<T> tree, List<T> vertexs){
+			boolean trim = trim(tree.getRoot(), vertexs);
+			if(trim){
+				tree.setRoot(null);
+			}
+		}
+
+		private <T> boolean trim(TreeNode<T> root, List<T> vertexs) {
+			boolean f = true; // 标记root是否应该移除
+			T data2 = root.getData();
+			if(vertexs.contains(data2)){
+				f = false;	// 节点root不移除
+			}
+			// 判断items2的子节点是否应该移除
+			List<TreeNode<T>> items2 = root.getItems();
+			for (Iterator<TreeNode<T>> iterator2 = items2.iterator(); iterator2.hasNext();) {
+				TreeNode<T> treeNode = iterator2.next();
+				// 是否应该移除treeNode
+				if(trim(treeNode, vertexs)){
+					// 移除treeNode
+					iterator2.remove();
+				}else{
+					// 不移除treeNode, 那么也不应该移除root
+					f = false;
+				}
+			}
+			return f;
+		}
+
+		
 	}
 }

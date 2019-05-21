@@ -30,7 +30,9 @@ import dat.vo.EchartOptions.DataSet;
 import dat.vo.GraphDrillData;
 import dat.vo.Response;
 import dat.vo.TreeNode;
+import lombok.Data;
 
+@Data
 public class GraphInfoServiceImpl implements GraphInfoService {
 	private static Logger logger = Logger.getLogger(GraphInfoServiceImpl.class);
 	@Autowired

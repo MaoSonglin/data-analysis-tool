@@ -19,10 +19,12 @@ import dat.util.Constant;
 import dat.util.StrUtil;
 import dat.vo.EchartOptions;
 import dat.vo.EchartOptions.Axis;
+import lombok.Data;
 
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Data
 public class GraphInfo implements IdGeneratorable,Serializable{
 	/**
 	 * 
@@ -93,98 +95,13 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.LAZY)
 	@JsonIgnoreProperties({"pkg","columns"})
 	private ReportInfo report;
-	/*
-	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
-	private List<VirtualColumn> categoryColumns;
-	
-	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
-	private List<VirtualColumn> valueColumns;
-	*/
-	
-	public Float getHeight() {
-		return height;
-	}
-
-	public void setHeight(Float height) {
-		this.height = height;
-	}
-
-	public Integer getState() {
-		return state;
-	}
-
-	public void setState(Integer state) {
-		this.state = state;
-	}
-
-	public List<VirtualColumn> getColumns() {
-		return columns;
-	}
-
-	public void setColumns(List<VirtualColumn> columns) {
-		this.columns = columns;
-	}
 
 	public void generateId() {
 		id = "GI"+StrUtil.generatorId().substring(2);
 	}
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public ReportInfo getReport() {
-		return report;
-	}
-
-	public void setReport(ReportInfo report) {
-		this.report = report;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public Float getWidth() {
-		return width;
-	}
-
-	public void setWidth(Float width) {
-		this.width = width;
-	}
-
-
-	public String getParent() {
-		return parent;
-	}
-
-	public void setParent(String parent) {
-		this.parent = parent;
-	}
-
-	public Float getTop() {
-		return top;
-	}
 
 	public EchartOptions getOption(){
-//		JSON.toJavaObject(getOptions(), EchartOptions.class);
 		String text = getOptions();
 		if(text == null)
 			return null;
@@ -200,66 +117,4 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	}
 	
 
-	public void setTop(Float top) {
-		this.top = top;
-	}
-
-	public Float getLeft() {
-		return left;
-	}
-
-	public void setLeft(Float left) {
-		this.left = left;
-	}
-
-/*	public List<VirtualColumn> getColumns() {
-		ArrayList<VirtualColumn> list = new ArrayList<>();
-		List<VirtualColumn> l = getCategoryColumns();
-		if(l != null){
-			list.addAll(l);
-		}
-		List<VirtualColumn> l2 = getValueColumns();
-		if(l2!=null)
-			list.addAll(l2);
-		return list;
-	}
-*/
-	
-
-	/*public List<VirtualColumn> getCategoryColumns() {
-		return categoryColumns;
-	}
-
-	public void setCategoryColumns(List<VirtualColumn> categoryColumns) {
-		this.categoryColumns = categoryColumns;
-	}
-
-	public List<VirtualColumn> getValueColumns() {
-		return valueColumns;
-	}
-
-	public void setValueColumns(List<VirtualColumn> valueColumns) {
-		this.valueColumns = valueColumns;
-	}
-*/
-	public String getOptions() {
-		return options;
-	}
-
-	public void setOptions(String options) {
-		this.options = options;
-	}
-	
-	
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-	public String getDesc() {
-		return desc;
-	}
-
-	public void setDesc(String desc) {
-		this.desc = desc;
-	}
 }

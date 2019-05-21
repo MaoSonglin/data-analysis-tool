@@ -3,6 +3,8 @@ package dat.service;
 import java.util.List;
 import java.util.Map;
 
+import com.tsc9526.monalisa.core.query.datatable.DataMap;
+
 import dat.domain.DataTable;
 import dat.domain.VirtualColumn;
 import dat.domain.VirtualTable;
@@ -112,4 +114,11 @@ public interface VirtualTableService {
 	 * @return
 	 */
 	int getType(VirtualTable table);
+	
+	/**
+	 * 获取数据
+	 * @param id
+	 * @return
+	 */
+	com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> getTableBody(String id);
 }

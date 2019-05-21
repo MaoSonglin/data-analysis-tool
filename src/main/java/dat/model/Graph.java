@@ -121,9 +121,15 @@ public class Graph<T> {
 	 * @param index
 	 * @return
 	 */
+	@Deprecated
 	public Vertex<T> getVertex(int index){
 		return this.vertexs.get(index);
 	}
+	
+	public T getVertexData(int index){
+		return this.getVertexs().get(index).getData();
+	}
+	
 	
 	/**
 	 * 向图中插入一条弧
