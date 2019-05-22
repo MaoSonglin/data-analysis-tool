@@ -704,3 +704,38 @@ Vue.component("position",{
 		}
 	}
 })
+
+Vue.component('bar', {
+	template: '<div :class="cls" :id="id"><div class="abs echart"></div></div>',
+	props: {
+		graph: {
+			type: Object,
+			required: true
+		},
+		id: {
+			type: String,
+			required: true
+		},
+		"cls": {
+			type: String,
+			default: ''
+		}
+	},
+	data: {
+		option: {}
+	},
+	created: function() {
+		this.option = JSON.parse(this.graph.options)
+	},
+	mounted: function() {
+		console.log(this.option)
+		this.echart = echarts.init(this.$el.querySelector(".echart")) 
+		this.echart.setOption(this.option)
+		this.echart.showLoading() 
+		this.$emit("draw",this.echart)
+	},
+	methods: {
+		
+	}
+})
+

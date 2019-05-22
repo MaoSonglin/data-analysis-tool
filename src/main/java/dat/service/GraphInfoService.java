@@ -2,9 +2,13 @@ package dat.service;
 
 import java.util.List;
 
+import com.tsc9526.monalisa.core.query.datatable.DataMap;
+import com.tsc9526.monalisa.core.query.datatable.DataTable;
+
 import dat.domain.GraphInfo;
 import dat.vo.GraphDrillData;
 import dat.vo.Response;
+import dat.vo.SelectVo;
 import dat.vo.TreeNode;
 
 public interface GraphInfoService {
@@ -39,4 +43,25 @@ public interface GraphInfoService {
 	Response addColumn(String gpid, String vcid);
 
 	Response getAthers(String id);
+	
+	default DataTable<DataMap> getGraphData(String id){
+		return null;
+	}
+
+	/**
+	 * 从报表中移除字段
+	 * @param graphId
+	 * @param vcid
+	 * @return
+	 */
+	GraphInfo dropColumn(String graphId, String vcid);
+	
+	/**
+	 * 获取图表中的数据
+	 * @param selectVo
+	 * @return
+	 */
+	default DataTable<DataMap> getData(SelectVo selectVo){
+		return null;
+	}
 }

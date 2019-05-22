@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import org.apache.commons.codec.binary.StringUtils;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -85,6 +87,7 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	private String options;
 	
 	@ManyToMany(targetEntity=VirtualColumn.class,fetch=FetchType.LAZY)
+	@JsonIgnoreProperties({"refColumns", "table", "graphs"})
 	private List<VirtualColumn> columns;
 	
 	private Integer state;
@@ -95,13 +98,20 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 	@ManyToOne(targetEntity=ReportInfo.class,fetch=FetchType.LAZY)
 	@JsonIgnoreProperties({"pkg","columns"})
 	private ReportInfo report;
-
+	
+	
 	public void generateId() {
 		id = "GI"+StrUtil.generatorId().substring(2);
 	}
 
 
 	public EchartOptions getOption(){
+		if(StringUtils.equals("bar", getType()))
+			return null;
+		if(StringUtils.equals("line", getType()))
+			return null;
+		if(StringUtils.equals("pie", getType()))
+			return null;
 		String text = getOptions();
 		if(text == null)
 			return null;

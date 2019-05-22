@@ -37,31 +37,31 @@
 
 <body>
 <div class="layui-container-fluid">
-    <div class="panel_box row">
+   <div class="panel_box row">
         <div class="panel col">
-            <a href="javascript:;" data-url="page/message/message.html">
+            <a href="javascript:to('datasource/index.html','数据源管理');" data-url="datasource/index.html">
                 <div class="panel_icon">
                     <i class="layui-icon" data-icon=""></i>
                 </div>
                 <div class="panel_word newMessage">
-                    <span>5</span>
-                    <cite>新消息</cite>
+                    <span>1</span>
+                    <cite>数据源</cite>
                 </div>
             </a>
         </div>
         <div class="panel col">
-            <a href="javascript:;" data-url="page/user/allUsers.html">
+            <a href="javascript:to('workset/wp.html','数据包管理');" data-url="workset/wp.html">
                 <div class="panel_icon" style="background-color:#FF5722;">
                     <i class="iconfont icon-dongtaifensishu" data-icon="icon-dongtaifensishu"></i>
                 </div>
                 <div class="panel_word userAll">
-                    <span>3</span>
-                    <cite>新增人数</cite>
+                    <span>1</span>
+                    <cite>业务包</cite>
                 </div>
             </a>
         </div>
         <div class="panel col">
-            <a href="javascript:;" data-url="page/user/allUsers.html">
+            <a href="javascript:to('setting/users.html','用户管理');" data-url="page/user/allUsers.html">
                 <div class="panel_icon" style="background-color:#009688;">
                     <i class="layui-icon" data-icon=""></i>
                 </div>
@@ -72,41 +72,42 @@
             </a>
         </div>
         <div class="panel col">
-            <a href="javascript:;" data-url="page/img/images.html">
+            <a href="javascript:to('report/list.html','报表管理');" data-url="page/img/images.html">
                 <div class="panel_icon" style="background-color:#5FB878;">
                     <i class="layui-icon" data-icon=""></i>
                 </div>
                 <div class="panel_word imgAll">
-                    <span>31</span>
-                    <cite>图片总数</cite>
+                    <span>223</span>
+                    <cite>报表管理</cite>
                 </div>
             </a>
         </div>
         <div class="panel col">
-            <a href="javascript:;" data-url="page/news/newsList.html">
+            <a href="javascript:to('datasource/tables.html','数据表');" data-url="page/news/newsList.html">
                 <div class="panel_icon" style="background-color:#F7B824;">
                     <i class="iconfont icon-wenben" data-icon="icon-wenben"></i>
                 </div>
                 <div class="panel_word waitNews">
-                    <span>13</span>
-                    <cite>待审核文章</cite>
+                    <span>123</span>
+                    <cite>数据表查询</cite>
                 </div>
             </a>
         </div>
         <div class="panel col max_panel">
-            <a href="javascript:;" data-url="page/news/newsList.html">
+            <a href="javascript:to('','');" data-url="page/news/newsList.html">
                 <div class="panel_icon" style="background-color:#2F4056;">
                     <i class="iconfont icon-text" data-icon="icon-text"></i>
                 </div>
                 <div class="panel_word allNews">
-                    <span>30</span>
-                    <em>文章总数</em>
-                    <cite>文章列表</cite>
+                    <span>309</span>
+                    <!-- <em></em> -->
+                    <cite>菜单设置</cite>
                 </div>
             </a>
         </div>
     </div>
 
+	
     <div class="layui-row layui-col-space10">
         <div class="layui-col-md4">
             <blockquote class="layui-elem-quote title">某地区蒸发量和降水量</blockquote>
@@ -149,7 +150,7 @@
         </div>
     </div>
 
-    <div class="layui-row layui-col-space10">
+  <!--  <div class="layui-row layui-col-space10">
         <div class="layui-col-md4">
             <blockquote class="layui-elem-quote title">最新文章<i class="iconfont icon-new1"></i></blockquote>
             <table class="layui-table" lay-skin="line">
@@ -259,7 +260,7 @@
             </table>
         </div>
     </div>
-
+ -->
 </div>
 
 <script type="text/javascript" src="./static/plugins/echarts/echarts.min.js"></script>
@@ -273,6 +274,9 @@
         s.parentNode.insertBefore(hm, s);
     })();
     // 百度统计代码结束
+	function to(url,name) {
+		window.parent.addParentTab({ href: url, title: name})
+	}
 </script>
 </body>
 </html>

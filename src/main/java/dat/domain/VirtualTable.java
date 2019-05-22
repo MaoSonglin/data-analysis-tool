@@ -19,7 +19,9 @@ import dat.util.StrUtil;
 
 /**
  * @author MaoSonglin
- * 数据包中的虚拟表实体类对象
+ * 数据包中的虚拟表实体类对象<br>
+ * 关联属性包括:<br>
+ * columns packages
  */
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
@@ -54,20 +56,6 @@ public class VirtualTable implements IdGeneratorable{
 	@JsonIgnore
 	private List<WorkPackage> packages;
 	
-	/**
-	 * 该表引用的其他对象
-	 */
-/*	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="primaryTable")
-	@JsonIgnore
-	private List<Reference> references;*/
-	
-	/**
-	 * 引用该表的对象
-	 */
-/*	@OneToMany(targetEntity=Reference.class,fetch=FetchType.LAZY,mappedBy="referencedTable")
-	@JsonIgnore
-	private List<Reference> referencedBy;
-*/
 	public VirtualTable() {
 		super();
 	}
@@ -174,7 +162,7 @@ public class VirtualTable implements IdGeneratorable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
 		return result;
 	}
 
@@ -184,13 +172,13 @@ public class VirtualTable implements IdGeneratorable{
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if(!getClass().isAssignableFrom(obj.getClass()))
 			return false;
 		VirtualTable other = (VirtualTable) obj;
-		if (id == null) {
-			if (other.id != null)
+		if (getId() == null) {
+			if (other.getId() != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!getId().equals(other.getId()))
 			return false;
 		return true;
 	}

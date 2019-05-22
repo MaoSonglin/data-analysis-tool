@@ -1,7 +1,6 @@
 package dat.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -17,14 +16,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import dat.util.StrUtil;
+import lombok.Data;
 
 /**
  * @author MaoSonglin
- * 数据包中的数据表包含的虚拟字段类
+ * 数据包中的数据表包含的虚拟字段类<br>
+ * 关联属性包括：<br>
+ * refColumns<br>
+ * table<br>
+ * graphs
  */ 
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Data
 public class VirtualColumn implements Serializable{
 	
 	/**
@@ -70,112 +75,14 @@ public class VirtualColumn implements Serializable{
 	@ManyToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY)
 	private List<GraphInfo> graphs;
 	
-	public String getId() {
-		return id;
-	}
-
-	public String getTypeName() {
-		return typeName;
-	}
-
-	public void setTypeName(String typeName) {
-		this.typeName = typeName;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
+	 
 	
 	public void setId(){
 		String id = StrUtil.generatorId();
 		setId("VC"+id.substring(2));
 	}
-	public String getName() {
-		return name;
-	}
-
-	/*public Reference getReference() {
-		return reference;
-	}
-
-	public void setReference(Reference reference) {
-		this.reference = reference;
-	}
-
-	public List<Reference> getReferencedBy() {
-		return referencedBy;
-	}
-
-	public void setReferencedBy(List<Reference> referencedBy) {
-		this.referencedBy = referencedBy;
-	}*/
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-	public List<GraphInfo> getGraphs() {
-		return graphs;
-	}
-
-	public void setGraphs(List<GraphInfo> graphs) {
-		this.graphs = graphs;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getChinese() {
-		return chinese;
-	}
-
-	public VirtualTable getTable() {
-		return table;
-	}
-
-	public void setTable(VirtualTable table) {
-		this.table = table;
-	}
-
-	public void setChinese(String chinese) {
-		this.chinese = chinese;
-	}
-
-//	public List<Category> getCategories() {
-//		return categories;
-//	}
-//
-//	public void setCategories(List<Category> categories) {
-//		this.categories = categories;
-//	}
-
-	public Integer getState() {
-		return state;
-	}
-
-	public void setState(Integer state) {
-		this.state = state;
-	}
-
-	public String getFormula() {
-		return formula;
-	}
-
-	public void setFormula(String formula) {
-		this.formula = formula;
-	}
-
-	public List<TableColumn> getRefColumns() {
-		if(refColumns == null)
-			refColumns = new ArrayList<>();
-		return refColumns;
-	}
-
-	public void setRefColumns(List<TableColumn> refColumns) {
-		this.refColumns = refColumns;
-	}
-
+ 
+	 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -209,26 +116,10 @@ public class VirtualColumn implements Serializable{
 				+ table + "]";
 	}
 
-	public String getRemask() {
-		return remask;
-	}
-
-	public void setRemask(String remask) {
-		this.remask = remask;
-	}
+	 
 
 	
 	public String getRela(){
-		/*Reference reference = getReference();
-		if(reference != null){
-			VirtualTable virtualTable = reference.getReferencedTable();
-			String chinese = virtualTable.getChinese();
-			String tableName = chinese == null ? virtualTable.getName() : chinese;
-			VirtualColumn virtualColumn = reference.getReferencedColumn();
-			chinese = virtualColumn.getChinese();
-			String columnName = chinese == null ? virtualColumn.getName() : chinese;
-			return tableName+"."+columnName;
-		}*/
 		return null;
 	}
 }

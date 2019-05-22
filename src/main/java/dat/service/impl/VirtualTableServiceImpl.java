@@ -16,8 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
@@ -27,7 +27,6 @@ import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.tsc9526.monalisa.core.query.datatable.DataMap;
@@ -57,11 +56,11 @@ import dat.service.VirtualTableService;
 import dat.service.WorkPackageService;
 import dat.util.Connectivity;
 import dat.util.Constant;
+import dat.util.FormulaParser;
 import dat.util.Kruskal;
 import dat.vo.Response;
 import lombok.Data;
 
-@Service
 @Data
 public class VirtualTableServiceImpl implements VirtualTableService {
 
@@ -506,7 +505,7 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 		ps.clearBatch();
 	}
 
-	private String insertSql(VirtualTable table){
+	protected String insertSql(VirtualTable table){
 		List<VirtualColumn> columns = table.getColumns();
 		String id2 = table.getId();
 		// SQL缓冲区 
@@ -580,9 +579,13 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 			// 根据系统中的外键构建一张网图
 			DataTable dataTable = foreignKey.getDataTable();
 			DataTable refTable = foreignKey.getReferencedTable();
+			if(dataTable == null || refTable == null){
+				logger.error("为什么会有null出现"+foreignKey);
+			}
 			graph.addVertex(dataTable);
 			graph.addVertex(refTable);
-			graph.addArc(dataTable, refTable);
+			if(!dataTable.equals(refTable))
+				graph.addArc(dataTable, refTable);
 		}
 		
 		Connectivity<DataTable> cty = new Connectivity<DataTable>(graph);
@@ -610,10 +613,33 @@ public class VirtualTableServiceImpl implements VirtualTableService {
 					result = result.joinFull(tmpTable, "rownum", "rownum");
 				}
 			}
-			
 		}
-		
-		return result;
+
+		com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> j = new com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap>();
+		// 公式计算
+		FormulaParser formulaParser = new FormulaParser();
+		int rownum = 0;
+		for (DataMap dataMap : result) {
+			DataMap tmpMap = new DataMap();
+			for (VirtualColumn column : columns) {
+				HashMap<String,String> map = new HashMap<String,String>();
+				List<TableColumn> refColumns = column.getRefColumns();
+				for (TableColumn tableColumn : refColumns) {
+					Object object = dataMap.get(tableColumn.getColumnName());
+					if(object != null){
+						map.put(tableColumn.getId(), object.toString());
+					}
+				}
+				String formula = column.getFormula();
+				formulaParser.setFormula(formula);
+				formulaParser.setValues(map);
+				String value = formulaParser.getValue();
+				tmpMap.put(column.getName(), value);
+			}
+			tmpMap.put("rownum", ++rownum);
+			j.add(tmpMap);
+		}
+		return j;
 	}
 
 	private com.tsc9526.monalisa.core.query.datatable.DataTable<DataMap> build(TreeNode<DataTable> treeNode) {

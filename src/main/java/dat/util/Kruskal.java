@@ -96,17 +96,18 @@ public class Kruskal {
 			}
 		}
 		
-		if(list.isEmpty()){
-			return new Tree<>(null);
-		}else{
-			return new Tree<>(build(graph, list, 0));
-		}
+		return new Tree<>(build(graph, list, 0));
 	}
 
 	
+	@SuppressWarnings("deprecation")
 	private <T> TreeNode<T> build(Graph<T> graph, List<Edge> edges, int index){
 		TreeNode<T> root = null;
-		
+		if(edges.isEmpty()){
+			T vertexData = graph.getVertexData(index);
+			root = new TreeNode<>(vertexData);
+			return root;
+		}
 		for(int i = 0; i < edges.size(); i++){
 			Edge ei = edges.get(i);
 			for(int j = 0; j < edges.size(); j++){
@@ -135,6 +136,7 @@ public class Kruskal {
 		
 		return root;
 	}
+	@SuppressWarnings("deprecation")
 	private <T> void tmp(Graph<T> graph, List<Edge> edges, Edge edge, TreeNode<T> n2) {
 		for (Edge tmpEdge : edges) {
 			if(tmpEdge.start == edge.end){

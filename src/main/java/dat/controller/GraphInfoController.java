@@ -1,7 +1,5 @@
 package dat.controller;
 
-import java.util.List;
-
 import javax.annotation.Resource;
 
 import org.jboss.logging.Logger;
@@ -12,14 +10,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dat.App;
+import com.tsc9526.monalisa.core.query.datatable.DataMap;
+import com.tsc9526.monalisa.core.query.datatable.DataTable;
+
 import dat.domain.GraphInfo;
 import dat.service.GraphInfoService;
-import dat.service.VirtualTableService;
-import dat.service.WorkPackageService;
 import dat.util.Constant;
 import dat.vo.GraphDrillData;
 import dat.vo.Response;
+import dat.vo.SelectVo;
 import dat.vo.TreeNode;
 
 /**
@@ -98,31 +97,32 @@ public class GraphInfoController {
 		return response;
 	}
 	
+	@DeleteMapping("/{graphId}/{vcid}")
+	public Response deletex(@PathVariable String graphId, @PathVariable String vcid){
+		GraphInfo graphInfo = graphInfoService.dropColumn(graphId,vcid);
+		return new Response(Constant.SUCCESS_CODE,"删除成功",graphInfo);
+	}
+	
 	
 	@GetMapping({"/data/{graphId}/{curPage}/{pageSize}","/data/{graphId}"})
 	public Response getData(@PathVariable String graphId) throws Exception{
 		try {
-			List<List<String>> data = graphInfoService.getData(graphId);
-			return new Response(Constant.SUCCESS_CODE,"查询成功",data);
+//			List<List<String>> data = graphInfoService.getData(graphId);
+			DataTable<DataMap> dataTable = graphInfoService.getGraphData(graphId);
+			return new Response(Constant.SUCCESS_CODE,"查询成功",dataTable);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new Response(Constant.ERROR_CODE,e.getMessage());
 		}
 	}
 	
-	@GetMapping("/tree")
-	public Response getTree(String id){
-		if(id == null || "".equals(id)){
-			throw new IllegalArgumentException("ID不能为null");
-		}
-		if(id.startsWith("PKG")){
-			WorkPackageService pkgService = App.getContext().getBean(WorkPackageService.class);
-			Response tables = pkgService.getTables(id);
-			return tables;
-		}else if(id.startsWith("VT")){
-			return App.getContext().getBean(VirtualTableService.class).getVirtualColumns(id);
-		}
-		return null;
+	@GetMapping("/tree/{id}")
+	public Response getTree(@PathVariable String id){
+		if(id == null)
+			return new Response(Constant.ERROR_CODE,"请输入图表ID", id);
+		TreeNode tree = graphInfoService.findTree(id);
+		Response response = new Response(Constant.SUCCESS_CODE,"查询成功",tree);
+		return response;
 	}
 	
 	@RequestMapping("/drill")
@@ -132,11 +132,15 @@ public class GraphInfoController {
 		return drill;
 	}
 	
-	@GetMapping("/tree/{id}")
-	public Response tree(@PathVariable String id){
-		TreeNode node = graphInfoService.findTree(id);
-		return new Response(Constant.SUCCESS_CODE,"查询成功",node);
+	@RequestMapping("/source")
+	public Object getSource(SelectVo selectVo){
+		if(selectVo.getGraphId() == null)
+			return new Response(Constant.ERROR_CODE,"请输入查询图表ID",null);
+		DataTable<DataMap> data = graphInfoService.getData(selectVo);
+		
+		return new Response(Constant.SUCCESS_CODE,"查询成功",data);
 	}
+	
 	
 	
 	/**

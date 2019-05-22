@@ -3,6 +3,7 @@ package dat.service.impl;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.criteria.Predicate;
 
@@ -18,6 +19,9 @@ import dat.data.LocalDataAdapter;
 import dat.data.LocalDataAdapter.SqlBuilder;
 import dat.data.TempTableAdapter;
 import dat.domain.GraphInfo;
+import dat.domain.VirtualColumn;
+import dat.domain.VirtualTable;
+import dat.domain.WorkPackage;
 import dat.repos.GraphInfoRepository;
 import dat.repos.TableColumnRepository;
 import dat.repos.VirtualColumnRepository;
@@ -33,6 +37,8 @@ import dat.vo.TreeNode;
 import lombok.Data;
 
 @Data
+//@Service
+//@ConditionalOnMissingBean(GraphInfoService.class)
 public class GraphInfoServiceImpl implements GraphInfoService {
 	private static Logger logger = Logger.getLogger(GraphInfoServiceImpl.class);
 	@Autowired
@@ -101,14 +107,45 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 
 	@Override
 	public TreeNode findTree(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		GraphInfo orElse = this.graphInfoRepos.findById(id).orElse(null);
+		if(orElse == null)
+			throw new RuntimeException("图表不存在");
+		WorkPackage pkg = orElse.getReport().getPkg();
+		
+		List<VirtualColumn> excludes = orElse.getColumns();
+		
+		TreeNode root = new TreeNode(pkg.getId(),pkg.getName(),new ArrayList<>());
+		List<VirtualTable> tables = pkg.getTables();
+		for (VirtualTable virtualTable : tables) {
+			// 遍历数据包中的数据表
+			TreeNode treeNode = new TreeNode(virtualTable.getId(),virtualTable.getChinese()!=null?virtualTable.getChinese():virtualTable.getName(),new ArrayList<>());
+			// 数据表中的字段
+			for (VirtualColumn virtualColumn : virtualTable.getColumns()) {
+				// 不添加已经添加到图表中的字段
+				if(excludes.contains(virtualColumn))
+					continue;
+				TreeNode tn = new TreeNode();
+				tn.setId(virtualColumn.getId());
+				tn.setText(virtualColumn.getChinese() != null ? virtualColumn.getChinese():virtualColumn.getName());
+				tn.setText(tn.getText()+"("+virtualColumn.getTypeName()+")");
+				tn.setType(virtualColumn.getTypeName());
+				treeNode.getNodes().add(tn);
+			}
+			root.getNodes().add(treeNode);
+		}
+		return root;
 	}
 
 	@Override
+	@Transactional
 	public Response addColumn(String gpid, String vcid) {
-		// TODO Auto-generated method stub
-		return null;
+		GraphInfo graphInfo = this.graphInfoRepos.findById(gpid).get();
+		VirtualColumn virtualColumn = virtualColumnRepos.findById(vcid).get();
+		graphInfo.getColumns().add(virtualColumn);
+		GraphInfo save = graphInfoRepos.save(graphInfo);
+		Response response = new Response(Constant.SUCCESS_CODE,"添加成功");
+		response.setData(save);
+		return response;
 	}
 
 	@Override
@@ -234,6 +271,18 @@ public class GraphInfoServiceImpl implements GraphInfoService {
 		dataSet.setDimensions(dismissions);
 		dataSet.setSource(source);
 		return new Response(Constant.SUCCESS_CODE,"查询成功",dataSet);
+	}
+
+	@Override
+	@Transactional
+	public GraphInfo dropColumn(String graphId, String vcid) {
+		Optional<GraphInfo> optional = this.graphInfoRepos.findById(graphId);
+		GraphInfo graphInfo = optional.get();
+		Optional<VirtualColumn> findById = this.virtualColumnRepos.findById(vcid);
+		VirtualColumn virtualColumn = findById.get();
+		graphInfo.getColumns().remove(virtualColumn);
+		GraphInfo save = graphInfoRepos.save(graphInfo);
+		return save;
 	}
 
 }

@@ -294,6 +294,11 @@
 						layer.msg(res.body.message)
 					}
 				})
+				// for(let i in data)
+				// this.graph.columns.push(data[i])
+				// this.$http.post(basePath + 'graph', tile(this.graph)).then(res => {
+				// 	this.$set(this.graph,"columns",res.body.data.columns)
+				// })
 			})
 		},
 	})

@@ -195,7 +195,11 @@
 				layui.table.on("tool(reportList)",function(obj){
 					switch(obj.event){
 						case 'edit': // 编辑按钮点击
-						window.parent.addParentTab({href:"report/edit.html?reportId="+obj.data.id,title:"编辑报表:"+obj.data.name})
+						if(window.parent.addParentTab){
+							window.parent.addParentTab({href:"report/edit.html?reportId="+obj.data.id+"&pkgId="+obj.data.pkg.id,title:"编辑报表:"+obj.data.name})
+						}else{
+							location.href = "edit.html?reportId="+obj.data.id+"&pkgId="+obj.data.pkg.id
+						}
 						break;
 						case 'del': // 删除按钮点击
 						layer.confirm("您确定要删除报表\""+obj.data.name+"\"吗？",{

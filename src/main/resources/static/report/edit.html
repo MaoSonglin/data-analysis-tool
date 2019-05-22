@@ -28,6 +28,7 @@
 					   v-on:draw="afterDraw($event)" v-on:mounted="test($event)" 
 					   v-on:data="dataChange(graph,$event)" v-on:echart="echartClick(graph,$event)" ></echart>
 					<paragraph  v-if="graph.type=='paragraph'" v-bind:graph="graph"></paragraph>
+					<bar v-if="graph.type === 'bar'" v-bind:graph="graph" v-on:draw="afterDraw($event)"></bar>
 					<size v-bind:graph="graph" v-on:repos="repos($event)" ></size>
 					<div class="toolbar"> 
 						<i class="layui-icon layui-icon-delete pull-right" @click="del(graph,$event)"></i>
@@ -109,7 +110,31 @@
 			</form>
 		</div>
 		
-		
+		<div class="" id="dialog-3" style="display: none;">
+			<form id="addform-3" action="#" method="" class="form-horizontal">
+				<div class="form-group">
+					
+				</div>
+				<div class="form-group form-group-sm">
+					<label class="control-label col-xs-2" for="title">名称</label>
+					<div class="col-xs-10">
+						<input class="form-control" type="text" name="title" id="title" v-model="graph.title" autocomplete="off" autofocus="autofocus" placeholder="请输入图表标题" />
+					</div>
+				</div>
+				<div class="form-group form-group-sm">
+					<label class="control-label col-xs-2" for="type">类型</label>
+					<div class="col-xs-10">
+						<select class="form-control" name="type" id="type" v-model="graph.type">
+							<option value="graph" selected="selected">图表</option>
+							<option value="child-graph">子图</option>
+							<option value ="table">表格</option>
+							<option value="paragraph">文字</option>
+						</select>
+					</div>
+				</div>
+				
+			</form>
+		</div>
 	</body>
 	<script src="../static/plugins/jquery/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../static/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>

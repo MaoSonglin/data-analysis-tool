@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -55,7 +56,10 @@ public class ExcelMonalise extends MonaliseDataSource {
 		// 
 		Map<Integer,TableColumn> map = new HashMap<>();
 		for(int i = row.getFirstCellNum(); i <= row.getLastCellNum(); i++){
-			String columnName = row.getCell(i).getStringCellValue();
+			Cell cell = row.getCell(i);
+			if(cell == null)
+				continue;
+			String columnName = cell.getStringCellValue();
 			for (TableColumn column : columns) {
 				if(StringUtils.equalsIgnoreCase(column.getColumnName(), columnName))
 					map.put(i, column);
@@ -70,6 +74,9 @@ public class ExcelMonalise extends MonaliseDataSource {
 			DataMap dataMap = new DataMap();
 			for (Entry<Integer, TableColumn> entry : entrySet) {
 				Cell cell = tmp.getCell(entry.getKey());
+				if(cell == null)
+					continue;
+				cell.setCellType(CellType.STRING);
 				String value = cell.getStringCellValue();
 				String columnName = entry.getValue().getColumnName();
 				dataMap.put(columnName, value);
