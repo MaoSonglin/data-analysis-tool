@@ -9,6 +9,16 @@
 		<link rel="stylesheet" type="text/css" href="../static/plugins/layui/css/layui.css"/>
 		<link rel="stylesheet" type="text/css" href="../res/css/workset/create_field.css"/>
 		<link rel="stylesheet" href="../static/plugins/font-awesome/css/font-awesome.css">
+		<style>
+			.map td{
+				padding:5px 10px;
+				text-align: center;
+				cursor: pointer;
+			}
+			.map td:hover{
+				background-color: rgba(109,201,19, 0.2);
+			}
+		</style>
 	</head>
 	<body>
 		<div id="app" class="wrapper">
@@ -29,10 +39,43 @@
 					</div>
 					<div class="form-group">
 						<label for="formula2" class="col-md-2 control-label">编辑字段</label>
-						<div class="col-md-8">
+						<div class="col-md-4">
 							<textarea class="form-control" name="formula" id="formula2"
 							 cols="20" rows="5" v-model="formula"
-							  placeholder="编辑公式" @keydown="input($event)" @keypress="input2($event)" ></textarea>
+							  placeholder="编辑公式" readonly="readonly" ></textarea>
+						</div>
+						<div class="col-md-4">
+							<table @click="input($event)" class="map" cellpadding="10" cellspacing="0" border="1" width="200px">
+								<tr>
+									<td>(</td>
+									<td>)</td>
+									<td colspan="2">←</td>
+								</tr>
+								<tr>
+									<td>7</td>
+									<td>8</td>
+									<td>9</td>
+									<td>+</td>
+								</tr>
+								<tr>
+									<td>4</td>
+									<td>5</td>
+									<td>6</td>
+									<td>-</td>
+								</tr>
+								<tr>
+									<td>1</td>
+									<td>2</td>
+									<td>3</td>
+									<td>*</td>
+								</tr>
+								<tr>
+									<td colspan="2">0</td>
+									<td>.</td>
+									<td>/</td>
+								</tr>
+							</table>
+							
 						</div>
 					</div>
 					<div class="form-group">

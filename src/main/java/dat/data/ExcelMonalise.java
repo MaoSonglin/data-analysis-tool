@@ -25,7 +25,9 @@ import dat.App;
 import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.service.UploadFileService;
+import lombok.Cleanup;
 
+@Deprecated
 public class ExcelMonalise extends MonaliseDataSource {
 
 	protected ExcelMonalise(Source source) {
@@ -39,7 +41,7 @@ public class ExcelMonalise extends MonaliseDataSource {
 			throw new Exception("Excel文件不存在");
 		
 		String extension = FilenameUtils.getExtension(file.getName());
-		Workbook workbook = null;
+		@Cleanup Workbook workbook = null;
 		if("xls".equalsIgnoreCase(extension)){
 			workbook = new HSSFWorkbook(new FileInputStream(file));
 		}
@@ -83,8 +85,7 @@ public class ExcelMonalise extends MonaliseDataSource {
 			}
 			dataTable.add(dataMap);
 		}
-		
-		workbook.close();
+		 
 		
 		return dataTable;
 	}

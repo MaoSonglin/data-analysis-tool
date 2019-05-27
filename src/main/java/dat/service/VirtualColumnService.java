@@ -31,4 +31,8 @@ public interface VirtualColumnService {
 
 	Response createField(VirtualColumn column, ClassifyFormula classifyFormula);
 
+	VirtualColumn update(VirtualColumn column);
+
+	boolean validate(String formula);
+
 }

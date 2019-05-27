@@ -9,16 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-
-
-
-
-
-
-
-
 import dat.domain.UploadFile;
 import dat.vo.ClassifyFormula;
+import lombok.Getter;
 
 public class FormulaParser {
 	
@@ -89,13 +82,8 @@ public class FormulaParser {
 
 	public boolean validate(String formula){
 		Expression expression = new Expression(formula);
-		try {
-			expression.getValue();
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+
+		return expression.validate();
 	}
 	
 	public String getValue(){
@@ -243,6 +231,7 @@ class Expression{
 		set.add(")");
 		set.add("#");
 	}
+	@Getter
 	String express;
 
 	public Expression() {
@@ -252,6 +241,49 @@ class Expression{
 	 
 
 	
+	public boolean validate() {
+		Stack<String> opnd = new Stack<>();
+		Stack<String> optr = new Stack<>();
+		optr.push("#");
+		List<String> tokens = getTokens();
+		tokens.add("#");
+		Iterator<String> iterator = tokens.iterator();
+		String token = iterator.next();
+		while(!"#".equals(token) || !"#".equals(optr.peek())){
+			
+			if(!set.contains(token)){
+				opnd.push(token);
+				token = iterator.next();
+			}
+			else{
+				String peek = optr.peek();
+				switch(precede(peek,token)){
+				case '<':
+					optr.push(token);
+					token = iterator.next();
+					break;
+				case '>':
+					optr.pop();
+					opnd.pop();
+					opnd.pop();
+					opnd.push("true");
+					break;
+				case '=':
+					optr.pop();
+					token = iterator.next();
+					break;
+				default:
+					throw new IllegalArgumentException("未定义的优先级");
+				}
+			}
+		}
+		String value = opnd.peek();
+		return "true".equals(value);
+	}
+
+
+
+
 	public Expression(String express) {
 		super();
 		this.express = express;
@@ -302,7 +334,7 @@ class Expression{
 	}
 
 
-	private char precede(String peek, String token) {
+	protected char precede(String peek, String token) {
 		switch(peek){
 		case "+":
 		case "-":
@@ -380,7 +412,7 @@ class Expression{
 	/**
 	 * @return
 	 */
-	private List<String> getTokens() {
+	protected List<String> getTokens() {
 		char[] charArray = this.express.toCharArray();
 		List<String> tokens = new ArrayList<>();
 		StringBuffer buffer = new StringBuffer();

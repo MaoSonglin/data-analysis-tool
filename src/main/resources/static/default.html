@@ -25,6 +25,9 @@
     <script type="text/javascript" src="./topjui/js/locale/topjui.lang.zh_CN.js"></script>
     <!-- layui框架js -->
     <script src="./static/plugins/layui/layui.js" charset="utf-8"></script>
+	
+	
+	
     <style>
         .layui-badge {
             height: initial;
@@ -36,16 +39,18 @@
 </head>
 
 <body>
-<div class="layui-container-fluid">
-   <div class="panel_box row">
-        <div class="panel col">
-            <a href="javascript:to('datasource/index.html','数据源管理');" data-url="datasource/index.html">
+<div class="layui-container-fluid" >
+   <div class="panel_box row" id="app">
+        <div class="panel col" v-for="(report, index) in list" :key="index">
+            <a href="javascript:to('datasource/index.html','数据源管理');"
+			 :href="'report.html?reportId='+report.id"
+			  data-url="datasource/index.html">
                 <div class="panel_icon">
                     <i class="layui-icon" data-icon=""></i>
                 </div>
                 <div class="panel_word newMessage">
                     <span>1</span>
-                    <cite>数据源</cite>
+                    <cite v-html="report.name">数据源</cite>
                 </div>
             </a>
         </div>
@@ -100,7 +105,7 @@
                 </div>
                 <div class="panel_word allNews">
                     <span>309</span>
-                    <!-- <em></em> -->
+                    <em></em>
                     <cite>菜单设置</cite>
                 </div>
             </a>
@@ -264,19 +269,32 @@
 </div>
 
 <script type="text/javascript" src="./static/plugins/echarts/echarts.min.js"></script>
+<script src="res/js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="res/js/vue-resource.js"></script>
 <script type="text/javascript">
-    // 百度统计代码开始
-    var _hmt = _hmt || [];
-    (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?71559c3bdac3e45bebab67a5a841c70e";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-    })();
-    // 百度统计代码结束
 	function to(url,name) {
 		window.parent.addParentTab({ href: url, title: name})
 	}
+</script>
+<script src="res/js/my-global.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	Vue.http.options.withCredentials = true
+	Vue.http.options.emulateJSON = true
+	new Vue({
+		el: '#app',
+		data: {
+			list: []
+		},
+		created: function(){
+			this.$http.get(basePath+'graph/list').then(res => {
+				console.log(res)
+			})
+		},
+		method: {
+			
+		}
+	})
+	
 </script>
 </body>
 </html>

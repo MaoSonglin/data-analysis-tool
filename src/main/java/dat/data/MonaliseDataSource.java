@@ -15,6 +15,7 @@ import dat.util.Constant;
 
 public abstract class MonaliseDataSource {
 
+	@SuppressWarnings("deprecation")
 	public static MonaliseDataSource from(Source source){
 		String databaseName = source.getDatabaseName();
 		switch(databaseName){

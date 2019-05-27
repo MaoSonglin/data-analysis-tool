@@ -106,24 +106,54 @@ public class GraphInfo implements IdGeneratorable,Serializable{
 
 
 	public EchartOptions getOption(){
-		if(StringUtils.equals("bar", getType()))
-			return null;
-		if(StringUtils.equals("line", getType()))
-			return null;
-		if(StringUtils.equals("pie", getType()))
-			return null;
-		String text = getOptions();
-		if(text == null)
-			return null;
-		EchartOptions opt = JSON.parseObject(text,EchartOptions.class);
-		JSONObject parseObject = JSON.parseObject(text);
-		JSONObject jsonObject = parseObject.getJSONObject("xAxis");
-		Axis javaObject = JSON.toJavaObject(jsonObject, Axis.class);
-		opt.setXaxis(javaObject);
-		JSONObject object = parseObject.getJSONObject("yAxis");
-		Axis y = JSON.toJavaObject(object, Axis.class);
-		opt.setyAxis(y);
-		return opt;
+		try {
+			if(StringUtils.equals("bar", getType()))
+				return null;
+			if(StringUtils.equals("line", getType()))
+				return null;
+			if(StringUtils.equals("pie", getType()))
+				return null;
+			String text = getOptions();
+			if(text == null)
+				return null;
+			EchartOptions opt = JSON.parseObject(text,EchartOptions.class);
+			JSONObject parseObject = JSON.parseObject(text);
+			JSONObject jsonObject = parseObject.getJSONObject("xAxis");
+			Axis javaObject = JSON.toJavaObject(jsonObject, Axis.class);
+			opt.setXaxis(javaObject);
+			JSONObject object = parseObject.getJSONObject("yAxis");
+			Axis y = JSON.toJavaObject(object, Axis.class);
+			opt.setyAxis(y);
+			return opt;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new EchartOptions();
+		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GraphInfo other = (GraphInfo) obj;
+		if (getId() == null) {
+			if (other.getId() != null)
+				return false;
+		} else if (!getId().equals(other.getId()))
+			return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
+		return result;
 	}
 	
 

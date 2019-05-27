@@ -205,7 +205,7 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 		List<VirtualColumn> list = vcRepos.saveAll(virtualColumnList);
 
 		// 关联关系
-		saveRelevance(list);
+//		saveRelevance(list);
 		
 		// 将虚拟数据表和数据包关联
 		workPackage.getTables().addAll(saveAll);
@@ -380,7 +380,15 @@ public class WorkPackageServiceImpl implements WorkPackageService {
 			}
 			vc.setState(Constant.ACTIVATE_SATE);
 			vc.setFormula(column.getId());
-			vc.getRefColumns().add(column);
+			List<TableColumn> refColumns = vc.getRefColumns();
+			if(refColumns != null)
+			refColumns.add(column);
+			else{
+				refColumns = new ArrayList<>();
+				vc.setRefColumns(refColumns);
+				refColumns.add(column);
+			}
+			
 			vc.setId();
 			vc.setTable(virtualTable);
 			virtualColumns.add(vc);

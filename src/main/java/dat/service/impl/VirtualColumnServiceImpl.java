@@ -24,6 +24,7 @@ import dat.repos.VirtualColumnRepository;
 import dat.repos.VirtualTableRepository;
 import dat.service.VirtualColumnService;
 import dat.util.Constant;
+import dat.util.MyExpression;
 import dat.vo.ClassifyFormula;
 import dat.vo.Response;
 import dat.vo.VirtualColumnParam;
@@ -206,6 +207,27 @@ public class VirtualColumnServiceImpl implements VirtualColumnService {
 		logger.debug(column);
 		VirtualColumn save = vcRepos.save(column);
 		return new Response(Constant.SUCCESS_CODE,"保存成功",save);
+	}
+
+	@Override
+	@Transactional
+	public VirtualColumn update(VirtualColumn column) {
+		VirtualColumn col = vcRepos.findById(column.getId()).orElse(null);
+		if(col == null)
+			throw new IllegalArgumentException("字段不存在");
+		List<TableColumn> columns = column.getRefColumns();
+		if(columns == null){
+			column.setRefColumns(col.getRefColumns());
+		}
+		VirtualColumn save = vcRepos.save(column);
+		return save;
+	}
+
+	@Override
+	public boolean validate(String formula) {
+		MyExpression myExpression = new MyExpression(formula);
+		boolean validate = myExpression.validate();
+		return validate;
 	}
 
 	

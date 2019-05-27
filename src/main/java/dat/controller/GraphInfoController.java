@@ -58,10 +58,10 @@ public class GraphInfoController {
 	@PostMapping()
 	public Response add(GraphInfo graphInfo){
 		// 检查图表的标题是否为null或者空字符
-		String title = graphInfo.getTitle();
+		/*String title = graphInfo.getTitle();
 		if(title == null || title.trim().isEmpty()){
 			return new Response(Constant.ERROR_CODE,"新建图表标题不能为空",graphInfo);
-		}
+		}*/
 		// 如果图表的ID为null说明是新建的一副图表，需要生成ID
 		if(graphInfo.getId()==null)
 			graphInfo.generateId();

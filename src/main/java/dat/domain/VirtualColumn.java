@@ -72,10 +72,9 @@ public class VirtualColumn implements Serializable{
 	private VirtualTable table;
 
 	@JsonIgnore
-	@ManyToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY)
+	@ManyToMany(targetEntity=GraphInfo.class,fetch=FetchType.LAZY,mappedBy="columns") 
 	private List<GraphInfo> graphs;
 	
-	 
 	
 	public void setId(){
 		String id = StrUtil.generatorId();
@@ -87,7 +86,7 @@ public class VirtualColumn implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
 		return result;
 	}
 
@@ -97,13 +96,13 @@ public class VirtualColumn implements Serializable{
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if(!getClass().isAssignableFrom(obj.getClass()))
 			return false;
 		VirtualColumn other = (VirtualColumn) obj;
-		if (id == null) {
-			if (other.id != null)
+		if (getId() == null) {
+			if (other.getId() != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!getId().equals(other.getId()))
 			return false;
 		return true;
 	}

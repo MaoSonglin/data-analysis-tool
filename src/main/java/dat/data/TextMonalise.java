@@ -23,6 +23,7 @@ import dat.domain.Source;
 import dat.domain.TableColumn;
 import dat.service.UploadFileService;
 
+@Deprecated
 public class TextMonalise extends MonaliseDataSource {
 	
 	private static Logger logger = Logger.getLogger(TextMonalise.class);

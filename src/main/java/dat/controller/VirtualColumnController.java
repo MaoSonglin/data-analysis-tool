@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.druid.util.StringUtils;
+
 import dat.domain.TableColumn;
 import dat.domain.VirtualColumn;
 import dat.service.VirtualColumnService;
@@ -45,8 +47,13 @@ public class VirtualColumnController {
 	
 	@PutMapping
 	public Response update(VirtualColumn column){
-		Response response = virtualColumnService.save(column);
-		return response;
+		try {
+			VirtualColumn update = virtualColumnService.update(column);
+			return new Response(Constant.SUCCESS_CODE,"修改成功",update);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Response(Constant.ERROR_CODE,e.getMessage());
+		}
 	}
 	
 	@PostMapping
@@ -87,5 +94,14 @@ public class VirtualColumnController {
 		VirtualColumn column = virtualColumnService.getById(id);
 		List<TableColumn> columns = column.getRefColumns();
 		return new Response(Constant.SUCCESS_CODE,"查询成功",columns);
+	}
+	
+	@RequestMapping("/formula")
+	public Response validateFormula(String formula){
+		if(StringUtils.isEmpty(formula)){
+			return new Response(Constant.ERROR_CODE,"请输入待验证的公式",formula);
+		}
+		boolean validate = virtualColumnService.validate(formula);
+		return new Response(validate ? Constant.SUCCESS_CODE:Constant.ERROR_CODE);
 	}
 }

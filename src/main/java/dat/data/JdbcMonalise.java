@@ -15,6 +15,7 @@ import dat.domain.TableColumn;
 import dat.service.DataSourceService;
 import dat.util.SqlHelper;
 
+@Deprecated
 class JdbcMonalise extends MonaliseDataSource{
 	private static Logger logger = Logger.getLogger(JdbcMonalise.class);
 	public JdbcMonalise(Source source) {
@@ -32,7 +33,8 @@ class JdbcMonalise extends MonaliseDataSource{
 		sBuffer.append(" from ").append(tableName);
 		String sql = sBuffer.toString();
 		logger.debug(sql);
-		List<DataMap> query = jdbcTemplate.query(sql, (rs, i) -> {
+		DataTable<DataMap> map = new DataTable<>();
+		jdbcTemplate.query(sql, (rs, i) -> {
 			DataMap dataMap = new DataMap();
 			ResultSetMetaData metaData = rs.getMetaData();
 			int columnCount = metaData.getColumnCount();
@@ -43,10 +45,12 @@ class JdbcMonalise extends MonaliseDataSource{
 			}
 			dataMap.put("rownum", i);
 			logger.trace(dataMap);
+			map.add(dataMap);
 			return dataMap;
 		});
 		
-		return (DataTable<DataMap>) query;
+		
+		return map;
 	}
 	
 }
